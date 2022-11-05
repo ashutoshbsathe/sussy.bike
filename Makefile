@@ -10,7 +10,7 @@ OUT_DIR=./bin/
 BIKE_BIN=$(OUT_DIR)/a2-model-bike
 RIDER_BIN=$(OUT_DIR)/a2-model-rider
 TRACK_BIN=$(OUT_DIR)/a2-model-track
-BIN=bike rider track
+BIN=rider
 
 SRC_DIR=./src/
 
