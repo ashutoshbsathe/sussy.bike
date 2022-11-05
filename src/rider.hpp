@@ -1,6 +1,6 @@
 #include "hnode.hpp"
 
-HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id) {
+HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, GLuint normal_matrix_id, GLuint view_matrix_id) {
     unsigned int next_available_vbo_offset;
     // Build leaf to root
     HierarchyNode *head = new HierarchyNode(StackedPolyPrism("./body_parts/head.txt"));
@@ -323,6 +323,8 @@ HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id) {
     torso_2->vbo = vbo;
     torso_2->vbo_offset = 0;
     torso_2->uniform_xform_id = uniform_xform_id;
+    torso_2->normal_matrix_id = normal_matrix_id;
+    torso_2->view_matrix_id = view_matrix_id;
     
     add_edge(torso_2, torso_1, &next_available_vbo_offset);
     add_edge(torso_2, torso_3, &next_available_vbo_offset);

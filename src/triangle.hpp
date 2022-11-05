@@ -1,6 +1,7 @@
 #ifndef __TRIANGLE_H__
 #define __TRIANGLE_H__
 #include "point.hpp"
+#include "glm/geometric.hpp"
 #include <string>
 #include <sstream>
 #include <unordered_set>
@@ -13,9 +14,18 @@ struct Triangle {
     struct Triangle withColor(Point color);
     bool operator<(const struct Triangle &t) const;
     bool operator==(const struct Triangle &t) const;
+    void update_str();
+    glm::vec3 normal;
     struct HashTriangle {
-        size_t operator()(const Triangle &t) const {
-            return std::hash<std::string>()(t.tri_str);
+        size_t operator()(const Triangle &t) const { 
+            std::stringstream ss;
+            ss << "[ ";
+            ss << "(" << (t.p1).x << ", " << (t.p1).y << ", " << (t.p1).z << ") ";
+            ss << "(" << (t.p2).x << ", " << (t.p2).y << ", " << (t.p2).z << ") ";
+            ss << "(" << (t.p3).x << ", " << (t.p3).y << ", " << (t.p3).z << ") ";
+            ss << "{" << (t.normal).x << ", " << (t.normal).y << ", " << (t.normal).z << "} ";
+            ss << "]";
+            return std::hash<std::string>()(ss.str());
         }
     };
 };

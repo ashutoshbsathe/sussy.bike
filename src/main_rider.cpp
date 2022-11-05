@@ -4,20 +4,21 @@
 
 #define MAX_HUMANOID_VBO_BYTES 1024000
 
-GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, position_id, color_id;
+GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, position_id, color_id, normal_id;
 
 glm::mat4 view_matrix;
 glm::mat4 ortho_matrix;
 glm::mat4 projection_matrix;
 glm::mat4 modelviewproject_matrix;
+glm::mat3 normal_matrix;
 
 HierarchyNode *humanoid, *curr_node;
 std::vector<AnimationEntity> entities;
 int entity_idx = 0;
 
 void initShadersGL(void) {
-    std::string vertex_shader_file("generic_vs.glsl");
-    std::string fragment_shader_file("generic_fs.glsl");
+    std::string vertex_shader_file("shading_vs.glsl");
+    std::string fragment_shader_file("shading_fs.glsl");
 
     std::vector<GLuint> shaderList;
     shaderList.push_back(csX75::LoadShaderGL(GL_VERTEX_SHADER, vertex_shader_file));
@@ -26,7 +27,10 @@ void initShadersGL(void) {
     shader_program = csX75::CreateProgramGL(shaderList);
     position_id = glGetAttribLocation(shader_program, "vPosition");
     color_id = glGetAttribLocation(shader_program, "vColor");
+    normal_id = glGetAttribLocation(shader_program, "vNormal");
     uModelViewProjectMatrix_id = glGetUniformLocation(shader_program, "uModelViewProjectMatrix");
+    uNormalMatrix_id = glGetUniformLocation(shader_program, "uNormalMatrix");
+    uViewMatrix_id = glGetUniformLocation(shader_program, "uViewMatrix");
 }
 
 void initVertexBufferGL(void) {
@@ -41,7 +45,7 @@ void initVertexBufferGL(void) {
     
     glBufferData(GL_ARRAY_BUFFER, MAX_HUMANOID_VBO_BYTES, NULL, GL_STATIC_DRAW);
     
-    humanoid = build_humanoid(vao, vbo, uModelViewProjectMatrix_id);
+    humanoid = build_humanoid(vao, vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id);
     humanoid->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_rider", humanoid));
     curr_node = humanoid;
@@ -50,10 +54,13 @@ void initVertexBufferGL(void) {
     // Enable the vertex attribute
     // Excellent answer -- https://stackoverflow.com/a/39684775
     glEnableVertexAttribArray (position_id);
-    glVertexAttribPointer (position_id, 3, GL_FLOAT, GL_FALSE, 3 * 2 * sizeof(float), BUFFER_OFFSET(0));
+    glVertexAttribPointer (position_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(0));
 
     glEnableVertexAttribArray(color_id);
-    glVertexAttribPointer(color_id, 3, GL_FLOAT, GL_FALSE, 3 * 2 * sizeof(float), BUFFER_OFFSET(3 * sizeof(float)));
+    glVertexAttribPointer(color_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * sizeof(float)));
+
+    glEnableVertexAttribArray(normal_id);
+    glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
 }
 
 void renderGL(void) {
@@ -68,15 +75,20 @@ void renderGL(void) {
                    );
     projection_matrix = glm::frustum(-1,1,-1,1,1,10);
 
-    if(persp) 
+    if(true) 
         modelviewproject_matrix = projection_matrix * view_matrix;
     else
         modelviewproject_matrix = ortho_matrix * view_matrix;
 
     glUseProgram(shader_program);
+
+    normal_matrix = glm::transpose(glm::inverse(glm::mat3(modelviewproject_matrix)));
+ 
     glBindVertexArray(vao);
 
     viewproject = modelviewproject_matrix;
+    viewmatrix = modelviewproject_matrix;
+    normalmatrix = normal_matrix;
     hierarchy_matrix_stack = glm::mat4(1);
     humanoid->render_dag();
 }

@@ -131,6 +131,36 @@ void StackedPolyPrism::build_triangle_list(bool transform) {
             this->triangle_list.push_back(Triangle(this->points[n-1][0], this->points[n-1][i], this->points[n-1][i+1], this->colors[c_idx]));
         }
     }
+
+    std::map<Point, std::vector<glm::vec3>> point_to_all_normals;
+    std::map<Point, glm::vec3> point_to_final_normal;
+
+    for(auto t: this->triangle_list) {
+        point_to_all_normals[t.p1].push_back(t.normal);
+        point_to_all_normals[t.p2].push_back(t.normal);
+        point_to_all_normals[t.p3].push_back(t.normal);
+    }
+
+    for(auto it: point_to_all_normals) {
+        glm::vec3 tmp = glm::vec3(0,0,0);
+        for(auto n: it.second) {
+            tmp += n;
+        }
+        tmp /= it.second.size();
+        point_to_final_normal[it.first] = glm::normalize(tmp);
+    }
+
+    for(auto t: this->triangle_list) {
+        t.p1.normal = point_to_final_normal[t.p1];
+        t.p2.normal = point_to_final_normal[t.p2];
+        t.p3.normal = point_to_final_normal[t.p3];
+        
+        /*
+        std::cout << "p1:" << t.p1.to_str() << "\n";
+        std::cout << "p2:" << t.p2.to_str() << "\n";
+        std::cout << "p3:" << t.p3.to_str() << "\n";
+        */
+    }
 }
 
 std::string StackedPolyPrism::to_str() {

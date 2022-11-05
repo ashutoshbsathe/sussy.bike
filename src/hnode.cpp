@@ -1,6 +1,9 @@
 #include "hnode.hpp"
 
 glm::mat4 viewproject = glm::mat4(1);
+glm::mat4 viewmatrix = glm::mat4(1);
+glm::mat3 normalmatrix = glm::mat3(1);
+
 glm::mat4 hierarchy_matrix_stack = glm::mat4(1);
 
 HierarchyNode::HierarchyNode() {
@@ -36,26 +39,35 @@ HierarchyNode::HierarchyNode(StackedPolyPrism p) {
 
     this->line_list.clear();
     this->triangle_list = p.triangle_list;
-    this->vbo_copy = new float[p.triangle_list.size() * 3 * 3 * 2]();
+    this->vbo_copy = new float[p.triangle_list.size() * 3 * 3 * 3]();
     for(int i = 0; i < p.triangle_list.size(); i++) {
-        this->vbo_copy[18*i] = p.triangle_list[i].p1.x;
-        this->vbo_copy[18*i+1] = p.triangle_list[i].p1.y;
-        this->vbo_copy[18*i+2] = p.triangle_list[i].p1.z;
-        this->vbo_copy[18*i+3] = p.triangle_list[i].c.x;
-        this->vbo_copy[18*i+4] = p.triangle_list[i].c.y;
-        this->vbo_copy[18*i+5] = p.triangle_list[i].c.z;
-        this->vbo_copy[18*i+6] = p.triangle_list[i].p2.x;
-        this->vbo_copy[18*i+7] = p.triangle_list[i].p2.y;
-        this->vbo_copy[18*i+8] = p.triangle_list[i].p2.z;
-        this->vbo_copy[18*i+9] = p.triangle_list[i].c.x;
-        this->vbo_copy[18*i+10] = p.triangle_list[i].c.y;
-        this->vbo_copy[18*i+11] = p.triangle_list[i].c.z;
-        this->vbo_copy[18*i+12] = p.triangle_list[i].p3.x;
-        this->vbo_copy[18*i+13] = p.triangle_list[i].p3.y;
-        this->vbo_copy[18*i+14] = p.triangle_list[i].p3.z;
-        this->vbo_copy[18*i+15] = p.triangle_list[i].c.x;
-        this->vbo_copy[18*i+16] = p.triangle_list[i].c.y;
-        this->vbo_copy[18*i+17] = p.triangle_list[i].c.z;
+        this->vbo_copy[27*i] = this->triangle_list[i].p1.x;
+        this->vbo_copy[27*i+1] = this->triangle_list[i].p1.y;
+        this->vbo_copy[27*i+2] = this->triangle_list[i].p1.z;
+        this->vbo_copy[27*i+3] = this->triangle_list[i].c.x;
+        this->vbo_copy[27*i+4] = this->triangle_list[i].c.y;
+        this->vbo_copy[27*i+5] = this->triangle_list[i].c.z;
+        this->vbo_copy[27*i+6] = this->triangle_list[i].p1.normal.x;
+        this->vbo_copy[27*i+7] = this->triangle_list[i].p1.normal.y;
+        this->vbo_copy[27*i+8] = this->triangle_list[i].p1.normal.z;
+        this->vbo_copy[27*i+9] = this->triangle_list[i].p2.x;
+        this->vbo_copy[27*i+10] = this->triangle_list[i].p2.y;
+        this->vbo_copy[27*i+11] = this->triangle_list[i].p2.z;
+        this->vbo_copy[27*i+12] = this->triangle_list[i].c.x;
+        this->vbo_copy[27*i+13] = this->triangle_list[i].c.y;
+        this->vbo_copy[27*i+14] = this->triangle_list[i].c.z;
+        this->vbo_copy[27*i+15] = this->triangle_list[i].p2.normal.x;
+        this->vbo_copy[27*i+16] = this->triangle_list[i].p2.normal.y;
+        this->vbo_copy[27*i+17] = this->triangle_list[i].p2.normal.z;
+        this->vbo_copy[27*i+18] = this->triangle_list[i].p3.x;
+        this->vbo_copy[27*i+19] = this->triangle_list[i].p3.y;
+        this->vbo_copy[27*i+20] = this->triangle_list[i].p3.z;
+        this->vbo_copy[27*i+21] = this->triangle_list[i].c.x;
+        this->vbo_copy[27*i+22] = this->triangle_list[i].c.y;
+        this->vbo_copy[27*i+23] = this->triangle_list[i].c.z;
+        this->vbo_copy[27*i+24] = this->triangle_list[i].p3.normal.x;
+        this->vbo_copy[27*i+25] = this->triangle_list[i].p3.normal.y;
+        this->vbo_copy[27*i+26] = this->triangle_list[i].p3.normal.z; 
     }
     this->local_transform = p.init_transform;
     this->private_transform = glm::mat4(1);
@@ -169,40 +181,55 @@ HierarchyNode::HierarchyNode(std::string name, std::vector<Triangle> t, std::vec
     this->triangle_list.insert(this->triangle_list.end(), t.begin(), t.end());
     this->line_list.insert(this->line_list.end(), l.begin(), l.end());
 
-    this->vbo_copy = new float[t.size() * 3 * 3 * 2 + l.size() * 2 * 3 * 2]();
+    this->vbo_copy = new float[t.size() * 3 * 3 * 3 + l.size() * 2 * 3 * 3]();
     for(int i = 0; i < this->triangle_list.size(); i++) {
+        this->vbo_copy[27*i] = this->triangle_list[i].p1.x;
+        this->vbo_copy[27*i+1] = this->triangle_list[i].p1.y;
+        this->vbo_copy[27*i+2] = this->triangle_list[i].p1.z;
+        this->vbo_copy[27*i+3] = this->triangle_list[i].c.x;
+        this->vbo_copy[27*i+4] = this->triangle_list[i].c.y;
+        this->vbo_copy[27*i+5] = this->triangle_list[i].c.z;
+        this->vbo_copy[27*i+6] = this->triangle_list[i].p1.normal.x;
+        this->vbo_copy[27*i+7] = this->triangle_list[i].p1.normal.y;
+        this->vbo_copy[27*i+8] = this->triangle_list[i].p1.normal.z;
+        this->vbo_copy[27*i+9] = this->triangle_list[i].p2.x;
+        this->vbo_copy[27*i+10] = this->triangle_list[i].p2.y;
+        this->vbo_copy[27*i+11] = this->triangle_list[i].p2.z;
+        this->vbo_copy[27*i+12] = this->triangle_list[i].c.x;
+        this->vbo_copy[27*i+13] = this->triangle_list[i].c.y;
+        this->vbo_copy[27*i+14] = this->triangle_list[i].c.z;
+        this->vbo_copy[27*i+15] = this->triangle_list[i].p2.normal.x;
+        this->vbo_copy[27*i+16] = this->triangle_list[i].p2.normal.y;
+        this->vbo_copy[27*i+17] = this->triangle_list[i].p2.normal.z;
+        this->vbo_copy[27*i+18] = this->triangle_list[i].p3.x;
+        this->vbo_copy[27*i+19] = this->triangle_list[i].p3.y;
+        this->vbo_copy[27*i+20] = this->triangle_list[i].p3.z;
+        this->vbo_copy[27*i+21] = this->triangle_list[i].c.x;
+        this->vbo_copy[27*i+22] = this->triangle_list[i].c.y;
+        this->vbo_copy[27*i+23] = this->triangle_list[i].c.z;
+        this->vbo_copy[27*i+24] = this->triangle_list[i].p3.normal.x;
+        this->vbo_copy[27*i+25] = this->triangle_list[i].p3.normal.y;
+        this->vbo_copy[27*i+26] = this->triangle_list[i].p3.normal.z; 
+    }
+    for(int i = this->triangle_list.size(), j = 0; j < this->line_list.size(); i++, j++) {
         this->vbo_copy[18*i] = this->triangle_list[i].p1.x;
         this->vbo_copy[18*i+1] = this->triangle_list[i].p1.y;
         this->vbo_copy[18*i+2] = this->triangle_list[i].p1.z;
         this->vbo_copy[18*i+3] = this->triangle_list[i].c.x;
         this->vbo_copy[18*i+4] = this->triangle_list[i].c.y;
         this->vbo_copy[18*i+5] = this->triangle_list[i].c.z;
-        this->vbo_copy[18*i+6] = this->triangle_list[i].p2.x;
-        this->vbo_copy[18*i+7] = this->triangle_list[i].p2.y;
-        this->vbo_copy[18*i+8] = this->triangle_list[i].p2.z;
-        this->vbo_copy[18*i+9] = this->triangle_list[i].c.x;
-        this->vbo_copy[18*i+10] = this->triangle_list[i].c.y;
-        this->vbo_copy[18*i+11] = this->triangle_list[i].c.z;
-        this->vbo_copy[18*i+12] = this->triangle_list[i].p3.x;
-        this->vbo_copy[18*i+13] = this->triangle_list[i].p3.y;
-        this->vbo_copy[18*i+14] = this->triangle_list[i].p3.z;
-        this->vbo_copy[18*i+15] = this->triangle_list[i].c.x;
-        this->vbo_copy[18*i+16] = this->triangle_list[i].c.y;
-        this->vbo_copy[18*i+17] = this->triangle_list[i].c.z; 
-    }
-    for(int i = this->triangle_list.size(), j = 0; j < this->line_list.size(); i++, j++) {
-        this->vbo_copy[12*i] = this->line_list[j].p1.x;
-        this->vbo_copy[12*i+1] = this->line_list[j].p1.y;
-        this->vbo_copy[12*i+2] = this->line_list[j].p1.z;
-        this->vbo_copy[12*i+3] = this->line_list[j].c.x;
-        this->vbo_copy[12*i+4] = this->line_list[j].c.y;
-        this->vbo_copy[12*i+5] = this->line_list[j].c.z;
-        this->vbo_copy[12*i+6] = this->line_list[j].p2.x;
-        this->vbo_copy[12*i+7] = this->line_list[j].p2.y;
-        this->vbo_copy[12*i+8] = this->line_list[j].p2.z;
-        this->vbo_copy[12*i+9] = this->line_list[j].c.x;
-        this->vbo_copy[12*i+10] = this->line_list[j].c.y;
-        this->vbo_copy[12*i+11] = this->line_list[j].c.z;
+        this->vbo_copy[18*i+6] = this->triangle_list[i].p1.normal.x;
+        this->vbo_copy[18*i+7] = this->triangle_list[i].p1.normal.y;
+        this->vbo_copy[18*i+8] = this->triangle_list[i].p1.normal.z;
+        this->vbo_copy[18*i+9] = this->triangle_list[i].p2.x;
+        this->vbo_copy[18*i+10] = this->triangle_list[i].p2.y;
+        this->vbo_copy[18*i+11] = this->triangle_list[i].p2.z;
+        this->vbo_copy[18*i+12] = this->triangle_list[i].c.x;
+        this->vbo_copy[18*i+13] = this->triangle_list[i].c.y;
+        this->vbo_copy[18*i+14] = this->triangle_list[i].c.z;
+        this->vbo_copy[18*i+15] = this->triangle_list[i].p2.normal.x;
+        this->vbo_copy[18*i+16] = this->triangle_list[i].p2.normal.y;
+        this->vbo_copy[18*i+17] = this->triangle_list[i].p2.normal.z;
     }
     this->local_transform = glm::mat4(1);
     this->private_transform = glm::mat4(1);
@@ -283,7 +310,7 @@ void HierarchyNode::update_dof_transform() {
 }
 
 void HierarchyNode::prepare_vbo() {
-    glBufferSubData(GL_ARRAY_BUFFER, this->vbo_offset * 3 * 2 * sizeof(float), this->triangle_list.size() * 3 * 3 * 2 * sizeof(float) + this->line_list.size() * 2 * 3 * 2 * sizeof(float), this->vbo_copy);
+    glBufferSubData(GL_ARRAY_BUFFER, this->vbo_offset * 3 * 3 * sizeof(float), this->triangle_list.size() * 3 * 3 * 3 * sizeof(float) + this->line_list.size() * 2 * 3 * 3 * sizeof(float), this->vbo_copy);
     for(auto it : this->children) {
         it->prepare_vbo();
     }
@@ -292,6 +319,8 @@ void HierarchyNode::prepare_vbo() {
 void HierarchyNode::render() {
     glm::mat4 overall = viewproject * hierarchy_matrix_stack * this->private_transform;
     glUniformMatrix4fv(this->uniform_xform_id, 1, GL_FALSE, glm::value_ptr(overall)); // value_ptr needed for proper pointer conversion
+    glUniformMatrix4fv(this->normal_matrix_id, 1, GL_FALSE, glm::value_ptr(normalmatrix)); // value_ptr needed for proper pointer conversion
+    glUniformMatrix4fv(this->view_matrix_id, 1, GL_FALSE, glm::value_ptr(viewmatrix)); // value_ptr needed for proper pointer conversion
     if(draw_triangle) {
         glDrawArrays(GL_TRIANGLES, this->vbo_offset, this->triangle_list.size() * 3);
     }
@@ -360,6 +389,8 @@ void add_edge(HierarchyNode *parent, HierarchyNode *child, unsigned int *next_av
     child->vbo = parent->vbo;
     child->vao = parent->vao;
     child->uniform_xform_id = parent->uniform_xform_id;
+    child->normal_matrix_id = parent->normal_matrix_id;
+    child->view_matrix_id = parent->view_matrix_id;
     *next_available_vbo_offset += 3 * child->triangle_list.size() + 2 * child->line_list.size();
     parent->children.push_back(child);
     child->parent = parent;

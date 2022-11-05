@@ -36,6 +36,13 @@ Point Point::operator+(const struct Point &p) {
     ret.z = this->z + p.z;
     return ret;
 }
+Point Point::operator-(const struct Point &p) {
+    Point ret;
+    ret.x = this->x - p.x;
+    ret.y = this->y - p.y;
+    ret.z = this->z - p.z;
+    return ret;
+}
 Point Point::operator*(const glm::mat4 &m) {
     glm::vec4 p(this->x, this->y, this->z, 1);
     p = m * p;
@@ -49,5 +56,9 @@ Point Point::operator*(const float s) {
 std::string Point::to_str() {
     std::stringstream pt;
     pt << "(" << this->x << ", " << this->y << ", " << this->z << ")";
+    pt << ", normal = [" << this->normal.x << ", " << this->normal.y << ", " << this->normal.z << "]";
     return pt.str();
+}
+glm::vec3 Point::to_vec3() {
+    return glm::vec3(this->x, this->y, this->z);
 }
