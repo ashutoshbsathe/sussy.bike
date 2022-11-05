@@ -103,7 +103,7 @@ std::vector<Triangle> StackedPolyPrism::trapezoidsBetweenLevels(std::vector<Poin
 void StackedPolyPrism::build_triangle_list(bool transform) {
     std::vector<Point> new_points;
     std::vector<Triangle> new_triangles;
-    int c_idx = 0;
+    int c_idx = 0, num_tri;
     this->points.clear();
     this->triangle_list.clear();
     for(int i = 0; i < this->n; i++) {
@@ -132,6 +132,8 @@ void StackedPolyPrism::build_triangle_list(bool transform) {
         }
     }
 
+    num_tri = this->triangle_list.size();
+
     std::map<Point, std::vector<glm::vec3>> point_to_all_normals;
     std::map<Point, glm::vec3> point_to_final_normal;
 
@@ -143,23 +145,27 @@ void StackedPolyPrism::build_triangle_list(bool transform) {
 
     for(auto it: point_to_all_normals) {
         glm::vec3 tmp = glm::vec3(0,0,0);
+        std::cout << "(" << it.first.x << ", " << it.first.y << ", " << it.first.z << "):\n";
         for(auto n: it.second) {
             tmp += n;
+            std::cout << "tmp = [" << tmp.x << ", " << tmp.y << ", " << tmp.z << "], n = " << n.x << ", " << n.y << ", " << n.z << "\n";
         }
+        std::cout << "----------------------------\n";
         tmp /= it.second.size();
+        std::cout << "tmp = [" << tmp.x << ", " << tmp.y << ", " << tmp.z << "]\n";
+        std::cout << "----------------------------\n";
+        std::cout << "----------------------------\n";
         point_to_final_normal[it.first] = glm::normalize(tmp);
     }
 
-    for(auto t: this->triangle_list) {
-        t.p1.normal = point_to_final_normal[t.p1];
-        t.p2.normal = point_to_final_normal[t.p2];
-        t.p3.normal = point_to_final_normal[t.p3];
+    for(int i = 0; i < num_tri; i++) {
+        this->triangle_list[i].p1.normal = point_to_final_normal[this->triangle_list[i].p1];
+        this->triangle_list[i].p2.normal = point_to_final_normal[this->triangle_list[i].p2];
+        this->triangle_list[i].p3.normal = point_to_final_normal[this->triangle_list[i].p3];
         
-        /*
-        std::cout << "p1:" << t.p1.to_str() << "\n";
-        std::cout << "p2:" << t.p2.to_str() << "\n";
-        std::cout << "p3:" << t.p3.to_str() << "\n";
-        */
+        std::cout << "p1:" << this->triangle_list[i].p1.to_str() << "\n";
+        std::cout << "p2:" << this->triangle_list[i].p2.to_str() << "\n";
+        std::cout << "p3:" << this->triangle_list[i].p3.to_str() << "\n";
     }
 }
 

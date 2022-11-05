@@ -12,20 +12,20 @@ void main ()
 {
   // Defining Materials
   vec4 diffuse = vec4(1.0, 1.0, 1.0, 1.0); 
-  vec4 ambient = vec4(0.1, 0.0, 0.0, 1.0);
+  vec4 ambient = vec4(0.5, 0.0, 0.0, 1.0);
   vec4 specular = vec4(1.0, 0.5, 0.5, 1.0);
   float shininess = 0.1;
   vec4 spec = vec4(0.0); 
 
   // Defining Light 
-  vec4 lightPos = vec4(0.0, 1, 1, 0.0);
+  vec4 lightPos = vec4(1, 1, 1, 0.0);
   vec3 lightDir = vec3(uViewMatrix * lightPos);  // Transforms with camera
   lightDir = normalize(vec3(lightDir));  
 
   // Diffuse
   vec3 n = normalize(normal);
   float dotProd = dot(n, lightDir);
-  float intensity = 0.5;
+  float intensity = max(dotProd, 0);
 
   if(intensity > 0.0) {
     vec3 e = normalize(vec3(eye));

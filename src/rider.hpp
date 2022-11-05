@@ -3,6 +3,7 @@
 HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, GLuint normal_matrix_id, GLuint view_matrix_id) {
     unsigned int next_available_vbo_offset;
     // Build leaf to root
+    /*
     HierarchyNode *head = new HierarchyNode(StackedPolyPrism("./body_parts/head.txt"));
     HierarchyNode *neck = new HierarchyNode(StackedPolyPrism("./body_parts/neck.txt"));
     HierarchyNode *palm = new HierarchyNode(StackedPolyPrism("./body_parts/palm.txt"));
@@ -12,7 +13,9 @@ HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, G
 	HierarchyNode *uarm = new HierarchyNode(StackedPolyPrism("./body_parts/uarm.txt"));
 	HierarchyNode *shoulder = new HierarchyNode(StackedPolyPrism("./body_parts/shoulder.txt"));
     HierarchyNode *torso_1 = new HierarchyNode(StackedPolyPrism("./body_parts/torso_1.txt"));
+    */
 	HierarchyNode *torso_2 = new HierarchyNode(StackedPolyPrism("./body_parts/torso_2.txt"));
+    /*
 	HierarchyNode *torso_3 = new HierarchyNode(StackedPolyPrism("./body_parts/torso_3.txt"));
     HierarchyNode *other_palm = new HierarchyNode(StackedPolyPrism("./body_parts/other_palm.txt"));
 	HierarchyNode *other_wrist = new HierarchyNode(StackedPolyPrism("./body_parts/other_wrist.txt"));
@@ -318,14 +321,14 @@ HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, G
     torso_1->private_transform = glm::make_mat4(torso_flatten);
     torso_2->private_transform = glm::make_mat4(torso_flatten);
     torso_3->private_transform = glm::make_mat4(torso_flatten);
-
+    */
     torso_2->vao = vao;
     torso_2->vbo = vbo;
     torso_2->vbo_offset = 0;
     torso_2->uniform_xform_id = uniform_xform_id;
     torso_2->normal_matrix_id = normal_matrix_id;
     torso_2->view_matrix_id = view_matrix_id;
-    
+    /*
     add_edge(torso_2, torso_1, &next_available_vbo_offset);
     add_edge(torso_2, torso_3, &next_available_vbo_offset);
 
@@ -361,7 +364,7 @@ HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, G
     add_edge(other_knee, other_lthigh, &next_available_vbo_offset);
     add_edge(other_lthigh, other_ankle, &next_available_vbo_offset);
     add_edge(other_ankle, other_feet, &next_available_vbo_offset);
-
+    */
     return torso_2;
 }
 

@@ -68,6 +68,9 @@ HierarchyNode::HierarchyNode(StackedPolyPrism p) {
         this->vbo_copy[27*i+24] = this->triangle_list[i].p3.normal.x;
         this->vbo_copy[27*i+25] = this->triangle_list[i].p3.normal.y;
         this->vbo_copy[27*i+26] = this->triangle_list[i].p3.normal.z; 
+        std::cout << "p1: " << this->triangle_list[i].p1.to_str() << "\n";
+        std::cout << "p2: " << this->triangle_list[i].p2.to_str() << "\n";
+        std::cout << "p3: " << this->triangle_list[i].p3.to_str() << "\n";
     }
     this->local_transform = p.init_transform;
     this->private_transform = glm::mat4(1);
@@ -318,9 +321,19 @@ void HierarchyNode::prepare_vbo() {
 
 void HierarchyNode::render() {
     glm::mat4 overall = viewproject * hierarchy_matrix_stack * this->private_transform;
+    glm::mat3 overall_normals = glm::transpose(glm::inverse(glm::mat3(overall)));
     glUniformMatrix4fv(this->uniform_xform_id, 1, GL_FALSE, glm::value_ptr(overall)); // value_ptr needed for proper pointer conversion
-    glUniformMatrix4fv(this->normal_matrix_id, 1, GL_FALSE, glm::value_ptr(normalmatrix)); // value_ptr needed for proper pointer conversion
+    glUniformMatrix3fv(this->normal_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
     glUniformMatrix4fv(this->view_matrix_id, 1, GL_FALSE, glm::value_ptr(viewmatrix)); // value_ptr needed for proper pointer conversion
+    /*  
+    for(int i = 0; i < 3; i++) {
+        for(int j = 0; j < 3; j++) {
+            std::cout << overall_normals[i][j] << " ";
+        }
+        std::cout << "\n";
+    }
+    std::cout << "--------------\n";
+    */
     if(draw_triangle) {
         glDrawArrays(GL_TRIANGLES, this->vbo_offset, this->triangle_list.size() * 3);
     }
@@ -338,6 +351,7 @@ void HierarchyNode::render_dag() {
     }
     hierarchy_matrix_stack = hierarchy_matrix_stack * this->local_transform * this->dof_transform;
     render();
+    return;
     for(auto it : this->children) {
         it->render_dag();
     }

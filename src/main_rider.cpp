@@ -83,7 +83,6 @@ void renderGL(void) {
     glUseProgram(shader_program);
 
     normal_matrix = glm::transpose(glm::inverse(glm::mat3(modelviewproject_matrix)));
- 
     glBindVertexArray(vao);
 
     viewproject = modelviewproject_matrix;
