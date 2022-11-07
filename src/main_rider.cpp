@@ -1,5 +1,6 @@
 #include "main.hpp"
 #include "rider.hpp"
+#include "stb_image_write.h"
 #include <GLFW/glfw3.h>
 
 #define MAX_HUMANOID_VBO_BYTES 1024000
@@ -8,7 +9,7 @@ GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, u
 
 GLuint shadow_shader_program, shadow_uModelMatrix_id, shadow_uLightSpaceMatrix_id, shadow_shadowMap_id;
 
-GLuint depthMapFBO, depthMap, depthMap_width = 1024, depthMap_height = 1024;
+GLuint depthMapFBO, depthMap_width = 1024, depthMap_height = 1024;
 
 glm::mat4 view_matrix;
 glm::mat4 ortho_matrix;
@@ -103,19 +104,35 @@ void initVertexBufferGL(void) {
 void renderGL(void) {
     /* Shadow Mapping */
  
-    view_matrix = glm::lookAt(glm::vec3(0, 0, 860),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+    view_matrix = glm::lookAt(glm::vec3(0, 0, 1060),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
     
-    
-    ortho_matrix = glm::ortho(
-                       -800, 800,
-                       -800, 800,
-                       0, 1600
+    projection_matrix = glm::ortho(
+                       1060.0f, -1060.0f,
+                       1060.0f, -1060.0f,
+                       -2120.0f, 2120.0f
                    );
+    
+    lightspace_matrix = projection_matrix * view_matrix;
     /*
-    ortho_matrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f);
+    std::cout << "Light = ";
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            std::cout << lightspace_matrix[i][j] << " ";
+        }
+    }
+    std::cout << "\n";
+    auto transformed_origin = lightspace_matrix * glm::vec4(0, 0, 0, 1);
+    std::cout << "O = {" << transformed_origin.x << " " << transformed_origin.y << " " << transformed_origin.z << "}\n";
+    auto transformed_x_pos_one = lightspace_matrix * glm::vec4(1, 0, 1, 1);
+    std::cout << "+1[X] = {" << transformed_x_pos_one.x << " " << transformed_x_pos_one.y << " " << transformed_x_pos_one.z << "}\n";
+    auto transformed_x_neg_one = lightspace_matrix * glm::vec4(-1, 0, 1, 1);
+    std::cout << "-1[X] = {" << transformed_x_neg_one.x << " " << transformed_x_neg_one.y << " " << transformed_x_neg_one.z << "}\n";
+    auto transformed_y_pos_one = lightspace_matrix * glm::vec4(0, 1, -1, 1);
+    std::cout << "+1[Y] = {" << transformed_y_pos_one.x << " " << transformed_y_pos_one.y << " " << transformed_y_pos_one.z << "}\n";
+    auto transformed_y_neg_one = lightspace_matrix * glm::vec4(0, -1, -1, 1);
+    std::cout << "-1[Y] = {" << transformed_y_neg_one.x << " " << transformed_y_neg_one.y << " " << transformed_y_neg_one.z << "}\n";
+    exit(0);
     */
-    lightspace_matrix = ortho_matrix * view_matrix;
-
     glUseProgram(shadow_shader_program);
     glBindVertexArray(vao);
  
@@ -133,7 +150,6 @@ void renderGL(void) {
     
     /* Normal rendering */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
     rotation_matrix = glm::rotate(glm::mat4(1), xrot, glm::vec3(1, 0, 0));
     rotation_matrix = glm::rotate(rotation_matrix, yrot, glm::vec3(0, 1, 0));
@@ -165,6 +181,25 @@ void renderGL(void) {
     normalmatrix = normal_matrix;
     lightspacematrix = lightspace_matrix;
     hierarchy_matrix_stack = glm::mat4(1);
+    
+    /*
+    std::cout << "Light = ";
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            std::cout << lightspacematrix[i][j] << " ";
+        }
+    }
+    std::cout << "\n";
+
+    std::cout << "ViewProject = ";
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            std::cout << viewproject[i][j] << " ";
+        }
+    }
+    std::cout << "\n---------------------------\n";
+    */
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, depthMap);
     humanoid->render_dag();
@@ -224,8 +259,13 @@ int main(int argc, char** argv) {
 
     //Initialize GL state
     csX75::initGL();
+    /*
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    */
+    glDisable(GL_BLEND); 
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
 
     initShadersGL();
     initVertexBufferGL();

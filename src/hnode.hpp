@@ -62,6 +62,7 @@ extern glm::mat4 viewmatrix;
 extern glm::mat3 normalmatrix;
 extern glm::mat4 lightspacematrix;
 extern glm::mat4 hierarchy_matrix_stack;
+extern GLuint depthMap;
 void global_to_local(HierarchyNode *n);
 void add_edge(HierarchyNode *parent, HierarchyNode *child, unsigned int *next_available_vbo_offset);
 #endif

@@ -7,6 +7,8 @@ glm::mat4 lightspacematrix = glm::mat4(1);
 
 glm::mat4 hierarchy_matrix_stack = glm::mat4(1);
 
+GLuint depthMap;
+
 HierarchyNode::HierarchyNode() {
     this->name = "";
 
@@ -405,11 +407,14 @@ void HierarchyNode::prepare_vbo() {
 void HierarchyNode::render() {
     glm::mat4 overall = viewproject * hierarchy_matrix_stack * this->private_transform;
     glm::mat3 overall_normals = glm::transpose(glm::inverse(glm::mat3(overall)));
+    glm::mat4 overall_lightspace = lightspacematrix * hierarchy_matrix_stack * this->private_transform;
     glUniformMatrix4fv(this->uniform_xform_id, 1, GL_FALSE, glm::value_ptr(overall)); // value_ptr needed for proper pointer conversion
     glUniformMatrix3fv(this->normal_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
     glUniformMatrix4fv(this->view_matrix_id, 1, GL_FALSE, glm::value_ptr(viewmatrix)); // value_ptr needed for proper pointer conversion
-    glUniformMatrix4fv(this->light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(lightspacematrix)); // value_ptr needed for proper pointer conversion
+    glUniformMatrix4fv(this->light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_lightspace)); // value_ptr needed for proper pointer conversion
     glUniform1i(this->shadow_map_id, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
     /*  
     for(int i = 0; i < 3; i++) {
         for(int j = 0; j < 3; j++) {
