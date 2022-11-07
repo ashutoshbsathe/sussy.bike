@@ -4,12 +4,18 @@
 
 #define MAX_HUMANOID_VBO_BYTES 1024000
 
-GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, position_id, color_id, normal_id;
+GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, position_id, color_id, normal_id;
+
+GLuint shadow_shader_program, shadow_uModelMatrix_id, shadow_uLightSpaceMatrix_id, shadow_shadowMap_id;
+
+GLuint depthMapFBO, depthMap, depthMap_width = 1024, depthMap_height = 1024;
 
 glm::mat4 view_matrix;
 glm::mat4 ortho_matrix;
 glm::mat4 projection_matrix;
 glm::mat4 modelviewproject_matrix;
+glm::mat4 lightspace_matrix;
+glm::mat4 rotation_matrix;
 glm::mat3 normal_matrix;
 
 HierarchyNode *humanoid, *curr_node;
@@ -31,6 +37,17 @@ void initShadersGL(void) {
     uModelViewProjectMatrix_id = glGetUniformLocation(shader_program, "uModelViewProjectMatrix");
     uNormalMatrix_id = glGetUniformLocation(shader_program, "uNormalMatrix");
     uViewMatrix_id = glGetUniformLocation(shader_program, "uViewMatrix");
+    uLightSpaceMatrix_id = glGetAttribLocation(shader_program, "uLightSpaceMatrix");
+    uShadowMap_id = glGetAttribLocation(shader_program, "shadowMap");
+
+    /* Shadow Mapping */
+    shaderList.clear();
+    shaderList.push_back(csX75::LoadShaderGL(GL_VERTEX_SHADER, "shadow_mapping_vs.glsl"));
+    shaderList.push_back(csX75::LoadShaderGL(GL_FRAGMENT_SHADER, "shadow_mapping_fs.glsl"));
+    
+    shadow_shader_program = csX75::CreateProgramGL(shaderList);
+    shadow_uLightSpaceMatrix_id = glGetAttribLocation(shadow_shader_program, "uLightSpaceMatrix");
+    shadow_uModelMatrix_id = glGetAttribLocation(shadow_shader_program, "uModelMatrix");
 }
 
 void initVertexBufferGL(void) {
@@ -45,7 +62,7 @@ void initVertexBufferGL(void) {
     
     glBufferData(GL_ARRAY_BUFFER, MAX_HUMANOID_VBO_BYTES, NULL, GL_STATIC_DRAW);
     
-    humanoid = build_humanoid(vao, vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id);
+    humanoid = build_humanoid(vao, vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id);
     humanoid->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_rider", humanoid));
     curr_node = humanoid;
@@ -61,10 +78,66 @@ void initVertexBufferGL(void) {
 
     glEnableVertexAttribArray(normal_id);
     glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
+
+    /*
+     * Init Depth Buffer for Shadow Mapping
+     */
+    glGenFramebuffers(1, &depthMapFBO);
+    
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, depthMap_width, depthMap_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void renderGL(void) {
+    /* Shadow Mapping */
+ 
+    view_matrix = glm::lookAt(glm::vec3(0, 0, 860),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+    
+    
+    ortho_matrix = glm::ortho(
+                       -800, 800,
+                       -800, 800,
+                       0, 1600
+                   );
+    /*
+    ortho_matrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f);
+    */
+    lightspace_matrix = ortho_matrix * view_matrix;
+
+    glUseProgram(shadow_shader_program);
+    glBindVertexArray(vao);
+ 
+    viewproject = lightspace_matrix;
+    viewmatrix = lightspace_matrix;
+    lightspacematrix = lightspace_matrix;
+    hierarchy_matrix_stack = glm::mat4(1);
+
+    glViewport(0, 0, depthMap_width, depthMap_height);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    humanoid->render_dag();   
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    /* Normal rendering */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+    rotation_matrix = glm::rotate(glm::mat4(1), xrot, glm::vec3(1, 0, 0));
+    rotation_matrix = glm::rotate(rotation_matrix, yrot, glm::vec3(0, 1, 0));
+    rotation_matrix = glm::rotate(rotation_matrix, zrot, glm::vec3(0, 0, 1));
 
     view_matrix = glm::lookAt(glm::vec3(0.0,0.0,VIEW_PADDING*DRAW_MIN),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
 
@@ -75,12 +148,14 @@ void renderGL(void) {
                    );
     projection_matrix = glm::frustum(-1,1,-1,1,1,10);
 
-    if(true) 
+    if(false) 
         modelviewproject_matrix = projection_matrix * view_matrix;
     else
         modelviewproject_matrix = ortho_matrix * view_matrix;
 
     glUseProgram(shader_program);
+
+    modelviewproject_matrix *= rotation_matrix;
 
     normal_matrix = glm::transpose(glm::inverse(glm::mat3(modelviewproject_matrix)));
     glBindVertexArray(vao);
@@ -88,7 +163,10 @@ void renderGL(void) {
     viewproject = modelviewproject_matrix;
     viewmatrix = modelviewproject_matrix;
     normalmatrix = normal_matrix;
+    lightspacematrix = lightspace_matrix;
     hierarchy_matrix_stack = glm::mat4(1);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
     humanoid->render_dag();
 }
 

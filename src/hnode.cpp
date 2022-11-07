@@ -3,6 +3,7 @@
 glm::mat4 viewproject = glm::mat4(1);
 glm::mat4 viewmatrix = glm::mat4(1);
 glm::mat3 normalmatrix = glm::mat3(1);
+glm::mat4 lightspacematrix = glm::mat4(1);
 
 glm::mat4 hierarchy_matrix_stack = glm::mat4(1);
 
@@ -407,6 +408,8 @@ void HierarchyNode::render() {
     glUniformMatrix4fv(this->uniform_xform_id, 1, GL_FALSE, glm::value_ptr(overall)); // value_ptr needed for proper pointer conversion
     glUniformMatrix3fv(this->normal_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
     glUniformMatrix4fv(this->view_matrix_id, 1, GL_FALSE, glm::value_ptr(viewmatrix)); // value_ptr needed for proper pointer conversion
+    glUniformMatrix4fv(this->light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(lightspacematrix)); // value_ptr needed for proper pointer conversion
+    glUniform1i(this->shadow_map_id, 0);
     /*  
     for(int i = 0; i < 3; i++) {
         for(int j = 0; j < 3; j++) {
@@ -486,6 +489,8 @@ void add_edge(HierarchyNode *parent, HierarchyNode *child, unsigned int *next_av
     child->uniform_xform_id = parent->uniform_xform_id;
     child->normal_matrix_id = parent->normal_matrix_id;
     child->view_matrix_id = parent->view_matrix_id;
+    child->light_space_matrix_id = parent->light_space_matrix_id;
+    child->shadow_map_id = parent->shadow_map_id;
     *next_available_vbo_offset += 3 * child->triangle_list.size() + 2 * child->line_list.size();
     parent->children.push_back(child);
     child->parent = parent;

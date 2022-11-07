@@ -39,7 +39,7 @@ struct HierarchyNode {
      */
     std::vector<std::pair<float, glm::vec3>> dof_params;
 
-    GLuint vbo, vao, vbo_offset, uniform_xform_id, normal_matrix_id, view_matrix_id; 
+    GLuint vbo, vao, vbo_offset, uniform_xform_id, normal_matrix_id, view_matrix_id, light_space_matrix_id, shadow_map_id; 
     // vbo_offset is how many "points" deep are we in the VBO
 
     bool draw_triangle, draw_line;
@@ -60,6 +60,7 @@ struct HierarchyNode {
 extern glm::mat4 viewproject;
 extern glm::mat4 viewmatrix;
 extern glm::mat3 normalmatrix;
+extern glm::mat4 lightspacematrix;
 extern glm::mat4 hierarchy_matrix_stack;
 void global_to_local(HierarchyNode *n);
 void add_edge(HierarchyNode *parent, HierarchyNode *child, unsigned int *next_available_vbo_offset);

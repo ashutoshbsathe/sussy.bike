@@ -1,6 +1,6 @@
 #include "hnode.hpp"
 
-HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, GLuint normal_matrix_id, GLuint view_matrix_id) {
+HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, GLuint normal_matrix_id, GLuint view_matrix_id, GLuint light_space_matrix_id, GLuint shadow_map_id) {
     unsigned int next_available_vbo_offset;
     // Build leaf to root
     HierarchyNode *head = new HierarchyNode(StackedPolyPrism("./body_parts/head.txt"));
@@ -32,7 +32,13 @@ HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, G
 	HierarchyNode *other_knee = new HierarchyNode(StackedPolyPrism("./body_parts/other_knee.txt"));
 	HierarchyNode *other_uthigh = new HierarchyNode(StackedPolyPrism("./body_parts/other_uthigh.txt"));
 	HierarchyNode *other_hip = new HierarchyNode(StackedPolyPrism("./body_parts/other_hip.txt"));
- 
+
+    // dummy node for testing light
+    HierarchyNode *light = new HierarchyNode(StackedPolyPrism("./body_parts/light.txt"));
+    light->make_rigid();
+    HierarchyNode *floor = new HierarchyNode(StackedPolyPrism("./body_parts/floor.txt"));
+    floor->make_rigid();
+
     head->make_rigid();
     uarm->make_rigid();
     larm->make_rigid();
@@ -324,6 +330,8 @@ HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, G
     torso_2->uniform_xform_id = uniform_xform_id;
     torso_2->normal_matrix_id = normal_matrix_id;
     torso_2->view_matrix_id = view_matrix_id;
+    torso_2->light_space_matrix_id = light_space_matrix_id;
+    torso_2->shadow_map_id = shadow_map_id;
     add_edge(torso_2, torso_1, &next_available_vbo_offset);
     add_edge(torso_2, torso_3, &next_available_vbo_offset);
 
@@ -359,6 +367,9 @@ HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, G
     add_edge(other_knee, other_lthigh, &next_available_vbo_offset);
     add_edge(other_lthigh, other_ankle, &next_available_vbo_offset);
     add_edge(other_ankle, other_feet, &next_available_vbo_offset);
+
+    //add_edge(torso_2, light, &next_available_vbo_offset);
+    add_edge(torso_2, floor, &next_available_vbo_offset);
     return torso_2;
 }
 
