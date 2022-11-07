@@ -1,6 +1,6 @@
 #include "hnode.hpp"
 
-HierarchyNode *build_bike(GLuint vao, GLuint vbo, GLuint uniform_xform_id) {
+HierarchyNode *build_bike(GLuint vao, GLuint vbo, GLuint uniform_xform_id, GLuint normal_matrix_id, GLuint view_matrix_id) {
     unsigned int next_available_vbo_offset;
     StackedPolyPrism p_back_wheel_part_1 = StackedPolyPrism("./bike_parts/back_wheel_part_1.txt");
 	HierarchyNode *back_wheel_part_1 = new HierarchyNode(p_back_wheel_part_1);
@@ -20,6 +20,8 @@ HierarchyNode *build_bike(GLuint vao, GLuint vbo, GLuint uniform_xform_id) {
     HierarchyNode *front_scope_1 = new HierarchyNode(StackedPolyPrism("./bike_parts/front_scope_1.txt"));
     HierarchyNode *front_scope_2 = new HierarchyNode(StackedPolyPrism("./bike_parts/front_scope_2.txt"));
     HierarchyNode *body = new HierarchyNode("./bike_parts/body.txt");
+
+    std::cout << "Initialized all bike parts\n";
 
     HierarchyNode *back_wheel_spokes, *front_wheel_spokes;
     std::vector<Triangle> spokes_list;
@@ -147,6 +149,8 @@ HierarchyNode *build_bike(GLuint vao, GLuint vbo, GLuint uniform_xform_id) {
     body->vbo = vbo;
     body->vbo_offset = 0;
     body->uniform_xform_id = uniform_xform_id;
+    body->normal_matrix_id = normal_matrix_id;
+    body->view_matrix_id = view_matrix_id;
 
     next_available_vbo_offset = 3 * body->triangle_list.size() + 2 * body->line_list.size();
 
