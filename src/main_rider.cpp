@@ -95,7 +95,6 @@ void initVertexBufferGL(void) {
     glGenFramebuffers(1, &depthMapFBO);
     glGenTextures(1, &depthMap);
     glBindTexture(GL_TEXTURE_2D, depthMap); 
-    glBindTexture(GL_TEXTURE_2D, 0);
 
     error = glGetError();
     std::cout << "After generating framebuffer and texture " << error << ", " << glewGetErrorString(error) << "\n";
@@ -110,8 +109,12 @@ void initVertexBufferGL(void) {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
+    
+    std::cout << "FBO status: " << glCheckFramebufferStatus(GL_FRAMEBUFFER) << "\n";
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
    
+    glBindTexture(GL_TEXTURE_2D, 0);
     error = glGetError();
     std::cout << "At the end of initVertexBufferGL, " << error << ", " << glewGetErrorString(error) << "\n";
 }
@@ -173,6 +176,7 @@ void renderGL(void) {
 
     glUseProgram(shader_program);
 
+    /*
     std::cout << "Light = ";
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
@@ -209,6 +213,7 @@ void renderGL(void) {
     transformed_y_neg_one = modelviewproject_matrix * glm::vec4(0, -1, -1, 1);
     std::cout << "-1[Y] = {" << transformed_y_neg_one.x << " " << transformed_y_neg_one.y << " " << transformed_y_neg_one.z << "}\n";
     exit(0);
+    */
     modelviewproject_matrix *= rotation_matrix;
 
     normal_matrix = glm::transpose(glm::inverse(glm::mat3(modelviewproject_matrix)));
@@ -308,6 +313,7 @@ int main(int argc, char** argv) {
     glDisable(GL_BLEND); 
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEBUG_OUTPUT);
 
     initShadersGL();
     initVertexBufferGL();
