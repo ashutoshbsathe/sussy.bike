@@ -404,17 +404,34 @@ void HierarchyNode::prepare_vbo() {
     }
 }
 
-void HierarchyNode::render() {
+void HierarchyNode::render(bool shadowmap) {
     glm::mat4 overall = viewproject * hierarchy_matrix_stack * this->private_transform;
     glm::mat3 overall_normals = glm::transpose(glm::inverse(glm::mat3(overall)));
     glm::mat4 overall_lightspace = lightspacematrix * hierarchy_matrix_stack * this->private_transform;
-    glUniformMatrix4fv(this->uniform_xform_id, 1, GL_FALSE, glm::value_ptr(overall)); // value_ptr needed for proper pointer conversion
-    glUniformMatrix3fv(this->normal_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
-    glUniformMatrix4fv(this->view_matrix_id, 1, GL_FALSE, glm::value_ptr(viewmatrix)); // value_ptr needed for proper pointer conversion
-    glUniformMatrix4fv(this->light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_lightspace)); // value_ptr needed for proper pointer conversion
-    glUniform1i(this->shadow_map_id, 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
+    if(shadowmap) {
+        std::cout << this->name << ": Rendering shadowmap\n";
+        glUniformMatrix4fv(this->shadow_light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(lightspacematrix));
+        glUniformMatrix4fv(this->shadow_model_matrix_id, 1, GL_FALSE, glm::value_ptr(overall));
+    }
+    else {
+        GLint error = glGetError();
+        std::cout << this->name << ": Rendering normally\n";
+        glUniformMatrix4fv(this->uniform_xform_id, 1, GL_FALSE, glm::value_ptr(overall)); // value_ptr needed for proper pointer conversion
+        error = glGetError();
+        std::cout << "AFter passing transform: " << error << ", " << glewGetErrorString(error) << "\n";
+        glUniformMatrix3fv(this->normal_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
+        error = glGetError();
+        std::cout << "AFter passing normals: " << error << ", " << glewGetErrorString(error) << "\n";
+        glUniformMatrix4fv(this->view_matrix_id, 1, GL_FALSE, glm::value_ptr(viewmatrix)); // value_ptr needed for proper pointer conversion
+        error = glGetError();
+        std::cout << "AFter passing viewmatrix: " << error << ", " << glewGetErrorString(error) << "\n";
+        glUniformMatrix4fv(this->light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_lightspace)); // value_ptr needed for proper pointer conversion
+        error = glGetError();
+        std::cout << "AFter passing lightspace: " << error << ", " << glewGetErrorString(error) << "\n";
+        glUniform1i(this->shadow_map_id, 0);
+        error = glGetError();
+        std::cout << "AFter passing shadowmap: " << error << ", " << glewGetErrorString(error) << "\n";
+    }
     /*  
     for(int i = 0; i < 3; i++) {
         for(int j = 0; j < 3; j++) {
@@ -432,7 +449,8 @@ void HierarchyNode::render() {
     }
 }
 
-void HierarchyNode::render_dag() {
+void HierarchyNode::render_dag(bool shadowmap) {
+    // bool: shadowmap -- are we rendering for the shadowmap ?
     glm::mat4 old_hierarchy_matrix_stack = glm::mat4(1.0f);
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
@@ -440,9 +458,9 @@ void HierarchyNode::render_dag() {
         }
     }
     hierarchy_matrix_stack = hierarchy_matrix_stack * this->local_transform * this->dof_transform;
-    render();
+    render(shadowmap);
     for(auto it : this->children) {
-        it->render_dag();
+        it->render_dag(shadowmap);
     }
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
@@ -496,6 +514,8 @@ void add_edge(HierarchyNode *parent, HierarchyNode *child, unsigned int *next_av
     child->view_matrix_id = parent->view_matrix_id;
     child->light_space_matrix_id = parent->light_space_matrix_id;
     child->shadow_map_id = parent->shadow_map_id;
+    child->shadow_light_space_matrix_id = parent->shadow_light_space_matrix_id;
+    child->shadow_model_matrix_id = parent->shadow_model_matrix_id;
     *next_available_vbo_offset += 3 * child->triangle_list.size() + 2 * child->line_list.size();
     parent->children.push_back(child);
     child->parent = parent;

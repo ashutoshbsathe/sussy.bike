@@ -1,6 +1,6 @@
 #include "hnode.hpp"
 
-HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, GLuint normal_matrix_id, GLuint view_matrix_id, GLuint light_space_matrix_id, GLuint shadow_map_id) {
+HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, GLuint normal_matrix_id, GLuint view_matrix_id, GLuint light_space_matrix_id, GLuint shadow_map_id, GLuint shadow_light_space_matrix_id, GLuint shadow_model_matrix_id) {
     unsigned int next_available_vbo_offset;
     // Build leaf to root
     HierarchyNode *head = new HierarchyNode(StackedPolyPrism("./body_parts/head.txt"));
@@ -332,6 +332,8 @@ HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, G
     torso_2->view_matrix_id = view_matrix_id;
     torso_2->light_space_matrix_id = light_space_matrix_id;
     torso_2->shadow_map_id = shadow_map_id;
+    torso_2->shadow_light_space_matrix_id = shadow_light_space_matrix_id;
+    torso_2->shadow_model_matrix_id = shadow_model_matrix_id;
     add_edge(torso_2, torso_1, &next_available_vbo_offset);
     add_edge(torso_2, torso_3, &next_available_vbo_offset);
 

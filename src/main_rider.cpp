@@ -7,7 +7,7 @@
 
 GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, position_id, color_id, normal_id;
 
-GLuint shadow_shader_program, shadow_uModelMatrix_id, shadow_uLightSpaceMatrix_id, shadow_shadowMap_id;
+GLuint shadow_shader_program, shadow_uModelMatrix_id, shadow_uLightSpaceMatrix_id;
 
 GLuint depthMapFBO, depthMap_width = 1024, depthMap_height = 1024;
 
@@ -63,7 +63,7 @@ void initVertexBufferGL(void) {
     
     glBufferData(GL_ARRAY_BUFFER, MAX_HUMANOID_VBO_BYTES, NULL, GL_STATIC_DRAW);
     
-    humanoid = build_humanoid(vao, vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id);
+    humanoid = build_humanoid(vao, vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, shadow_uLightSpaceMatrix_id, shadow_uModelMatrix_id);
     humanoid->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_rider", humanoid));
     curr_node = humanoid;
@@ -83,10 +83,15 @@ void initVertexBufferGL(void) {
     /*
      * Init Depth Buffer for Shadow Mapping
      */
+    GLint error = glGetError();
     glGenFramebuffers(1, &depthMapFBO);
-    
     glGenTextures(1, &depthMap);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap); 
+
+    error = glGetError();
+    std::cout << "After generating framebuffer and texture " << error << ", " << glewGetErrorString(error) << "\n";
+
+
     
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, depthMap_width, depthMap_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -99,11 +104,15 @@ void initVertexBufferGL(void) {
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+   
+    error = glGetError();
+    std::cout << "At the end of initVertexBufferGL, " << error << ", " << glewGetErrorString(error) << "\n";
 }
 
 void renderGL(void) {
     /* Shadow Mapping */
- 
+    GLint error = glGetError();
+    std::cout << "At the beginning of renderGL, glError = " << error << ", " << glewGetErrorString(error) << "\n";
     view_matrix = glm::lookAt(glm::vec3(0, 0, 1060),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
     
     projection_matrix = glm::ortho(
@@ -113,6 +122,8 @@ void renderGL(void) {
                    );
     
     lightspace_matrix = projection_matrix * view_matrix;
+    error = glGetError();
+    std::cout << "Before shadowmap computation, glError = " << error << ", " << glewGetErrorString(error) << "\n";
     /*
     std::cout << "Light = ";
     for(int i = 0; i < 4; i++) {
@@ -144,9 +155,11 @@ void renderGL(void) {
     glViewport(0, 0, depthMap_width, depthMap_height);
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
-    humanoid->render_dag();   
+    humanoid->render_dag(true);   
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    error = glGetError();
+    std::cout << "After shadowmap computation, glError = " << error << ", " << glewGetErrorString(error) << "\n";
     
     /* Normal rendering */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -202,7 +215,11 @@ void renderGL(void) {
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, depthMap);
-    humanoid->render_dag();
+    humanoid->render_dag(false);
+
+    error = glGetError();
+    std::cout << "At the end, glError = " << error << ", " << glewGetErrorString(error) << "\n";
+    //exit(0);
 }
 
 int main(int argc, char** argv) {

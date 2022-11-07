@@ -39,7 +39,7 @@ struct HierarchyNode {
      */
     std::vector<std::pair<float, glm::vec3>> dof_params;
 
-    GLuint vbo, vao, vbo_offset, uniform_xform_id, normal_matrix_id, view_matrix_id, light_space_matrix_id, shadow_map_id; 
+    GLuint vbo, vao, vbo_offset, uniform_xform_id, normal_matrix_id, view_matrix_id, light_space_matrix_id, shadow_map_id, shadow_light_space_matrix_id, shadow_model_matrix_id; 
     // vbo_offset is how many "points" deep are we in the VBO
 
     bool draw_triangle, draw_line;
@@ -53,8 +53,8 @@ struct HierarchyNode {
     void init_default_dof_transform();
     void update_dof_transform();
     void prepare_vbo();
-    void render();
-    void render_dag();
+    void render(bool shadowmap);
+    void render_dag(bool shadowmap);
 };
 
 extern glm::mat4 viewproject;

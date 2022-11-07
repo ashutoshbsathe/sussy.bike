@@ -21,7 +21,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     float closestDepth = texture(shadowMap, projCoords.xy).r; 
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
-    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0; 
+    float shadow = currentDepth < closestDepth  ? 1.0 : 0.0; 
     return shadow;
 }
 
@@ -58,4 +58,7 @@ void main ()
   if(ShadowCalculation(lightspace_pos) > 0.0) {
     frag_colour = vec4(1, 0, 0, 1);
   }
+  vec3 position = (-eye).xyz / (-eye).w;
+  position = position * 0.5 + 0.5;
+  frag_colour = vec4(texture(shadowMap, position.xy).r, 0, 0, 1);
 }
