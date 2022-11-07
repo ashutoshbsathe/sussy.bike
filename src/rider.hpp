@@ -162,7 +162,7 @@ HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, G
     };
     knee->n_dof = 1;
     knee->dof_limits = {
-        {0, M_PI/2},
+        {-M_PI/2, 0},
         {0, 0},
         {0, 0},
         {-1024000, 1024000},
@@ -271,7 +271,7 @@ HierarchyNode *build_humanoid(GLuint vao, GLuint vbo, GLuint uniform_xform_id, G
     };
     other_knee->n_dof = 1;
     other_knee->dof_limits = {
-        {0, M_PI/2},
+        {-M_PI/2, 0},
         {0, 0},
         {0, 0},
         {-1024000, 1024000},
