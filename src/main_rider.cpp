@@ -7,7 +7,7 @@
 
 GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, position_id, color_id, normal_id;
 
-GLuint shadow_shader_program, shadow_uModelMatrix_id, shadow_uLightSpaceMatrix_id;
+GLuint shadow_shader_program, shadow_vao, shadow_position_id, shadow_uModelMatrix_id, shadow_uLightSpaceMatrix_id;
 
 GLuint depthMapFBO, depthMap_width = 1024, depthMap_height = 1024;
 
@@ -47,6 +47,7 @@ void initShadersGL(void) {
     shaderList.push_back(csX75::LoadShaderGL(GL_FRAGMENT_SHADER, "shadow_mapping_fs.glsl"));
     
     shadow_shader_program = csX75::CreateProgramGL(shaderList);
+    shadow_position_id = glGetAttribLocation(shadow_shader_program, "vPosition");
     shadow_uLightSpaceMatrix_id = glGetAttribLocation(shadow_shader_program, "uLightSpaceMatrix");
     shadow_uModelMatrix_id = glGetAttribLocation(shadow_shader_program, "uModelMatrix");
 }
@@ -80,6 +81,13 @@ void initVertexBufferGL(void) {
     glEnableVertexAttribArray(normal_id);
     glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
 
+    //Ask GL for a Vertex Attribute Object (vao)
+    glGenVertexArrays (1, &shadow_vao);
+    //Set it as the current array to be used by binding it
+    glBindVertexArray (shadow_vao);
+    glBindBuffer (GL_ARRAY_BUFFER, vbo); // shared VBO
+    glEnableVertexAttribArray (shadow_position_id);
+    glVertexAttribPointer (shadow_position_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(0));
     /*
      * Init Depth Buffer for Shadow Mapping
      */
@@ -87,12 +95,11 @@ void initVertexBufferGL(void) {
     glGenFramebuffers(1, &depthMapFBO);
     glGenTextures(1, &depthMap);
     glBindTexture(GL_TEXTURE_2D, depthMap); 
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     error = glGetError();
     std::cout << "After generating framebuffer and texture " << error << ", " << glewGetErrorString(error) << "\n";
-
-
-    
+ 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, depthMap_width, depthMap_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -124,28 +131,8 @@ void renderGL(void) {
     lightspace_matrix = projection_matrix * view_matrix;
     error = glGetError();
     std::cout << "Before shadowmap computation, glError = " << error << ", " << glewGetErrorString(error) << "\n";
-    /*
-    std::cout << "Light = ";
-    for(int i = 0; i < 4; i++) {
-        for(int j = 0; j < 4; j++) {
-            std::cout << lightspace_matrix[i][j] << " ";
-        }
-    }
-    std::cout << "\n";
-    auto transformed_origin = lightspace_matrix * glm::vec4(0, 0, 0, 1);
-    std::cout << "O = {" << transformed_origin.x << " " << transformed_origin.y << " " << transformed_origin.z << "}\n";
-    auto transformed_x_pos_one = lightspace_matrix * glm::vec4(1, 0, 1, 1);
-    std::cout << "+1[X] = {" << transformed_x_pos_one.x << " " << transformed_x_pos_one.y << " " << transformed_x_pos_one.z << "}\n";
-    auto transformed_x_neg_one = lightspace_matrix * glm::vec4(-1, 0, 1, 1);
-    std::cout << "-1[X] = {" << transformed_x_neg_one.x << " " << transformed_x_neg_one.y << " " << transformed_x_neg_one.z << "}\n";
-    auto transformed_y_pos_one = lightspace_matrix * glm::vec4(0, 1, -1, 1);
-    std::cout << "+1[Y] = {" << transformed_y_pos_one.x << " " << transformed_y_pos_one.y << " " << transformed_y_pos_one.z << "}\n";
-    auto transformed_y_neg_one = lightspace_matrix * glm::vec4(0, -1, -1, 1);
-    std::cout << "-1[Y] = {" << transformed_y_neg_one.x << " " << transformed_y_neg_one.y << " " << transformed_y_neg_one.z << "}\n";
-    exit(0);
-    */
     glUseProgram(shadow_shader_program);
-    glBindVertexArray(vao);
+    glBindVertexArray(shadow_vao);
  
     viewproject = lightspace_matrix;
     viewmatrix = lightspace_matrix;
@@ -156,8 +143,8 @@ void renderGL(void) {
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
     humanoid->render_dag(true);   
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     error = glGetError();
     std::cout << "After shadowmap computation, glError = " << error << ", " << glewGetErrorString(error) << "\n";
     
@@ -184,6 +171,42 @@ void renderGL(void) {
 
     glUseProgram(shader_program);
 
+    std::cout << "Light = ";
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            std::cout << lightspace_matrix[i][j] << " ";
+        }
+    }
+    std::cout << "\n";
+    auto transformed_origin = lightspace_matrix * glm::vec4(0, 0, 0, 1);
+    std::cout << "O = {" << transformed_origin.x << " " << transformed_origin.y << " " << transformed_origin.z << "}\n";
+    auto transformed_x_pos_one = lightspace_matrix * glm::vec4(1, 0, 1, 1);
+    std::cout << "+1[X] = {" << transformed_x_pos_one.x << " " << transformed_x_pos_one.y << " " << transformed_x_pos_one.z << "}\n";
+    auto transformed_x_neg_one = lightspace_matrix * glm::vec4(-1, 0, 1, 1);
+    std::cout << "-1[X] = {" << transformed_x_neg_one.x << " " << transformed_x_neg_one.y << " " << transformed_x_neg_one.z << "}\n";
+    auto transformed_y_pos_one = lightspace_matrix * glm::vec4(0, 1, -1, 1);
+    std::cout << "+1[Y] = {" << transformed_y_pos_one.x << " " << transformed_y_pos_one.y << " " << transformed_y_pos_one.z << "}\n";
+    auto transformed_y_neg_one = lightspace_matrix * glm::vec4(0, -1, -1, 1);
+    std::cout << "-1[Y] = {" << transformed_y_neg_one.x << " " << transformed_y_neg_one.y << " " << transformed_y_neg_one.z << "}\n";
+    
+    std::cout << "Modelviewproject = ";
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            std::cout << modelviewproject_matrix[i][j] << " ";
+        }
+    }
+    std::cout << "\n";
+    transformed_origin = modelviewproject_matrix * glm::vec4(0, 0, 0, 1);
+    std::cout << "O = {" << transformed_origin.x << " " << transformed_origin.y << " " << transformed_origin.z << "}\n";
+    transformed_x_pos_one = modelviewproject_matrix * glm::vec4(1, 0, 1, 1);
+    std::cout << "+1[X] = {" << transformed_x_pos_one.x << " " << transformed_x_pos_one.y << " " << transformed_x_pos_one.z << "}\n";
+    transformed_x_neg_one = modelviewproject_matrix * glm::vec4(-1, 0, 1, 1);
+    std::cout << "-1[X] = {" << transformed_x_neg_one.x << " " << transformed_x_neg_one.y << " " << transformed_x_neg_one.z << "}\n";
+    transformed_y_pos_one = modelviewproject_matrix * glm::vec4(0, 1, -1, 1);
+    std::cout << "+1[Y] = {" << transformed_y_pos_one.x << " " << transformed_y_pos_one.y << " " << transformed_y_pos_one.z << "}\n";
+    transformed_y_neg_one = modelviewproject_matrix * glm::vec4(0, -1, -1, 1);
+    std::cout << "-1[Y] = {" << transformed_y_neg_one.x << " " << transformed_y_neg_one.y << " " << transformed_y_neg_one.z << "}\n";
+    exit(0);
     modelviewproject_matrix *= rotation_matrix;
 
     normal_matrix = glm::transpose(glm::inverse(glm::mat3(modelviewproject_matrix)));
@@ -192,7 +215,7 @@ void renderGL(void) {
     viewproject = modelviewproject_matrix;
     viewmatrix = modelviewproject_matrix;
     normalmatrix = normal_matrix;
-    lightspacematrix = lightspace_matrix;
+    lightspacematrix = lightspace_matrix * rotation_matrix;
     hierarchy_matrix_stack = glm::mat4(1);
     
     /*

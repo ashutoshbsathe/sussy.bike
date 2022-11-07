@@ -58,7 +58,8 @@ void main ()
   if(ShadowCalculation(lightspace_pos) > 0.0) {
     frag_colour = vec4(1, 0, 0, 1);
   }
-  vec3 position = (-eye).xyz / (-eye).w;
-  position = position * 0.5 + 0.5;
-  frag_colour = vec4(texture(shadowMap, position.xy).r, 0, 0, 1);
+
+  //vec3 position = (-eye).xyz / (-eye).w;
+  //position = position * 0.5 + 0.5;
+  //frag_colour = vec4(texture(shadowMap, position.xy).r, 0, 0, 1);
 }

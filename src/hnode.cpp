@@ -408,13 +408,17 @@ void HierarchyNode::render(bool shadowmap) {
     glm::mat4 overall = viewproject * hierarchy_matrix_stack * this->private_transform;
     glm::mat3 overall_normals = glm::transpose(glm::inverse(glm::mat3(overall)));
     glm::mat4 overall_lightspace = lightspacematrix * hierarchy_matrix_stack * this->private_transform;
+    GLint error = glGetError();
     if(shadowmap) {
         std::cout << this->name << ": Rendering shadowmap\n";
-        glUniformMatrix4fv(this->shadow_light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(lightspacematrix));
+        glUniformMatrix4fv(this->shadow_light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(overall));
+        error = glGetError();
+        std::cout << "AFter passing light space: " << error << ", " << glewGetErrorString(error) << "\n";
         glUniformMatrix4fv(this->shadow_model_matrix_id, 1, GL_FALSE, glm::value_ptr(overall));
+        error = glGetError();
+        std::cout << "AFter passing transform: " << error << ", " << glewGetErrorString(error) << "\n";
     }
     else {
-        GLint error = glGetError();
         std::cout << this->name << ": Rendering normally\n";
         glUniformMatrix4fv(this->uniform_xform_id, 1, GL_FALSE, glm::value_ptr(overall)); // value_ptr needed for proper pointer conversion
         error = glGetError();
