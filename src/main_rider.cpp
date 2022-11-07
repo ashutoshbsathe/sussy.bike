@@ -143,10 +143,12 @@ void renderGL(void) {
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
     humanoid->render_dag(true);   
+    error = glGetError();
+    std::cout << "After dag rendering, glError = " << error << ", " << glewGetErrorString(error) << "\n";
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     error = glGetError();
-    std::cout << "After shadowmap computation, glError = " << error << ", " << glewGetErrorString(error) << "\n";
+    std::cout << "After breaking framebuffer binding, glError = " << error << ", " << glewGetErrorString(error) << "\n";
     
     /* Normal rendering */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

@@ -447,9 +447,13 @@ void HierarchyNode::render(bool shadowmap) {
     */
     if(draw_triangle) {
         glDrawArrays(GL_TRIANGLES, this->vbo_offset, this->triangle_list.size() * 3);
+        error = glGetError();
+        std::cout << "After glDrawArrays drawing " << this->triangle_list.size() << " points from offset " << this->vbo_offset << ", glError = " << error << ", " << glewGetErrorString(error) << "\n";
     }
     if(draw_line) {
         glDrawArrays(GL_LINES, this->vbo_offset + this->triangle_list.size() * 3, this->line_list.size() * 2);
+        error = glGetError();
+        std::cout << "After glDrawArrays drawing " << this->line_list.size() * 2<< " points from offset " << this->vbo_offset + this->triangle_list.size() * 3<< ", glError = " << error << ", " << glewGetErrorString(error) << "\n";
     }
 }
 
