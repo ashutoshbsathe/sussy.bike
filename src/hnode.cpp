@@ -413,28 +413,28 @@ void HierarchyNode::render(bool shadowmap) {
         std::cout << this->name << ": Rendering shadowmap\n";
         glUniformMatrix4fv(this->shadow_light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(overall));
         error = glGetError();
-        std::cout << "AFter passing light space: " << error << ", " << glewGetErrorString(error) << "\n";
+        std::cout << "AFter passing light space: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
         glUniformMatrix4fv(this->shadow_model_matrix_id, 1, GL_FALSE, glm::value_ptr(overall));
         error = glGetError();
-        std::cout << "AFter passing transform: " << error << ", " << glewGetErrorString(error) << "\n";
+        std::cout << "AFter passing transform: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
     }
     else {
         std::cout << this->name << ": Rendering normally\n";
         glUniformMatrix4fv(this->uniform_xform_id, 1, GL_FALSE, glm::value_ptr(overall)); // value_ptr needed for proper pointer conversion
         error = glGetError();
-        std::cout << "AFter passing transform: " << error << ", " << glewGetErrorString(error) << "\n";
+        std::cout << "AFter passing transform: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
         glUniformMatrix3fv(this->normal_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
         error = glGetError();
-        std::cout << "AFter passing normals: " << error << ", " << glewGetErrorString(error) << "\n";
+        std::cout << "AFter passing normals: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
         glUniformMatrix4fv(this->view_matrix_id, 1, GL_FALSE, glm::value_ptr(viewmatrix)); // value_ptr needed for proper pointer conversion
         error = glGetError();
-        std::cout << "AFter passing viewmatrix: " << error << ", " << glewGetErrorString(error) << "\n";
+        std::cout << "AFter passing viewmatrix: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
         glUniformMatrix4fv(this->light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_lightspace)); // value_ptr needed for proper pointer conversion
         error = glGetError();
-        std::cout << "AFter passing lightspace: " << error << ", " << glewGetErrorString(error) << "\n";
+        std::cout << "AFter passing lightspace: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
         glUniform1i(this->shadow_map_id, 0);
         error = glGetError();
-        std::cout << "AFter passing shadowmap: " << error << ", " << glewGetErrorString(error) << "\n";
+        std::cout << "AFter passing shadowmap: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
     }
     /*  
     for(int i = 0; i < 3; i++) {
@@ -448,12 +448,12 @@ void HierarchyNode::render(bool shadowmap) {
     if(draw_triangle) {
         glDrawArrays(GL_TRIANGLES, this->vbo_offset, this->triangle_list.size() * 3);
         error = glGetError();
-        std::cout << "After glDrawArrays drawing " << this->triangle_list.size() << " points from offset " << this->vbo_offset << ", glError = " << error << ", " << glewGetErrorString(error) << "\n";
+        std::cout << "After glDrawArrays drawing " << this->triangle_list.size() << " points from offset " << this->vbo_offset << ", glError = " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
     }
     if(draw_line) {
         glDrawArrays(GL_LINES, this->vbo_offset + this->triangle_list.size() * 3, this->line_list.size() * 2);
         error = glGetError();
-        std::cout << "After glDrawArrays drawing " << this->line_list.size() * 2<< " points from offset " << this->vbo_offset + this->triangle_list.size() * 3<< ", glError = " << error << ", " << glewGetErrorString(error) << "\n";
+        std::cout << "After glDrawArrays drawing " << this->line_list.size() * 2<< " points from offset " << this->vbo_offset + this->triangle_list.size() * 3<< ", glError = " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
     }
 }
 

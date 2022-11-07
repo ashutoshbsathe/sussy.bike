@@ -7,7 +7,7 @@
 
 GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, position_id, color_id, normal_id;
 
-GLuint shadow_shader_program, shadow_vao, shadow_position_id, shadow_uModelMatrix_id, shadow_uLightSpaceMatrix_id;
+GLuint shadow_shader_program, shadow_vao, shadow_position_id, shadow_color_id, shadow_uModelMatrix_id, shadow_uLightSpaceMatrix_id;
 
 GLuint depthMapFBO, depthMap_width = 1024, depthMap_height = 1024;
 
@@ -48,6 +48,7 @@ void initShadersGL(void) {
     
     shadow_shader_program = csX75::CreateProgramGL(shaderList);
     shadow_position_id = glGetAttribLocation(shadow_shader_program, "vPosition");
+    shadow_color_id = glGetAttribLocation(shadow_shader_program, "vColor");
     shadow_uLightSpaceMatrix_id = glGetAttribLocation(shadow_shader_program, "uLightSpaceMatrix");
     shadow_uModelMatrix_id = glGetAttribLocation(shadow_shader_program, "uModelMatrix");
 }
@@ -123,12 +124,12 @@ void renderGL(void) {
     /* Shadow Mapping */
     GLint error = glGetError();
     std::cout << "At the beginning of renderGL, glError = " << error << ", " << glewGetErrorString(error) << "\n";
-    view_matrix = glm::lookAt(glm::vec3(0, 0, 1060),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+    view_matrix = glm::lookAt(glm::vec3(0, 0, -VIEW_PADDING*DRAW_MIN),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
     
     projection_matrix = glm::ortho(
-                       1060.0f, -1060.0f,
-                       1060.0f, -1060.0f,
-                       -2120.0f, 2120.0f
+                       VIEW_PADDING * DRAW_MIN, VIEW_PADDING * DRAW_MAX,
+                       VIEW_PADDING * DRAW_MIN, VIEW_PADDING * DRAW_MAX,
+                       10 * VIEW_PADDING * DRAW_MIN, 10 * VIEW_PADDING * DRAW_MAX
                    );
     
     lightspace_matrix = projection_matrix * view_matrix;
@@ -143,16 +144,17 @@ void renderGL(void) {
     hierarchy_matrix_stack = glm::mat4(1);
 
     glViewport(0, 0, depthMap_width, depthMap_height);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glClear(GL_DEPTH_BUFFER_BIT);
+    //glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    //glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     humanoid->render_dag(true);   
     error = glGetError();
     std::cout << "After dag rendering, glError = " << error << ", " << glewGetErrorString(error) << "\n";
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     error = glGetError();
     std::cout << "After breaking framebuffer binding, glError = " << error << ", " << glewGetErrorString(error) << "\n";
-    
+    return;
     /* Normal rendering */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -224,7 +226,6 @@ void renderGL(void) {
     normalmatrix = normal_matrix;
     lightspacematrix = lightspace_matrix * rotation_matrix;
     hierarchy_matrix_stack = glm::mat4(1);
-    
     /*
     std::cout << "Light = ";
     for(int i = 0; i < 4; i++) {
