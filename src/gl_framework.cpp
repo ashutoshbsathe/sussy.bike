@@ -121,31 +121,31 @@ namespace csX75 {
             update_dof_id(5);
         } else if(key == GLFW_KEY_6 && action == GLFW_PRESS) {
             update_dof_id(6);
-        } else if(key == GLFW_KEY_RIGHT_BRACKET && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_RIGHT_BRACKET) {
             if(curr_node->dof_params[dof_id].first + curr_node->dof_deltas[dof_id] <= curr_node->dof_limits[dof_id].second) {
                 curr_node->dof_params[dof_id].first += curr_node->dof_deltas[dof_id];
             }
             curr_node->update_dof_transform();
             auto params = curr_node->dof_params[dof_id];
             std::cout << curr_node->name << "[dof#" << dof_id + 1 << "]: value = " << params.first << ", delta = " << curr_node->dof_deltas[dof_id] << ", along (" << params.second[0] << ", " << params.second[1] << ", " << params.second[2] << ")\n";
-        } else if(key == GLFW_KEY_LEFT_BRACKET && action == GLFW_PRESS){
+        } else if(key == GLFW_KEY_LEFT_BRACKET){
             if(curr_node->dof_params[dof_id].first - curr_node->dof_deltas[dof_id] >= curr_node->dof_limits[dof_id].first) {
                 curr_node->dof_params[dof_id].first -= curr_node->dof_deltas[dof_id];
             }
             curr_node->update_dof_transform();
             auto params = curr_node->dof_params[dof_id];
             std::cout << curr_node->name << "[dof#" << dof_id + 1 << "]: value = " << params.first << ", delta = " << curr_node->dof_deltas[dof_id] << ", along (" << params.second[0] << ", " << params.second[1] << ", " << params.second[2] << ")\n";
-        } else if(key == GLFW_KEY_W && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_W) {
             xrot += rotamount;
-        } else if(key == GLFW_KEY_S && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_S) {
             xrot -= rotamount;
-        } else if(key == GLFW_KEY_A && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_A) {
             yrot += rotamount;
-        } else if(key == GLFW_KEY_D && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_D) {
             yrot -= rotamount;
-        }else if(key == GLFW_KEY_Q && action == GLFW_PRESS) {
+        }else if(key == GLFW_KEY_Q) {
             zrot += rotamount;
-        } else if(key == GLFW_KEY_E && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_E) {
             zrot -= rotamount;
         } else if(key == GLFW_KEY_COMMA && action == GLFW_PRESS) {
             if(entity_idx == 0) {
@@ -168,10 +168,10 @@ namespace csX75 {
         } else if(key == GLFW_KEY_K && action == GLFW_PRESS) {
             auto curr = entities[entity_idx];
             curr.save_params_to_file("params_" + curr.name + ".txt");
-        } /*else if(key == GLFW_KEY_M && action == GLFW_PRESS){
+        } else if(key == GLFW_KEY_M && action == GLFW_PRESS){
             VIEW_PADDING += zoomamount;
         } else if(key == GLFW_KEY_N && action == GLFW_PRESS){
             VIEW_PADDING -= zoomamount;
-        } */
+        } 
     }
 }

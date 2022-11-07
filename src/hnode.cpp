@@ -351,7 +351,6 @@ void HierarchyNode::render_dag() {
     }
     hierarchy_matrix_stack = hierarchy_matrix_stack * this->local_transform * this->dof_transform;
     render();
-    return;
     for(auto it : this->children) {
         it->render_dag();
     }

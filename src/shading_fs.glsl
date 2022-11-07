@@ -12,13 +12,13 @@ void main ()
 {
   // Defining Materials
   vec4 diffuse = vec4(1.0, 1.0, 1.0, 1.0); 
-  vec4 ambient = vec4(0.5, 0.0, 0.0, 1.0);
-  vec4 specular = vec4(1.0, 0.5, 0.5, 1.0);
+  vec4 ambient = vec4(0.75, 0.75, 0.75, 1.0);
+  vec4 specular = vec4(0.9, 0.9, 0.9, 1.0);
   float shininess = 0.1;
   vec4 spec = vec4(0.0); 
 
   // Defining Light 
-  vec4 lightPos = vec4(1, 1, 1, 0.0);
+  vec4 lightPos = vec4(1000, 1000, -1000, 1);
   vec3 lightDir = vec3(uViewMatrix * lightPos);  // Transforms with camera
   lightDir = normalize(vec3(lightDir));  
 
@@ -36,5 +36,5 @@ void main ()
 
   frag_colour = vec4(color, 1.0);
 
-  frag_colour = max((intensity * diffuse + spec)*frag_colour, ambient);
+  frag_colour = max((intensity * diffuse + spec)*frag_colour, ambient*frag_colour);
 }
