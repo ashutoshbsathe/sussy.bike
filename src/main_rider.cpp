@@ -9,6 +9,7 @@ GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, u
 
 GLuint shadow_shader_program, shadow_vao, shadow_position_id, shadow_color_id, shadow_uModelMatrix_id, shadow_uLightSpaceMatrix_id;
 
+std::ofstream fout;
 GLuint depthMapFBO, depthMap_width = 1024, depthMap_height = 1024;
 
 glm::mat4 view_matrix;
@@ -81,7 +82,8 @@ void initVertexBufferGL(void) {
 
     glEnableVertexAttribArray(normal_id);
     glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
-
+    
+    std::cout << "Normal rendering attributes enabled\n";
     //Ask GL for a Vertex Attribute Object (vao)
     glGenVertexArrays (1, &shadow_vao);
     //Set it as the current array to be used by binding it
@@ -135,8 +137,8 @@ void renderGL(void) {
     lightspace_matrix = projection_matrix * view_matrix;
     error = glGetError();
     std::cout << "Before shadowmap computation, glError = " << error << ", " << glewGetErrorString(error) << "\n";
-    glUseProgram(shadow_shader_program);
     glBindVertexArray(shadow_vao);
+    glUseProgram(shadow_shader_program);
  
     viewproject = lightspace_matrix;
     viewmatrix = lightspace_matrix;
@@ -253,7 +255,89 @@ void renderGL(void) {
     //exit(0);
 }
 
+void APIENTRY glDebugOutput(GLenum source, 
+                            GLenum type, 
+                            unsigned int id, 
+                            GLenum severity, 
+                            GLsizei length, 
+                            const char *message, 
+                            const void *userParam)
+{
+    // ignore non-significant error/warning codes
+    if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return; 
+    
+    std::cout << "---------------" << "\n";
+    std::cout << "Debug message (" << id << "): " <<  message << "\n";
+    fout << "---------------" << "\n";
+    fout << "Debug message (" << id << "): " <<  message << "\n";
+
+    switch (source)
+    {
+        case GL_DEBUG_SOURCE_API:             std::cout << "Source: API"; break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   std::cout << "Source: Window System"; break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER: std::cout << "Source: Shader Compiler"; break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY:     std::cout << "Source: Third Party"; break;
+        case GL_DEBUG_SOURCE_APPLICATION:     std::cout << "Source: Application"; break;
+        case GL_DEBUG_SOURCE_OTHER:           std::cout << "Source: Other"; break;
+    } std::cout << "\n";
+
+    switch (source)
+    {
+        case GL_DEBUG_SOURCE_API:             fout << "Source: API"; break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   fout << "Source: Window System"; break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER: fout << "Source: Shader Compiler"; break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY:     fout << "Source: Third Party"; break;
+        case GL_DEBUG_SOURCE_APPLICATION:     fout << "Source: Application"; break;
+        case GL_DEBUG_SOURCE_OTHER:           fout << "Source: Other"; break;
+    } fout << "\n";
+    
+    switch (type)
+    {
+        case GL_DEBUG_TYPE_ERROR:               std::cout << "Type: Error"; break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: std::cout << "Type: Deprecated Behaviour"; break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  std::cout << "Type: Undefined Behaviour"; break; 
+        case GL_DEBUG_TYPE_PORTABILITY:         std::cout << "Type: Portability"; break;
+        case GL_DEBUG_TYPE_PERFORMANCE:         std::cout << "Type: Performance"; break;
+        case GL_DEBUG_TYPE_MARKER:              std::cout << "Type: Marker"; break;
+        case GL_DEBUG_TYPE_PUSH_GROUP:          std::cout << "Type: Push Group"; break;
+        case GL_DEBUG_TYPE_POP_GROUP:           std::cout << "Type: Pop Group"; break;
+        case GL_DEBUG_TYPE_OTHER:               std::cout << "Type: Other"; break;
+    } std::cout << "\n";
+
+    switch (type)
+    {
+        case GL_DEBUG_TYPE_ERROR:               fout << "Type: Error"; break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: fout << "Type: Deprecated Behaviour"; break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  fout << "Type: Undefined Behaviour"; break; 
+        case GL_DEBUG_TYPE_PORTABILITY:         fout << "Type: Portability"; break;
+        case GL_DEBUG_TYPE_PERFORMANCE:         fout << "Type: Performance"; break;
+        case GL_DEBUG_TYPE_MARKER:              fout << "Type: Marker"; break;
+        case GL_DEBUG_TYPE_PUSH_GROUP:          fout << "Type: Push Group"; break;
+        case GL_DEBUG_TYPE_POP_GROUP:           fout << "Type: Pop Group"; break;
+        case GL_DEBUG_TYPE_OTHER:               fout << "Type: Other"; break;
+    } fout << "\n";
+    
+    switch (severity)
+    {
+        case GL_DEBUG_SEVERITY_HIGH:         std::cout << "Severity: high"; break;
+        case GL_DEBUG_SEVERITY_MEDIUM:       std::cout << "Severity: medium"; break;
+        case GL_DEBUG_SEVERITY_LOW:          std::cout << "Severity: low"; break;
+        case GL_DEBUG_SEVERITY_NOTIFICATION: std::cout << "Severity: notification"; break;
+    } std::cout << "\n";
+    std::cout << "\n";
+
+    switch (severity)
+    {
+        case GL_DEBUG_SEVERITY_HIGH:         fout << "Severity: high"; break;
+        case GL_DEBUG_SEVERITY_MEDIUM:       fout << "Severity: medium"; break;
+        case GL_DEBUG_SEVERITY_LOW:          fout << "Severity: low"; break;
+        case GL_DEBUG_SEVERITY_NOTIFICATION: fout << "Severity: notification"; break;
+    } fout << "\n";
+    fout << "\n";
+}
+
 int main(int argc, char** argv) {
+    fout.open("debug.log");
     //! The pointer to the GLFW window
     GLFWwindow* window;
 
@@ -315,6 +399,8 @@ int main(int argc, char** argv) {
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
+    glDebugMessageCallback(glDebugOutput, nullptr);
 
     initShadersGL();
     initVertexBufferGL();
