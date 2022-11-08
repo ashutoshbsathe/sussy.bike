@@ -7,7 +7,7 @@
 
 GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, position_id, color_id, normal_id;
 
-GLuint shadow_shader_program, shadow_vao, shadow_position_id, shadow_color_id, shadow_uModelMatrix_id, shadow_uLightSpaceMatrix_id;
+GLuint shadow_shader_program, shadow_vao, shadow_vbo, shadow_position_id, shadow_color_id, shadow_uModelMatrix_id, shadow_uLightSpaceMatrix_id;
 
 std::ofstream fout;
 GLuint depthMapFBO, depthMap_width = 1024, depthMap_height = 1024;
@@ -20,7 +20,7 @@ glm::mat4 lightspace_matrix;
 glm::mat4 rotation_matrix;
 glm::mat3 normal_matrix;
 
-HierarchyNode *humanoid, *curr_node;
+HierarchyNode *humanoid, *curr_node, *tmp;
 std::vector<AnimationEntity> entities;
 int entity_idx = 0;
 
@@ -49,7 +49,6 @@ void initShadersGL(void) {
     
     shadow_shader_program = csX75::CreateProgramGL(shaderList);
     shadow_position_id = glGetAttribLocation(shadow_shader_program, "vPosition");   // WHY it is using 'vPosition'?
-    shadow_color_id = glGetAttribLocation(shadow_shader_program, "vColor");
     shadow_uLightSpaceMatrix_id = glGetAttribLocation(shadow_shader_program, "uLightSpaceMatrix");
     shadow_uModelMatrix_id = glGetAttribLocation(shadow_shader_program, "uModelMatrix");
 }
@@ -82,13 +81,24 @@ void initVertexBufferGL(void) {
 
     glEnableVertexAttribArray(normal_id);
     glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
-    
+     
     std::cout << "Normal rendering attributes enabled\n";
+
+    //glBindVertexArray(0);
+
     //Ask GL for a Vertex Attribute Object (vao)
     glGenVertexArrays (1, &shadow_vao);
     //Set it as the current array to be used by binding it
     glBindVertexArray (shadow_vao);
-    glBindBuffer (GL_ARRAY_BUFFER, vbo); // shared VBO
+    //Ask GL for a Vertex Buffer Object (vbo)
+    glGenBuffers (1, &shadow_vbo);
+    //Set it as the current buffer to be used by binding it
+    glBindBuffer (GL_ARRAY_BUFFER, shadow_vbo);
+    
+    glBufferData(GL_ARRAY_BUFFER, MAX_HUMANOID_VBO_BYTES, NULL, GL_STATIC_DRAW);
+    
+    tmp = build_humanoid(shadow_vao, shadow_vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, shadow_uLightSpaceMatrix_id, shadow_uModelMatrix_id);
+    tmp->prepare_vbo();
     glEnableVertexAttribArray (shadow_position_id);
     glVertexAttribPointer (shadow_position_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(0));
     /*
@@ -124,39 +134,62 @@ void initVertexBufferGL(void) {
 
 void renderGL(void) {
     /* Shadow Mapping */
-    GLint error = glGetError();
-    std::cout << "At the beginning of renderGL, glError = " << error << ", " << glewGetErrorString(error) << "\n";
-    view_matrix = glm::lookAt(glm::vec3(0, 0, -VIEW_PADDING*DRAW_MIN),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
-    
-    projection_matrix = glm::ortho(
-                       VIEW_PADDING * DRAW_MIN, VIEW_PADDING * DRAW_MAX,
-                       VIEW_PADDING * DRAW_MIN, VIEW_PADDING * DRAW_MAX,
-                       10 * VIEW_PADDING * DRAW_MIN, 10 * VIEW_PADDING * DRAW_MAX
-                   );
-    
-    lightspace_matrix = projection_matrix * view_matrix;
-    error = glGetError();
-    std::cout << "Before shadowmap computation, glError = " << error << ", " << glewGetErrorString(error) << "\n";
-    glBindVertexArray(shadow_vao);
-    glUseProgram(shadow_shader_program);    // Somehow 'shadow_shader_program' is not linked.
- 
-    viewproject = lightspace_matrix;
-    viewmatrix = lightspace_matrix;
-    lightspacematrix = lightspace_matrix;
-    hierarchy_matrix_stack = glm::mat4(1);
+        GLint error = glGetError();
+    if(true) {
+        std::cout << "At the beginning of renderGL, glError = " << error << ", " << glewGetErrorString(error) << "\n";
+        view_matrix = glm::lookAt(glm::vec3(0.f, 0.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+        
+        projection_matrix = glm::ortho(
+                1060.f, -1060.f,
+                -1060.f, 1060.f,
+                 0.f, 2120.f
+        );
+        
+        lightspace_matrix = projection_matrix * view_matrix;
+        error = glGetError();
+        std::cout << "Before shadowmap computation, glError = " << error << ", " << glewGetErrorString(error) << "\n";
+        glUseProgram(shadow_shader_program);    // Somehow 'shadow_shader_program' is not linked.
+        glBindVertexArray(shadow_vao);
+     
+        viewproject = lightspace_matrix;
+        viewmatrix = lightspace_matrix;
+        lightspacematrix = lightspace_matrix;
+        hierarchy_matrix_stack = glm::mat4(1);
+        
+        /*
+        std::cout << "Light = ";
+        for(int i = 0; i < 4; i++) {
+            for(int j = 0; j < 4; j++) {
+                std::cout << lightspace_matrix[i][j] << " ";
+            }
+        }
+        std::cout << "\n";
+        auto transformed_origin = lightspace_matrix * glm::vec4(0, 0, 0, 1);
+        std::cout << "O = {" << transformed_origin.x << " " << transformed_origin.y << " " << transformed_origin.z << "}\n";
+        auto transformed_x_pos_one = lightspace_matrix * glm::vec4(1, 0, 1, 1);
+        std::cout << "+1[X] = {" << transformed_x_pos_one.x << " " << transformed_x_pos_one.y << " " << transformed_x_pos_one.z << "}\n";
+        auto transformed_x_neg_one = lightspace_matrix * glm::vec4(-1, 0, 1, 1);
+        std::cout << "-1[X] = {" << transformed_x_neg_one.x << " " << transformed_x_neg_one.y << " " << transformed_x_neg_one.z << "}\n";
+        auto transformed_y_pos_one = lightspace_matrix * glm::vec4(0, 1, -1, 1);
+        std::cout << "+1[Y] = {" << transformed_y_pos_one.x << " " << transformed_y_pos_one.y << " " << transformed_y_pos_one.z << "}\n";
+        auto transformed_y_neg_one = lightspace_matrix * glm::vec4(0, -1, -1, 1);
+        std::cout << "-1[Y] = {" << transformed_y_neg_one.x << " " << transformed_y_neg_one.y << " " << transformed_y_neg_one.z << "}\n";
+        
+        exit(0);
+        */
+        glViewport(0, 0, depthMap_width, depthMap_height);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        //glClear(GL_DEPTH_BUFFER_BIT);
+        humanoid->render_dag(true);   
+        error = glGetError();
+        std::cout << "After dag rendering, glError = " << error << ", " << glewGetErrorString(error) << "\n";
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glViewport(0, 0, depthMap_width, depthMap_height);
-    //glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    //glClear(GL_DEPTH_BUFFER_BIT);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    humanoid->render_dag(true);   
-    error = glGetError();
-    std::cout << "After dag rendering, glError = " << error << ", " << glewGetErrorString(error) << "\n";
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    error = glGetError();
-    std::cout << "After breaking framebuffer binding, glError = " << error << ", " << glewGetErrorString(error) << "\n";
-    return;
+        error = glGetError();
+        std::cout << "After breaking framebuffer binding, glError = " << error << ", " << glewGetErrorString(error) << "\n";
+        return;
+    }
     /* Normal rendering */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -172,7 +205,15 @@ void renderGL(void) {
                        10 * VIEW_PADDING * DRAW_MIN, 10 * VIEW_PADDING * DRAW_MAX
                    );
     projection_matrix = glm::frustum(-1,1,-1,1,1,10);
-
+/*
+        view_matrix = glm::lookAt(glm::vec3(0.f, 0.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+        
+        ortho_matrix = glm::ortho(
+                1060.f, -1060.f,
+                -1060.f, 1060.f,
+                 0.f, 2120.f
+        );
+*/
     if(false) 
         modelviewproject_matrix = projection_matrix * view_matrix;
     else

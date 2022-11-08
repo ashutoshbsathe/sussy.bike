@@ -1,6 +1,6 @@
 #include "hnode.hpp"
 
-HierarchyNode *build_bike(GLuint vao, GLuint vbo, GLuint uniform_xform_id, GLuint normal_matrix_id, GLuint view_matrix_id) {
+HierarchyNode *build_bike(GLuint vao, GLuint vbo, GLuint uniform_xform_id, GLuint normal_matrix_id, GLuint view_matrix_id, GLuint light_space_matrix_id, GLuint shadow_map_id, GLuint shadow_light_space_matrix_id, GLuint shadow_model_matrix_id) {
     unsigned int next_available_vbo_offset;
     StackedPolyPrism p_back_wheel_part_1 = StackedPolyPrism("./bike_parts/back_wheel_part_1.txt");
 	HierarchyNode *back_wheel_part_1 = new HierarchyNode(p_back_wheel_part_1);
@@ -151,6 +151,10 @@ HierarchyNode *build_bike(GLuint vao, GLuint vbo, GLuint uniform_xform_id, GLuin
     body->uniform_xform_id = uniform_xform_id;
     body->normal_matrix_id = normal_matrix_id;
     body->view_matrix_id = view_matrix_id;
+    body->light_space_matrix_id = light_space_matrix_id;
+    body->shadow_map_id = shadow_map_id;
+    body->shadow_light_space_matrix_id = light_space_matrix_id;
+    body->shadow_model_matrix_id = shadow_model_matrix_id;
 
     next_available_vbo_offset = 3 * body->triangle_list.size() + 2 * body->line_list.size();
 
