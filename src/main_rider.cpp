@@ -48,7 +48,7 @@ void initShadersGL(void) {
     shaderList.push_back(csX75::LoadShaderGL(GL_FRAGMENT_SHADER, "shadow_mapping_fs.glsl"));
     
     shadow_shader_program = csX75::CreateProgramGL(shaderList);
-    shadow_position_id = glGetAttribLocation(shadow_shader_program, "vPosition");
+    shadow_position_id = glGetAttribLocation(shadow_shader_program, "vPosition");   // WHY it is using 'vPosition'?
     shadow_color_id = glGetAttribLocation(shadow_shader_program, "vColor");
     shadow_uLightSpaceMatrix_id = glGetAttribLocation(shadow_shader_program, "uLightSpaceMatrix");
     shadow_uModelMatrix_id = glGetAttribLocation(shadow_shader_program, "uModelMatrix");
@@ -138,7 +138,7 @@ void renderGL(void) {
     error = glGetError();
     std::cout << "Before shadowmap computation, glError = " << error << ", " << glewGetErrorString(error) << "\n";
     glBindVertexArray(shadow_vao);
-    glUseProgram(shadow_shader_program);
+    glUseProgram(shadow_shader_program);    // Somehow 'shadow_shader_program' is not linked.
  
     viewproject = lightspace_matrix;
     viewmatrix = lightspace_matrix;
