@@ -411,7 +411,7 @@ void HierarchyNode::render(bool shadowmap) {
     GLint error = glGetError();
     if(shadowmap) {
         std::cout << this->name << ": Rendering shadowmap\n";
-        glUniformMatrix4fv(this->shadow_light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(overall));
+        glUniformMatrix4fv(this->shadow_light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(overall)); // WHERE HAVE YOU INITIALIZED THIS 'shadow_light_space_matrix_id' ?
         error = glGetError();
         std::cout << "AFter passing light space: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
         glUniformMatrix4fv(this->shadow_model_matrix_id, 1, GL_FALSE, glm::value_ptr(overall));
