@@ -153,7 +153,7 @@ HierarchyNode *build_bike(GLuint vao, GLuint vbo, GLuint uniform_xform_id, GLuin
     body->view_matrix_id = view_matrix_id;
     body->light_space_matrix_id = light_space_matrix_id;
     body->shadow_map_id = shadow_map_id;
-    body->shadow_light_space_matrix_id = light_space_matrix_id;
+    body->shadow_light_space_matrix_id = shadow_light_space_matrix_id;
     body->shadow_model_matrix_id = shadow_model_matrix_id;
 
     next_available_vbo_offset = 3 * body->triangle_list.size() + 2 * body->line_list.size();

@@ -29,6 +29,7 @@ void initShadersGL(void) {
     std::string fragment_shader_file("shading_fs.glsl");
 
     std::vector<GLuint> shaderList;
+    /*
     shaderList.push_back(csX75::LoadShaderGL(GL_VERTEX_SHADER, vertex_shader_file));
     shaderList.push_back(csX75::LoadShaderGL(GL_FRAGMENT_SHADER, fragment_shader_file));
 
@@ -41,6 +42,7 @@ void initShadersGL(void) {
     uViewMatrix_id = glGetUniformLocation(shader_program, "uViewMatrix");
     uLightSpaceMatrix_id = glGetAttribLocation(shader_program, "uLightSpaceMatrix");
     uShadowMap_id = glGetAttribLocation(shader_program, "shadowMap");
+    */
 
     /* Shadow Mapping */
     shaderList.clear();
@@ -54,36 +56,37 @@ void initShadersGL(void) {
 }
 
 void initVertexBufferGL(void) {
-    //Ask GL for a Vertex Attribute Object (vao)
-    glGenVertexArrays (1, &vao);
-    //Set it as the current array to be used by binding it
-    glBindVertexArray (vao);
-    //Ask GL for a Vertex Buffer Object (vbo)
-    glGenBuffers (1, &vbo);
-    //Set it as the current buffer to be used by binding it
-    glBindBuffer (GL_ARRAY_BUFFER, vbo);
-    
-    glBufferData(GL_ARRAY_BUFFER, MAX_HUMANOID_VBO_BYTES, NULL, GL_STATIC_DRAW);
-    
-    humanoid = build_humanoid(vao, vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, shadow_uLightSpaceMatrix_id, shadow_uModelMatrix_id);
-    humanoid->prepare_vbo();
-    entities.push_back(AnimationEntity("standalone_rider", humanoid));
-    curr_node = humanoid;
-    std::cout << "VBO successfully initialized\n";
+    if(false) {
+        //Ask GL for a Vertex Attribute Object (vao)
+        glGenVertexArrays (1, &vao);
+        //Set it as the current array to be used by binding it
+        glBindVertexArray (vao);
+        //Ask GL for a Vertex Buffer Object (vbo)
+        glGenBuffers (1, &vbo);
+        //Set it as the current buffer to be used by binding it
+        glBindBuffer (GL_ARRAY_BUFFER, vbo);
+        
+        glBufferData(GL_ARRAY_BUFFER, MAX_HUMANOID_VBO_BYTES, NULL, GL_STATIC_DRAW);
+        
+        humanoid = build_humanoid(vao, vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, shadow_uLightSpaceMatrix_id, shadow_uModelMatrix_id);
+        humanoid->prepare_vbo();
+        entities.push_back(AnimationEntity("standalone_rider", humanoid));
+        curr_node = humanoid;
+        std::cout << "VBO successfully initialized\n";
 
-    // Enable the vertex attribute
-    // Excellent answer -- https://stackoverflow.com/a/39684775
-    glEnableVertexAttribArray (position_id);
-    glVertexAttribPointer (position_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(0));
+        // Enable the vertex attribute
+        // Excellent answer -- https://stackoverflow.com/a/39684775
+        glEnableVertexAttribArray (position_id);
+        glVertexAttribPointer (position_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(0));
 
-    glEnableVertexAttribArray(color_id);
-    glVertexAttribPointer(color_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * sizeof(float)));
+        glEnableVertexAttribArray(color_id);
+        glVertexAttribPointer(color_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * sizeof(float)));
 
-    glEnableVertexAttribArray(normal_id);
-    glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
-     
-    std::cout << "Normal rendering attributes enabled\n";
-
+        glEnableVertexAttribArray(normal_id);
+        glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
+         
+        std::cout << "Normal rendering attributes enabled\n";
+    }
     //glBindVertexArray(0);
 
     //Ask GL for a Vertex Attribute Object (vao)
@@ -97,10 +100,11 @@ void initVertexBufferGL(void) {
     
     glBufferData(GL_ARRAY_BUFFER, MAX_HUMANOID_VBO_BYTES, NULL, GL_STATIC_DRAW);
     
-    tmp = build_humanoid(shadow_vao, shadow_vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, shadow_uLightSpaceMatrix_id, shadow_uModelMatrix_id);
-    tmp->prepare_vbo();
+    humanoid = build_humanoid(shadow_vao, shadow_vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, shadow_uLightSpaceMatrix_id, shadow_uModelMatrix_id);
+    humanoid->prepare_vbo();
     glEnableVertexAttribArray (shadow_position_id);
     glVertexAttribPointer (shadow_position_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(0));
+    return;
     /*
      * Init Depth Buffer for Shadow Mapping
      */
@@ -139,6 +143,9 @@ void renderGL(void) {
         std::cout << "At the beginning of renderGL, glError = " << error << ", " << glewGetErrorString(error) << "\n";
         view_matrix = glm::lookAt(glm::vec3(0.f, 0.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
         
+        glViewport(0, 0, depthMap_width, depthMap_height);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
         projection_matrix = glm::ortho(
                 1060.f, -1060.f,
                 -1060.f, 1060.f,
@@ -155,30 +162,6 @@ void renderGL(void) {
         viewmatrix = lightspace_matrix;
         lightspacematrix = lightspace_matrix;
         hierarchy_matrix_stack = glm::mat4(1);
-        
-        /*
-        std::cout << "Light = ";
-        for(int i = 0; i < 4; i++) {
-            for(int j = 0; j < 4; j++) {
-                std::cout << lightspace_matrix[i][j] << " ";
-            }
-        }
-        std::cout << "\n";
-        auto transformed_origin = lightspace_matrix * glm::vec4(0, 0, 0, 1);
-        std::cout << "O = {" << transformed_origin.x << " " << transformed_origin.y << " " << transformed_origin.z << "}\n";
-        auto transformed_x_pos_one = lightspace_matrix * glm::vec4(1, 0, 1, 1);
-        std::cout << "+1[X] = {" << transformed_x_pos_one.x << " " << transformed_x_pos_one.y << " " << transformed_x_pos_one.z << "}\n";
-        auto transformed_x_neg_one = lightspace_matrix * glm::vec4(-1, 0, 1, 1);
-        std::cout << "-1[X] = {" << transformed_x_neg_one.x << " " << transformed_x_neg_one.y << " " << transformed_x_neg_one.z << "}\n";
-        auto transformed_y_pos_one = lightspace_matrix * glm::vec4(0, 1, -1, 1);
-        std::cout << "+1[Y] = {" << transformed_y_pos_one.x << " " << transformed_y_pos_one.y << " " << transformed_y_pos_one.z << "}\n";
-        auto transformed_y_neg_one = lightspace_matrix * glm::vec4(0, -1, -1, 1);
-        std::cout << "-1[Y] = {" << transformed_y_neg_one.x << " " << transformed_y_neg_one.y << " " << transformed_y_neg_one.z << "}\n";
-        
-        exit(0);
-        */
-        glViewport(0, 0, depthMap_width, depthMap_height);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         //glClear(GL_DEPTH_BUFFER_BIT);
         humanoid->render_dag(true);   
@@ -221,44 +204,6 @@ void renderGL(void) {
 
     glUseProgram(shader_program);
 
-    /*
-    std::cout << "Light = ";
-    for(int i = 0; i < 4; i++) {
-        for(int j = 0; j < 4; j++) {
-            std::cout << lightspace_matrix[i][j] << " ";
-        }
-    }
-    std::cout << "\n";
-    auto transformed_origin = lightspace_matrix * glm::vec4(0, 0, 0, 1);
-    std::cout << "O = {" << transformed_origin.x << " " << transformed_origin.y << " " << transformed_origin.z << "}\n";
-    auto transformed_x_pos_one = lightspace_matrix * glm::vec4(1, 0, 1, 1);
-    std::cout << "+1[X] = {" << transformed_x_pos_one.x << " " << transformed_x_pos_one.y << " " << transformed_x_pos_one.z << "}\n";
-    auto transformed_x_neg_one = lightspace_matrix * glm::vec4(-1, 0, 1, 1);
-    std::cout << "-1[X] = {" << transformed_x_neg_one.x << " " << transformed_x_neg_one.y << " " << transformed_x_neg_one.z << "}\n";
-    auto transformed_y_pos_one = lightspace_matrix * glm::vec4(0, 1, -1, 1);
-    std::cout << "+1[Y] = {" << transformed_y_pos_one.x << " " << transformed_y_pos_one.y << " " << transformed_y_pos_one.z << "}\n";
-    auto transformed_y_neg_one = lightspace_matrix * glm::vec4(0, -1, -1, 1);
-    std::cout << "-1[Y] = {" << transformed_y_neg_one.x << " " << transformed_y_neg_one.y << " " << transformed_y_neg_one.z << "}\n";
-    
-    std::cout << "Modelviewproject = ";
-    for(int i = 0; i < 4; i++) {
-        for(int j = 0; j < 4; j++) {
-            std::cout << modelviewproject_matrix[i][j] << " ";
-        }
-    }
-    std::cout << "\n";
-    transformed_origin = modelviewproject_matrix * glm::vec4(0, 0, 0, 1);
-    std::cout << "O = {" << transformed_origin.x << " " << transformed_origin.y << " " << transformed_origin.z << "}\n";
-    transformed_x_pos_one = modelviewproject_matrix * glm::vec4(1, 0, 1, 1);
-    std::cout << "+1[X] = {" << transformed_x_pos_one.x << " " << transformed_x_pos_one.y << " " << transformed_x_pos_one.z << "}\n";
-    transformed_x_neg_one = modelviewproject_matrix * glm::vec4(-1, 0, 1, 1);
-    std::cout << "-1[X] = {" << transformed_x_neg_one.x << " " << transformed_x_neg_one.y << " " << transformed_x_neg_one.z << "}\n";
-    transformed_y_pos_one = modelviewproject_matrix * glm::vec4(0, 1, -1, 1);
-    std::cout << "+1[Y] = {" << transformed_y_pos_one.x << " " << transformed_y_pos_one.y << " " << transformed_y_pos_one.z << "}\n";
-    transformed_y_neg_one = modelviewproject_matrix * glm::vec4(0, -1, -1, 1);
-    std::cout << "-1[Y] = {" << transformed_y_neg_one.x << " " << transformed_y_neg_one.y << " " << transformed_y_neg_one.z << "}\n";
-    exit(0);
-    */
     modelviewproject_matrix *= rotation_matrix;
 
     normal_matrix = glm::transpose(glm::inverse(glm::mat3(modelviewproject_matrix)));
@@ -269,24 +214,6 @@ void renderGL(void) {
     normalmatrix = normal_matrix;
     lightspacematrix = lightspace_matrix * rotation_matrix;
     hierarchy_matrix_stack = glm::mat4(1);
-    /*
-    std::cout << "Light = ";
-    for(int i = 0; i < 4; i++) {
-        for(int j = 0; j < 4; j++) {
-            std::cout << lightspacematrix[i][j] << " ";
-        }
-    }
-    std::cout << "\n";
-
-    std::cout << "ViewProject = ";
-    for(int i = 0; i < 4; i++) {
-        for(int j = 0; j < 4; j++) {
-            std::cout << viewproject[i][j] << " ";
-        }
-    }
-    std::cout << "\n---------------------------\n";
-    */
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, depthMap);
     humanoid->render_dag(false);
