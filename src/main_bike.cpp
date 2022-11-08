@@ -1,5 +1,6 @@
 #include "main.hpp"
 #include "bike.hpp"
+#include "rider.hpp"
 #include <GLFW/glfw3.h>
 
 #define MAX_BIKE_VBO_BYTES 1024000
@@ -10,6 +11,7 @@ glm::mat4 view_matrix;
 glm::mat4 ortho_matrix;
 glm::mat4 projection_matrix;
 glm::mat4 modelviewproject_matrix;
+glm::mat4 rotation_matrix;
 glm::mat3 normal_matrix;
 
 HierarchyNode *bike, *curr_node;
@@ -49,7 +51,7 @@ void initVertexBufferGL(void) {
  
     glBufferData(GL_ARRAY_BUFFER, MAX_BIKE_VBO_BYTES, NULL, GL_STATIC_DRAW);
 
-    bike = build_bike(vao, vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, uLightSpaceMatrix_id, uModelMatrix_id);
+    bike = build_humanoid(vao, vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, uLightSpaceMatrix_id, uModelMatrix_id);
     bike->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_bike", bike));
     curr_node = bike;
@@ -72,6 +74,7 @@ void initVertexBufferGL(void) {
 void renderGL(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    /*
     view_matrix = glm::lookAt(glm::vec3(0.0,0.0,VIEW_PADDING*DRAW_MIN),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
 
     ortho_matrix = glm::ortho(
@@ -80,11 +83,24 @@ void renderGL(void) {
                        10 * VIEW_PADDING * DRAW_MIN, 10 * VIEW_PADDING * DRAW_MAX
                    );
     projection_matrix = glm::frustum(-1,1,-1,1,1,10);
-
+    */
+        view_matrix = glm::lookAt(glm::vec3(0.f, 0.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+        projection_matrix = glm::ortho(
+                2120.f, -2120.f,
+                -2120.f, 2120.f,
+                 0.f, 3180.f
+        );
+        ortho_matrix = projection_matrix;
     if(true) 
         modelviewproject_matrix = projection_matrix * view_matrix;
     else
         modelviewproject_matrix = ortho_matrix * view_matrix;
+
+    rotation_matrix = glm::rotate(glm::mat4(1), xrot, glm::vec3(1, 0, 0));
+    rotation_matrix = glm::rotate(rotation_matrix, yrot, glm::vec3(0, 1, 0));
+    rotation_matrix = glm::rotate(rotation_matrix, zrot, glm::vec3(0, 0, 1));
+
+    modelviewproject_matrix *= rotation_matrix;
 
     glUseProgram(shader_program);
     
