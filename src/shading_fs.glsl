@@ -35,7 +35,7 @@ void main ()
   vec4 spec = vec4(0.0); 
 
   // Defining Light 
-  vec4 lightPos = vec4(0, 0, 960, 1);
+  vec4 lightPos = vec4(0, 0, 1060, 1);
   vec3 lightDir = vec3(uViewMatrix * lightPos);  // Transforms with camera
   lightDir = normalize(vec3(lightDir));  
 

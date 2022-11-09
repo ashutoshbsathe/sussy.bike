@@ -93,6 +93,15 @@ void renderGL(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     if(shadowmap) {
+        view_matrix = glm::lookAt(glm::vec3(0.f, 0.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+        projection_matrix = glm::ortho(
+                2120.f, -2120.f,
+                -2120.f, 2120.f,
+                 0.f, 3180.f
+        );
+        ortho_matrix = projection_matrix;
+    }
+    else {
         view_matrix = glm::lookAt(glm::vec3(0.0,0.0,1.0*VIEW_PADDING*DRAW_MIN),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
 
         ortho_matrix = glm::ortho(
@@ -101,15 +110,6 @@ void renderGL(void) {
                            10.f * VIEW_PADDING * DRAW_MIN, 10.f * VIEW_PADDING * DRAW_MAX
                        );
         projection_matrix = glm::frustum(-1,1,-1,1,1,10);
-    }
-    else {
-        view_matrix = glm::lookAt(glm::vec3(0.f, 0.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
-        projection_matrix = glm::ortho(
-                2120.f, -2120.f,
-                -2120.f, 2120.f,
-                 0.f, 3180.f
-        );
-        ortho_matrix = projection_matrix;
     }
     if(false) 
         modelviewproject_matrix = projection_matrix * view_matrix;
