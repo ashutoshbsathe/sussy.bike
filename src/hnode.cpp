@@ -2,7 +2,6 @@
 
 glm::mat4 viewproject = glm::mat4(1);
 glm::mat4 viewmatrix = glm::mat4(1);
-glm::mat3 normalmatrix = glm::mat3(1);
 glm::mat4 lightspacematrix = glm::mat4(1);
 
 glm::mat4 hierarchy_matrix_stack = glm::mat4(1);
@@ -25,10 +24,7 @@ HierarchyNode::HierarchyNode() {
     this->init_default_dof_transform();
     this->dof_transform = glm::mat4(1);
 
-    this->vao = 0;
-    this->vbo = 0;
     this->vbo_offset = 0;
-    this->uniform_xform_id = 0;
 
     this->draw_triangle = (this->triangle_list.size() > 0);
     this->draw_line = (this->line_list.size() > 0);
@@ -81,10 +77,7 @@ HierarchyNode::HierarchyNode(StackedPolyPrism p) {
     this->init_default_dof_transform();
     this->dof_transform = glm::mat4(1);
 
-    this->vao = 0;
-    this->vbo = 0;
     this->vbo_offset = 0;
-    this->uniform_xform_id = 0;
 
     this->draw_triangle = (this->triangle_list.size() > 0);
     this->draw_line = (this->line_list.size() > 0);
@@ -204,10 +197,7 @@ HierarchyNode::HierarchyNode(std::string fname) {
             this->init_default_dof_transform();
             this->dof_transform = glm::mat4(1);
 
-            this->vao = 0;
-            this->vbo = 0;
             this->vbo_offset = 0;
-            this->uniform_xform_id = 0;
 
             this->draw_triangle = (this->triangle_list.size() > 0);
             this->draw_line = (this->line_list.size() > 0);
@@ -325,10 +315,7 @@ HierarchyNode::HierarchyNode(std::string name, std::vector<Triangle> t, std::vec
     this->init_default_dof_transform();
     this->dof_transform = glm::mat4(1);
 
-    this->vao = 0;
-    this->vbo = 0;
     this->vbo_offset = 0;
-    this->uniform_xform_id = 0;
 
     this->draw_triangle = (this->triangle_list.size() > 0);
     this->draw_line = (this->line_list.size() > 0);
@@ -340,6 +327,12 @@ HierarchyNode::~HierarchyNode() {
     }
     delete this->vbo_copy;
     delete this;
+}
+
+void HierarchyNode::setGLInfo(std::map<std::string, GLuint> gl_info) {
+    for(auto it : gl_info) {
+        this->gl_info[it.first] = it.second;
+    }
 }
 
 void HierarchyNode::make_rigid() {
@@ -411,28 +404,25 @@ void HierarchyNode::render(bool shadowmap) {
     GLint error = glGetError();
     if(shadowmap) {
         std::cout << this->name << ": Rendering shadowmap\n";
-        glUniformMatrix4fv(this->shadow_light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(overall)); // WHERE HAVE YOU INITIALIZED THIS 'shadow_light_space_matrix_id' ?
+        glUniformMatrix4fv(this->gl_info["shadow_light_space_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall)); // WHERE HAVE YOU INITIALIZED THIS 'shadow_light_space_matrix_id' ?
         error = glGetError();
         std::cout << "AFter passing light space: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
-        glUniformMatrix4fv(this->shadow_model_matrix_id, 1, GL_FALSE, glm::value_ptr(overall));
-        error = glGetError();
-        std::cout << "AFter passing transform: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
     }
     else {
         std::cout << this->name << ": Rendering normally\n";
-        glUniformMatrix4fv(this->uniform_xform_id, 1, GL_FALSE, glm::value_ptr(overall)); // value_ptr needed for proper pointer conversion
+        glUniformMatrix4fv(this->gl_info["uniform_xform_id"], 1, GL_FALSE, glm::value_ptr(overall)); // value_ptr needed for proper pointer conversion
         error = glGetError();
         std::cout << "AFter passing transform: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
-        glUniformMatrix3fv(this->normal_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
+        glUniformMatrix3fv(this->gl_info["normal_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
         error = glGetError();
         std::cout << "AFter passing normals: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
-        glUniformMatrix4fv(this->view_matrix_id, 1, GL_FALSE, glm::value_ptr(viewmatrix)); // value_ptr needed for proper pointer conversion
+        glUniformMatrix4fv(this->gl_info["view_matrix_id"], 1, GL_FALSE, glm::value_ptr(viewmatrix)); // value_ptr needed for proper pointer conversion
         error = glGetError();
         std::cout << "AFter passing viewmatrix: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
-        glUniformMatrix4fv(this->light_space_matrix_id, 1, GL_FALSE, glm::value_ptr(overall_lightspace)); // value_ptr needed for proper pointer conversion
+        glUniformMatrix4fv(this->gl_info["light_space_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall_lightspace)); // value_ptr needed for proper pointer conversion
         error = glGetError();
         std::cout << "AFter passing lightspace: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
-        glUniform1i(this->shadow_map_id, 0);
+        glUniform1i(this->gl_info["shadow_map_id"], 0);
         error = glGetError();
         std::cout << "AFter passing shadowmap: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
     }
@@ -515,15 +505,7 @@ void add_edge(HierarchyNode *parent, HierarchyNode *child, unsigned int *next_av
     // Add an edge from parent to child
     // Adjust GL related properties first
     child->vbo_offset = *next_available_vbo_offset;
-    child->vbo = parent->vbo;
-    child->vao = parent->vao;
-    child->uniform_xform_id = parent->uniform_xform_id;
-    child->normal_matrix_id = parent->normal_matrix_id;
-    child->view_matrix_id = parent->view_matrix_id;
-    child->light_space_matrix_id = parent->light_space_matrix_id;
-    child->shadow_map_id = parent->shadow_map_id;
-    child->shadow_light_space_matrix_id = parent->shadow_light_space_matrix_id;
-    child->shadow_model_matrix_id = parent->shadow_model_matrix_id;
+    child->setGLInfo(parent->gl_info);
     *next_available_vbo_offset += 3 * child->triangle_list.size() + 2 * child->line_list.size();
     parent->children.push_back(child);
     child->parent = parent;

@@ -4,7 +4,6 @@ in vec3 vPosition;
 
 out vec3 pos;
 uniform mat4 uLightSpaceMatrix;
-uniform mat4 uModelMatrix;
 
 void main()
 {

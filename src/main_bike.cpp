@@ -36,7 +36,6 @@ void initShadersGL(void) {
     uViewMatrix_id = glGetUniformLocation(shader_program, "uViewMatrix");
     */
     uLightSpaceMatrix_id = glGetUniformLocation(shader_program, "uLightSpaceMatrix");
-    uModelMatrix_id = glGetUniformLocation(shader_program, "uModelMatrix");
 }
 
 void initVertexBufferGL(void) {
@@ -50,8 +49,15 @@ void initVertexBufferGL(void) {
     glBindBuffer (GL_ARRAY_BUFFER, vbo);
  
     glBufferData(GL_ARRAY_BUFFER, MAX_BIKE_VBO_BYTES, NULL, GL_STATIC_DRAW);
-
-    bike = build_humanoid(vao, vbo, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, uLightSpaceMatrix_id, uShadowMap_id, uLightSpaceMatrix_id, uModelMatrix_id);
+    
+    std::map<std::string, GLuint> gl_info;
+    gl_info["uniform_xform_id"] = uModelViewProjectMatrix_id;
+    gl_info["normal_matrix_id"] = uViewMatrix_id;
+    gl_info["view_matrix_id"] = uViewMatrix_id;
+    gl_info["light_space_matrix_id"] = uLightSpaceMatrix_id;
+    gl_info["shadow_map_id"] = uShadowMap_id;
+    gl_info["shadow_light_space_matrix_id"] = uLightSpaceMatrix_id;
+    bike = build_humanoid(gl_info);
     bike->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_bike", bike));
     curr_node = bike;
@@ -103,13 +109,10 @@ void renderGL(void) {
     modelviewproject_matrix *= rotation_matrix;
 
     glUseProgram(shader_program);
-    
-    normal_matrix = glm::transpose(glm::inverse(glm::mat3(modelviewproject_matrix)));
     glBindVertexArray(vao);
 
     viewproject = modelviewproject_matrix;
     viewmatrix = modelviewproject_matrix;
-    normalmatrix = normal_matrix;
     hierarchy_matrix_stack = glm::mat4(1);
     bike->render_dag(true);
 }
