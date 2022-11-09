@@ -6,6 +6,7 @@ extern float xrot, yrot, zrot, rotamount, VIEW_PADDING, zoomamount;
 extern HierarchyNode *curr_node;
 extern std::vector<AnimationEntity> entities;
 extern int entity_idx;
+extern bool shadowmap;
 namespace csX75 {
 
     unsigned int dof_id = 0;
@@ -172,6 +173,8 @@ namespace csX75 {
             VIEW_PADDING += zoomamount;
         } else if(key == GLFW_KEY_N && action == GLFW_PRESS){
             VIEW_PADDING -= zoomamount;
+        } else if(key == GLFW_KEY_Z && action == GLFW_PRESS) {
+            shadowmap = !shadowmap;
         } 
     }
 }
