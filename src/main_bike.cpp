@@ -23,7 +23,7 @@ HierarchyNode *bike, *curr_node;
 std::vector<AnimationEntity> entities;
 int entity_idx = 0;
 
-bool shadowmap = true;
+bool lightcam = true; 
 std::ofstream fout;
 void initShadersGL(void) {
     std::string vertex_shader_file("shading_vs.glsl");
@@ -112,10 +112,10 @@ void initVertexBufferGL(void) {
 }
 
 void renderGL(void) {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glBindVertexArray(vao);
-    if(shadowmap) {
+    if(lightcam) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         view_matrix = glm::lookAt(glm::vec3(1060.f, 1060.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
         projection_matrix = glm::ortho(
                 2120.f, -2120.f,
@@ -131,9 +131,33 @@ void renderGL(void) {
        
         glUseProgram(shadow_shader_program);
         hnode_hierarchy_matrix_stack = glm::mat4(1);
-        bike->render_dag(shadowmap);
+        bike->render_dag(lightcam);
     }
     else {
+        // render into depthmap
+        glViewport(0, 0, depthMap_width, depthMap_height);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        view_matrix = glm::lookAt(glm::vec3(1060.f, 1060.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+        projection_matrix = glm::ortho(
+                2120.f, -2120.f,
+                -2120.f, 2120.f,
+                 0.f, 3180.f
+        );
+        ortho_matrix = projection_matrix;
+        lightspace_matrix = projection_matrix * view_matrix;
+
+        hnode_viewproject = lightspace_matrix;
+        hnode_viewmatrix = view_matrix;
+        hnode_lightspacematrix = lightspace_matrix;
+       
+        glUseProgram(shadow_shader_program);
+        hnode_hierarchy_matrix_stack = glm::mat4(1);
+        bike->render_dag(true);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // normal rendering
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         view_matrix = glm::lookAt(glm::vec3(0.0,0.0,1.0*VIEW_PADDING*DRAW_MIN),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
 
         ortho_matrix = glm::ortho(
@@ -154,11 +178,13 @@ void renderGL(void) {
         modelviewproject_matrix *= rotation_matrix;
         hnode_viewproject = modelviewproject_matrix;
         hnode_viewmatrix = modelviewproject_matrix;
-        hnode_lightspacematrix = modelviewproject_matrix;
+        hnode_lightspacematrix = lightspace_matrix;
 
         glUseProgram(shader_program);
         hnode_hierarchy_matrix_stack = glm::mat4(1);
-        bike->render_dag(shadowmap);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, depthMap_texture);
+        bike->render_dag(false);
     }
 }
 
