@@ -17,6 +17,7 @@ glm::mat4 projection_matrix;
 glm::mat4 modelviewproject_matrix;
 glm::mat4 lightspace_matrix;
 glm::mat4 rotation_matrix;
+glm::mat4 light_movement_matrix;
 glm::mat3 normal_matrix;
 
 HierarchyNode *bike, *curr_node;
@@ -111,19 +112,24 @@ void initVertexBufferGL(void) {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void renderGL(void) {
-    
+void renderGL(void) {   
     glBindVertexArray(vao);
+    light_movement_matrix = glm::rotate(glm::mat4(1), light_x, glm::vec3(1, 0, 0));
+    light_movement_matrix = glm::rotate(light_movement_matrix, light_y, glm::vec3(0, 1, 0));
+    light_movement_matrix = glm::rotate(light_movement_matrix, light_z, glm::vec3(0, 0, 1));
     if(lightcam) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         view_matrix = glm::lookAt(glm::vec3(1060.f, 1060.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
         projection_matrix = glm::ortho(
-                2120.f, -2120.f,
+                /*-2120.f, 2120.f,
                 -2120.f, 2120.f,
-                 0.f, 3180.f
+                 0.f, 3180.f*/
+                           3 * DRAW_MIN * 2.f, 3 * DRAW_MAX * 2.f,
+                           3 * DRAW_MIN * 2.f, 3 * DRAW_MAX * 2.f,
+                           20.f * 3 * DRAW_MIN, 20.f * 3 * DRAW_MAX
         );
         ortho_matrix = projection_matrix;
-        lightspace_matrix = projection_matrix * view_matrix;
+        lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
 
         hnode_viewproject = lightspace_matrix;
         hnode_viewmatrix = view_matrix;
@@ -140,12 +146,15 @@ void renderGL(void) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         view_matrix = glm::lookAt(glm::vec3(1060.f, 1060.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
         projection_matrix = glm::ortho(
-                2120.f, -2120.f,
+                /*2120.f, -2120.f,
                 -2120.f, 2120.f,
-                 0.f, 3180.f
+                 0.f, 3180.f*/
+                           3 * DRAW_MIN * 2.f, 3 * DRAW_MAX * 2.f,
+                           3 * DRAW_MIN * 2.f, 3 * DRAW_MAX * 2.f,
+                           20.f * 3 * DRAW_MIN, 20.f * 3 * DRAW_MAX
         );
         ortho_matrix = projection_matrix;
-        lightspace_matrix = projection_matrix * view_matrix;
+        lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
 
         hnode_viewproject = lightspace_matrix;
         hnode_viewmatrix = view_matrix;

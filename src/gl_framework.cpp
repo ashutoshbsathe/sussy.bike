@@ -2,7 +2,7 @@
 #include "entity.hpp"
 #include <GLFW/glfw3.h>
 extern bool persp;
-extern float xrot, yrot, zrot, rotamount, VIEW_PADDING, zoomamount;
+extern float xrot, yrot, zrot, rotamount, VIEW_PADDING, zoomamount, light_x, light_y, light_z, light_moveamount;
 extern HierarchyNode *curr_node;
 extern std::vector<AnimationEntity> entities;
 extern int entity_idx;
@@ -175,6 +175,18 @@ namespace csX75 {
             VIEW_PADDING -= zoomamount;
         } else if(key == GLFW_KEY_Z && action == GLFW_PRESS) {
             lightcam = !lightcam;
+        } else if(key == GLFW_KEY_UP) {
+            light_y += light_moveamount;
+        } else if(key == GLFW_KEY_DOWN) {
+            light_y -= light_moveamount;
+        }  else if(key == GLFW_KEY_RIGHT) {
+            light_x += light_moveamount;
+        } else if(key == GLFW_KEY_LEFT) {
+            light_x -= light_moveamount;
+        }  else if(key == GLFW_KEY_PAGE_UP) {
+            light_z += light_moveamount;
+        } else if(key == GLFW_KEY_PAGE_DOWN) {
+            light_z -= light_moveamount;
         } 
     }
 }

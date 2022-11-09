@@ -29,5 +29,5 @@
 #define DRAW_MAX ((N_CELLS*N_UNITS)/2)
 
 bool persp = false;
-float xrot = 0, yrot = 0, zrot = 0, rotamount = M_PI/12.0, VIEW_PADDING = 3.00, zoomamount = 3.0;
+float xrot = 0, yrot = 0, zrot = 0, rotamount = M_PI/12.0, VIEW_PADDING = 3.00, zoomamount = 3.0, light_x = 0, light_y = 0, light_z = 0, light_moveamount = M_PI/12.0;
 #endif
