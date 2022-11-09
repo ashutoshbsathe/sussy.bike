@@ -1,10 +1,9 @@
 #include "hnode.hpp"
 
-glm::mat4 viewproject = glm::mat4(1);
-glm::mat4 viewmatrix = glm::mat4(1);
-glm::mat4 lightspacematrix = glm::mat4(1);
-
-glm::mat4 hierarchy_matrix_stack = glm::mat4(1);
+glm::mat4 hnode_viewproject = glm::mat4(1);
+glm::mat4 hnode_viewmatrix = glm::mat4(1);
+glm::mat4 hnode_lightspacematrix = glm::mat4(1);
+glm::mat4 hnode_hierarchy_matrix_stack = glm::mat4(1);
 
 GLuint depthMap;
 
@@ -398,9 +397,9 @@ void HierarchyNode::prepare_vbo() {
 }
 
 void HierarchyNode::render(bool shadowmap) {
-    glm::mat4 overall = viewproject * hierarchy_matrix_stack * this->private_transform;
+    glm::mat4 overall = hnode_viewproject * hnode_hierarchy_matrix_stack * this->private_transform;
     glm::mat3 overall_normals = glm::transpose(glm::inverse(glm::mat3(overall)));
-    glm::mat4 overall_lightspace = lightspacematrix * hierarchy_matrix_stack * this->private_transform;
+    glm::mat4 overall_lightspace = hnode_lightspacematrix * hnode_hierarchy_matrix_stack * this->private_transform;
     GLint error = glGetError();
     if(shadowmap) {
         std::cout << this->name << ": Rendering shadowmap\n";
@@ -416,7 +415,7 @@ void HierarchyNode::render(bool shadowmap) {
         glUniformMatrix3fv(this->gl_info["normal_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
         error = glGetError();
         std::cout << "AFter passing normals: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
-        glUniformMatrix4fv(this->gl_info["view_matrix_id"], 1, GL_FALSE, glm::value_ptr(viewmatrix)); // value_ptr needed for proper pointer conversion
+        glUniformMatrix4fv(this->gl_info["view_matrix_id"], 1, GL_FALSE, glm::value_ptr(hnode_viewmatrix)); // value_ptr needed for proper pointer conversion
         error = glGetError();
         std::cout << "AFter passing viewmatrix: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
         glUniformMatrix4fv(this->gl_info["light_space_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall_lightspace)); // value_ptr needed for proper pointer conversion
@@ -449,27 +448,27 @@ void HierarchyNode::render(bool shadowmap) {
 
 void HierarchyNode::render_dag(bool shadowmap) {
     // bool: shadowmap -- are we rendering for the shadowmap ?
-    glm::mat4 old_hierarchy_matrix_stack = glm::mat4(1.0f);
+    glm::mat4 old_hnode_hierarchy_matrix_stack = glm::mat4(1.0f);
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
-            old_hierarchy_matrix_stack[i][j] = hierarchy_matrix_stack[i][j];
+            old_hnode_hierarchy_matrix_stack[i][j] = hnode_hierarchy_matrix_stack[i][j];
         }
     }
-    hierarchy_matrix_stack = hierarchy_matrix_stack * this->local_transform * this->dof_transform;
+    hnode_hierarchy_matrix_stack = hnode_hierarchy_matrix_stack * this->local_transform * this->dof_transform;
     render(shadowmap);
     for(auto it : this->children) {
         it->render_dag(shadowmap);
     }
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
-            hierarchy_matrix_stack[i][j] = old_hierarchy_matrix_stack[i][j];
+            hnode_hierarchy_matrix_stack[i][j] = old_hnode_hierarchy_matrix_stack[i][j];
         }
     }
 }
 
 void global_to_local(HierarchyNode *n) {
     // Assumes current local_transform is actually a global transform
-    glm::mat4 old_hierarchy_matrix_stack = hierarchy_matrix_stack, old_global = n->local_transform;
+    glm::mat4 old_hnode_hierarchy_matrix_stack = hnode_hierarchy_matrix_stack, old_global = n->local_transform;
     std::cout << "At " << n->name << "\n";
     std::cout << "Before\n";
     for(int i = 0; i < 4; i++) {
@@ -478,7 +477,7 @@ void global_to_local(HierarchyNode *n) {
         }
     }
     std::cout << "\n";
-    n->local_transform = glm::inverse(hierarchy_matrix_stack) * n->local_transform;
+    n->local_transform = glm::inverse(hnode_hierarchy_matrix_stack) * n->local_transform;
     std::cout << "After\n";
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
@@ -494,11 +493,11 @@ void global_to_local(HierarchyNode *n) {
     fout.close();
 
     std::cout << "\n---------------------------------------------------------\n";
-    hierarchy_matrix_stack = old_global; // much more numerically stable
+    hnode_hierarchy_matrix_stack = old_global; // much more numerically stable
     for(auto it : n->children) {
         global_to_local(it);
     }
-    hierarchy_matrix_stack = old_hierarchy_matrix_stack;
+    hnode_hierarchy_matrix_stack = old_hnode_hierarchy_matrix_stack;
 }
 
 void add_edge(HierarchyNode *parent, HierarchyNode *child, unsigned int *next_available_vbo_offset) {

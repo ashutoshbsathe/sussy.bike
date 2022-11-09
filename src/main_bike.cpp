@@ -13,6 +13,7 @@ glm::mat4 view_matrix;
 glm::mat4 ortho_matrix;
 glm::mat4 projection_matrix;
 glm::mat4 modelviewproject_matrix;
+glm::mat4 lightspace_matrix;
 glm::mat4 rotation_matrix;
 glm::mat3 normal_matrix;
 
@@ -93,13 +94,18 @@ void renderGL(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     if(shadowmap) {
-        view_matrix = glm::lookAt(glm::vec3(0.f, 0.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+        view_matrix = glm::lookAt(glm::vec3(1060.f, 1060.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
         projection_matrix = glm::ortho(
                 2120.f, -2120.f,
                 -2120.f, 2120.f,
                  0.f, 3180.f
         );
         ortho_matrix = projection_matrix;
+        lightspace_matrix = projection_matrix * view_matrix;
+
+        hnode_viewproject = lightspace_matrix;
+        hnode_viewmatrix = view_matrix;
+        hnode_lightspacematrix = lightspace_matrix;
     }
     else {
         view_matrix = glm::lookAt(glm::vec3(0.0,0.0,1.0*VIEW_PADDING*DRAW_MIN),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
@@ -110,17 +116,20 @@ void renderGL(void) {
                            10.f * VIEW_PADDING * DRAW_MIN, 10.f * VIEW_PADDING * DRAW_MAX
                        );
         projection_matrix = glm::frustum(-1,1,-1,1,1,10);
+        if(false) 
+            modelviewproject_matrix = projection_matrix * view_matrix;
+        else
+            modelviewproject_matrix = ortho_matrix * view_matrix;
+
+        rotation_matrix = glm::rotate(glm::mat4(1), xrot, glm::vec3(1, 0, 0));
+        rotation_matrix = glm::rotate(rotation_matrix, yrot, glm::vec3(0, 1, 0));
+        rotation_matrix = glm::rotate(rotation_matrix, zrot, glm::vec3(0, 0, 1));
+
+        modelviewproject_matrix *= rotation_matrix;
+        hnode_viewproject = modelviewproject_matrix;
+        hnode_viewmatrix = modelviewproject_matrix;
+        hnode_lightspacematrix = modelviewproject_matrix;
     }
-    if(false) 
-        modelviewproject_matrix = projection_matrix * view_matrix;
-    else
-        modelviewproject_matrix = ortho_matrix * view_matrix;
-
-    rotation_matrix = glm::rotate(glm::mat4(1), xrot, glm::vec3(1, 0, 0));
-    rotation_matrix = glm::rotate(rotation_matrix, yrot, glm::vec3(0, 1, 0));
-    rotation_matrix = glm::rotate(rotation_matrix, zrot, glm::vec3(0, 0, 1));
-
-    modelviewproject_matrix *= rotation_matrix;
     
     if(shadowmap) {
         glUseProgram(shadow_shader_program);
@@ -130,9 +139,7 @@ void renderGL(void) {
     }
     glBindVertexArray(vao);
 
-    viewproject = modelviewproject_matrix;
-    viewmatrix = modelviewproject_matrix;
-    hierarchy_matrix_stack = glm::mat4(1);
+    hnode_hierarchy_matrix_stack = glm::mat4(1);
     bike->render_dag(shadowmap);
 }
 

@@ -58,10 +58,10 @@ struct HierarchyNode {
     void render_dag(bool shadowmap);
 };
 
-extern glm::mat4 viewproject;
-extern glm::mat4 viewmatrix;
-extern glm::mat4 lightspacematrix;
-extern glm::mat4 hierarchy_matrix_stack;
+extern glm::mat4 hnode_viewproject;
+extern glm::mat4 hnode_viewmatrix;
+extern glm::mat4 hnode_lightspacematrix;
+extern glm::mat4 hnode_hierarchy_matrix_stack;
 extern GLuint depthMap;
 void global_to_local(HierarchyNode *n);
 void add_edge(HierarchyNode *parent, HierarchyNode *child, unsigned int *next_available_vbo_offset);
