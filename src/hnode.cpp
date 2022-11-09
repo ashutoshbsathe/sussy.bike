@@ -5,8 +5,6 @@ glm::mat4 hnode_viewmatrix = glm::mat4(1);
 glm::mat4 hnode_lightspacematrix = glm::mat4(1);
 glm::mat4 hnode_hierarchy_matrix_stack = glm::mat4(1);
 
-GLuint depthMap;
-
 HierarchyNode::HierarchyNode() {
     this->name = "";
 

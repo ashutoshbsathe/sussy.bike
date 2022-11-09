@@ -10,6 +10,8 @@ GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, u
 GLuint shadow_shader_program, shadow_position_id, shadow_uLightSpaceMatrix_id;
 
 glm::mat4 view_matrix;
+GLuint depthMapFBO, depthMap_width = 1024, depthMap_height = 1024, depthMap_texture;
+
 glm::mat4 ortho_matrix;
 glm::mat4 projection_matrix;
 glm::mat4 modelviewproject_matrix;
@@ -88,11 +90,31 @@ void initVertexBufferGL(void) {
 
     glEnableVertexAttribArray(normal_id);
     glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
+
+    /* Init depth buffer for shadow mapping */
+    glGenFramebuffers(1, &depthMapFBO);
+    glGenTextures(1, &depthMap_texture);
+    glBindTexture(GL_TEXTURE_2D, depthMap_texture);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, depthMap_width, depthMap_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap_texture, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void renderGL(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
+    glBindVertexArray(vao);
     if(shadowmap) {
         view_matrix = glm::lookAt(glm::vec3(1060.f, 1060.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
         projection_matrix = glm::ortho(
@@ -106,6 +128,10 @@ void renderGL(void) {
         hnode_viewproject = lightspace_matrix;
         hnode_viewmatrix = view_matrix;
         hnode_lightspacematrix = lightspace_matrix;
+       
+        glUseProgram(shadow_shader_program);
+        hnode_hierarchy_matrix_stack = glm::mat4(1);
+        bike->render_dag(shadowmap);
     }
     else {
         view_matrix = glm::lookAt(glm::vec3(0.0,0.0,1.0*VIEW_PADDING*DRAW_MIN),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
@@ -129,18 +155,11 @@ void renderGL(void) {
         hnode_viewproject = modelviewproject_matrix;
         hnode_viewmatrix = modelviewproject_matrix;
         hnode_lightspacematrix = modelviewproject_matrix;
-    }
-    
-    if(shadowmap) {
-        glUseProgram(shadow_shader_program);
-    }
-    else {
-        glUseProgram(shader_program);
-    }
-    glBindVertexArray(vao);
 
-    hnode_hierarchy_matrix_stack = glm::mat4(1);
-    bike->render_dag(shadowmap);
+        glUseProgram(shader_program);
+        hnode_hierarchy_matrix_stack = glm::mat4(1);
+        bike->render_dag(shadowmap);
+    }
 }
 
 
