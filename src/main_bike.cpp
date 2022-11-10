@@ -135,6 +135,20 @@ void initVertexBufferGL(void) {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void renderScene(glm::mat4 viewproject, glm::mat4 view, glm::mat4 lightspace, glm::mat4 rider_hierarchy, glm::mat4 bike_hierarchy, bool lightcam) {
+    hnode_viewproject = viewproject;
+    hnode_viewmatrix = view;
+    hnode_lightspacematrix = lightspace;
+    hnode_hierarchy_matrix_stack = rider_hierarchy;
+    rider->render_dag(lightcam);
+
+    hnode_viewproject = viewproject;
+    hnode_viewmatrix = view;
+    hnode_lightspacematrix = lightspace;
+    hnode_hierarchy_matrix_stack = bike_hierarchy;
+    bike->render_dag(lightcam);
+}
+
 void renderGL(void) {   
     glBindVertexArray(vao);
     light_movement_matrix = glm::rotate(glm::mat4(1), light_x, glm::vec3(1, 0, 0));
@@ -156,25 +170,13 @@ void renderGL(void) {
         
         glUseProgram(shadow_shader_program);
 
-        hnode_viewproject = lightspace_matrix;
-        hnode_viewmatrix = view_matrix;
-        hnode_lightspacematrix = lightspace_matrix;
-       
-        hnode_hierarchy_matrix_stack = glm::mat4(1);
-        rider->render_dag(lightcam);
-        
-        hnode_viewproject = lightspace_matrix;
-        hnode_viewmatrix = view_matrix;
-        hnode_lightspacematrix = lightspace_matrix;
-       
-        hnode_hierarchy_matrix_stack = glm::translate(glm::mat4(1), glm::vec3(1200, 275, -450))* glm::rotate(glm::mat4(1), (glm::mediump_float)(M_PI/2 + M_PI/3), glm::vec3(0, 1, 0));
-
-        bike->render_dag(lightcam);
+        renderScene(lightspace_matrix, view_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), lightcam);
     }
     else {
         // render into depthmap
         glViewport(0, 0, depthMap_width, depthMap_height);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         view_matrix = glm::lookAt(glm::vec3(1060.f, 1060.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
         projection_matrix = glm::ortho(
@@ -187,22 +189,11 @@ void renderGL(void) {
         );
         ortho_matrix = projection_matrix;
         lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
+
         glUseProgram(shadow_shader_program);
-
-        hnode_viewproject = lightspace_matrix;
-        hnode_viewmatrix = view_matrix;
-        hnode_lightspacematrix = lightspace_matrix;
-       
-        hnode_hierarchy_matrix_stack = glm::mat4(1);
-        rider->render_dag(true);
         
-        hnode_viewproject = lightspace_matrix;
-        hnode_viewmatrix = view_matrix;
-        hnode_lightspacematrix = lightspace_matrix;
-       
-        hnode_hierarchy_matrix_stack = glm::translate(glm::mat4(1), glm::vec3(1200, 275, -450))* glm::rotate(glm::mat4(1), (glm::mediump_float)(M_PI/2 + M_PI/3), glm::vec3(0, 1, 0));
+        renderScene(lightspace_matrix, view_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), true);
 
-        bike->render_dag(true);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // normal rendering
@@ -226,24 +217,10 @@ void renderGL(void) {
 
         modelviewproject_matrix *= rotation_matrix;
         glUseProgram(shader_program);
-        
-        hnode_viewproject = modelviewproject_matrix;
-        hnode_viewmatrix = modelviewproject_matrix;
-        hnode_lightspacematrix = lightspace_matrix;
-
-        hnode_hierarchy_matrix_stack = glm::mat4(1);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, depthMap_texture);
-        rider->render_dag(false);
         
-        hnode_viewproject = modelviewproject_matrix;
-        hnode_viewmatrix = modelviewproject_matrix;
-        hnode_lightspacematrix = lightspace_matrix;
-
-        hnode_hierarchy_matrix_stack = glm::translate(glm::mat4(1), glm::vec3(1200, 275, -450))* glm::rotate(glm::mat4(1), (glm::mediump_float)(M_PI/2 + M_PI/3), glm::vec3(0, 1, 0));
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, depthMap_texture);
-        bike->render_dag(false);
+        renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), false);
     }
 }
 
