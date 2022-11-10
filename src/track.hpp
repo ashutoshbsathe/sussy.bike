@@ -22,6 +22,8 @@ std::pair<HierarchyNode *, unsigned int> build_track(std::map<std::string, GLuin
     HierarchyNode *obstacle5_2 = new HierarchyNode("./track_parts/obstacle5_2.txt");
 
     track_lower->make_rigid();
+    glm::mat4 track_lower_transform = glm::rotate(glm::mat4(1), (glm::mediump_float)(-M_PI/2), glm::vec3(1, 0, 0));
+    track_lower->private_transform = track_lower_transform;
     start_platform->make_rigid();
     obstacle1->make_rigid();
     obstacle2_1->make_rigid();
