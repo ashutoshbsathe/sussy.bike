@@ -1,7 +1,8 @@
 #include "hnode.hpp"
 
-HierarchyNode *build_humanoid(std::map<std::string, GLuint> gl_info) {
+std::pair<HierarchyNode *, unsigned int> build_humanoid(std::map<std::string, GLuint> gl_info) {
     unsigned int next_available_vbo_offset;
+    next_available_vbo_offset = gl_info.find("vbo_offset") == gl_info.end() ? 0 : gl_info["vbo_offset"];
     // Build leaf to root
     HierarchyNode *head = new HierarchyNode(StackedPolyPrism("./body_parts/head.txt"));
     HierarchyNode *neck = new HierarchyNode(StackedPolyPrism("./body_parts/neck.txt"));
@@ -312,7 +313,7 @@ HierarchyNode *build_humanoid(std::map<std::string, GLuint> gl_info) {
         {0, glm::vec3(1, 0, 0)},
     };
 
-    next_available_vbo_offset = 3 * torso_2->triangle_list.size();
+    next_available_vbo_offset += 3 * torso_2->triangle_list.size();
     
     float torso_flatten[16] = {
         1, 0, 0, 0,
@@ -364,6 +365,6 @@ HierarchyNode *build_humanoid(std::map<std::string, GLuint> gl_info) {
 
     //add_edge(torso_2, light, &next_available_vbo_offset);
     add_edge(torso_2, floor, &next_available_vbo_offset);
-    return torso_2;
+    return std::pair<HierarchyNode *, unsigned int>(torso_2, next_available_vbo_offset);
 }
 

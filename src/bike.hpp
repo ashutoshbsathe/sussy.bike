@@ -1,7 +1,8 @@
 #include "hnode.hpp"
 
-HierarchyNode *build_bike(std::map<std::string, GLuint> gl_info) {
+std::pair<HierarchyNode *, unsigned int> build_bike(std::map<std::string, GLuint> gl_info) {
     unsigned int next_available_vbo_offset;
+    next_available_vbo_offset = gl_info.find("vbo_offset") == gl_info.end() ? 0 : gl_info["vbo_offset"];
     StackedPolyPrism p_back_wheel_part_1 = StackedPolyPrism("./bike_parts/back_wheel_part_1.txt");
 	HierarchyNode *back_wheel_part_1 = new HierarchyNode(p_back_wheel_part_1);
 	StackedPolyPrism p_back_wheel_part_2 = StackedPolyPrism("./bike_parts/back_wheel_part_2.txt");
@@ -148,7 +149,7 @@ HierarchyNode *build_bike(std::map<std::string, GLuint> gl_info) {
     body->vbo_offset = 0;
     body->setGLInfo(gl_info);
    
-    next_available_vbo_offset = 3 * body->triangle_list.size() + 2 * body->line_list.size();
+    next_available_vbo_offset += 3 * body->triangle_list.size() + 2 * body->line_list.size();
 
     add_edge(body, back_wheel_part_1, &next_available_vbo_offset);
     add_edge(body, engine, &next_available_vbo_offset);
@@ -168,6 +169,6 @@ HierarchyNode *build_bike(std::map<std::string, GLuint> gl_info) {
     add_edge(front_wheel_part_2, front_wheel_part_3, &next_available_vbo_offset);
     add_edge(front_wheel_part_3, front_wheel_spokes, &next_available_vbo_offset);
     
-    return body;
+    return std::pair<HierarchyNode *, unsigned int>(body, next_available_vbo_offset);
 }
 

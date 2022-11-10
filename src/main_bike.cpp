@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #define MAX_BIKE_VBO_BYTES 1024000
+//                          914112
 
 GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, position_id, color_id, normal_id, uLightSpaceMatrix_id, uModelMatrix_id, uShadowMap_id;
 
@@ -20,7 +21,7 @@ glm::mat4 rotation_matrix;
 glm::mat4 light_movement_matrix;
 glm::mat3 normal_matrix;
 
-HierarchyNode *bike, *curr_node;
+HierarchyNode *bike, *rider, *curr_node;
 std::vector<AnimationEntity> entities;
 int entity_idx = 0;
 
@@ -57,6 +58,9 @@ void initShadersGL(void) {
 }
 
 void initVertexBufferGL(void) {
+    unsigned int vbo_offset = 0;
+    std::pair<HierarchyNode *, unsigned int> pair;
+    std::map<std::string, GLuint> gl_info;
     //Ask GL for a Vertex Attribute Object (vao)
     glGenVertexArrays (1, &vao);
     //Set it as the current array to be used by binding it
@@ -66,20 +70,38 @@ void initVertexBufferGL(void) {
     //Set it as the current buffer to be used by binding it
     glBindBuffer (GL_ARRAY_BUFFER, vbo);
  
-    glBufferData(GL_ARRAY_BUFFER, MAX_BIKE_VBO_BYTES, NULL, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 2*MAX_BIKE_VBO_BYTES, NULL, GL_STATIC_DRAW);
     
-    std::map<std::string, GLuint> gl_info;
     gl_info["uniform_xform_id"] = uModelViewProjectMatrix_id;
     gl_info["normal_matrix_id"] = uNormalMatrix_id;
     gl_info["view_matrix_id"] = uViewMatrix_id;
     gl_info["light_space_matrix_id"] = uLightSpaceMatrix_id;
     gl_info["shadow_map_id"] = uShadowMap_id;
     gl_info["shadow_light_space_matrix_id"] = shadow_uLightSpaceMatrix_id;
-    bike = build_humanoid(gl_info);
+    gl_info["vbo_offset"] = vbo_offset;
+    pair = build_humanoid(gl_info);
+    rider = pair.first;
+    vbo_offset = pair.second;
+    rider->prepare_vbo();
+    entities.push_back(AnimationEntity("standalone_rider", rider));
+    curr_node = rider;
+    
+    gl_info["uniform_xform_id"] = uModelViewProjectMatrix_id;
+    gl_info["normal_matrix_id"] = uNormalMatrix_id;
+    gl_info["view_matrix_id"] = uViewMatrix_id;
+    gl_info["light_space_matrix_id"] = uLightSpaceMatrix_id;
+    gl_info["shadow_map_id"] = uShadowMap_id;
+    gl_info["shadow_light_space_matrix_id"] = shadow_uLightSpaceMatrix_id;
+    gl_info["vbo_offset"] = vbo_offset;
+    pair = build_bike(gl_info);
+    bike = pair.first;
+    vbo_offset = pair.second;
     bike->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_bike", bike));
     curr_node = bike;
+    
     std::cout << "VBO successfully initialized\n";
+    std::cout << "vbo_offset = " << vbo_offset << std::endl;
     
     // Enable the vertex attribute
     // Excellent answer -- https://stackoverflow.com/a/39684775
@@ -130,12 +152,20 @@ void renderGL(void) {
         );
         ortho_matrix = projection_matrix;
         lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
+        
+        glUseProgram(shadow_shader_program);
 
         hnode_viewproject = lightspace_matrix;
         hnode_viewmatrix = view_matrix;
         hnode_lightspacematrix = lightspace_matrix;
        
-        glUseProgram(shadow_shader_program);
+        hnode_hierarchy_matrix_stack = glm::mat4(1);
+        rider->render_dag(lightcam);
+
+        hnode_viewproject = lightspace_matrix;
+        hnode_viewmatrix = view_matrix;
+        hnode_lightspacematrix = lightspace_matrix;
+       
         hnode_hierarchy_matrix_stack = glm::mat4(1);
         bike->render_dag(lightcam);
     }
@@ -155,12 +185,19 @@ void renderGL(void) {
         );
         ortho_matrix = projection_matrix;
         lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
+        glUseProgram(shadow_shader_program);
 
         hnode_viewproject = lightspace_matrix;
         hnode_viewmatrix = view_matrix;
         hnode_lightspacematrix = lightspace_matrix;
        
-        glUseProgram(shadow_shader_program);
+        hnode_hierarchy_matrix_stack = glm::mat4(1);
+        rider->render_dag(true);
+
+        hnode_viewproject = lightspace_matrix;
+        hnode_viewmatrix = view_matrix;
+        hnode_lightspacematrix = lightspace_matrix;
+       
         hnode_hierarchy_matrix_stack = glm::mat4(1);
         bike->render_dag(true);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -185,11 +222,21 @@ void renderGL(void) {
         rotation_matrix = glm::rotate(rotation_matrix, zrot, glm::vec3(0, 0, 1));
 
         modelviewproject_matrix *= rotation_matrix;
+        glUseProgram(shader_program);
+        
         hnode_viewproject = modelviewproject_matrix;
         hnode_viewmatrix = modelviewproject_matrix;
         hnode_lightspacematrix = lightspace_matrix;
 
-        glUseProgram(shader_program);
+        hnode_hierarchy_matrix_stack = glm::mat4(1);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, depthMap_texture);
+        rider->render_dag(false);
+        
+        hnode_viewproject = modelviewproject_matrix;
+        hnode_viewmatrix = modelviewproject_matrix;
+        hnode_lightspacematrix = lightspace_matrix;
+
         hnode_hierarchy_matrix_stack = glm::mat4(1);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, depthMap_texture);
