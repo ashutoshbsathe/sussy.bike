@@ -39,7 +39,6 @@ struct HierarchyNode {
      */
     std::vector<std::pair<float, glm::vec3>> dof_params;
 
-    GLuint vbo_offset; // how many "points" deep are we in the VBO
     std::map<std::string, GLuint> gl_info;
 
     bool draw_triangle, draw_line;

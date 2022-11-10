@@ -58,7 +58,7 @@ void initShadersGL(void) {
 }
 
 void initVertexBufferGL(void) {
-    unsigned int vbo_offset = 0;
+    unsigned int vbo_offset = 0, body_vbo_offset = 0;
     std::pair<HierarchyNode *, unsigned int> pair;
     std::map<std::string, GLuint> gl_info;
     //Ask GL for a Vertex Attribute Object (vao)
@@ -82,10 +82,12 @@ void initVertexBufferGL(void) {
     pair = build_humanoid(gl_info);
     rider = pair.first;
     vbo_offset = pair.second;
+    body_vbo_offset = pair.second;
     rider->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_rider", rider));
     curr_node = rider;
-    
+    std::cout << "vbo_offset = " << vbo_offset << std::endl;
+
     gl_info["uniform_xform_id"] = uModelViewProjectMatrix_id;
     gl_info["normal_matrix_id"] = uNormalMatrix_id;
     gl_info["view_matrix_id"] = uViewMatrix_id;
@@ -101,8 +103,7 @@ void initVertexBufferGL(void) {
     curr_node = bike;
     
     std::cout << "VBO successfully initialized\n";
-    std::cout << "vbo_offset = " << vbo_offset << std::endl;
-    
+    std::cout << "vbo_offset = " << vbo_offset << ", body_vbo_offset = " << body_vbo_offset << std::endl;
     // Enable the vertex attribute
     // Excellent answer -- https://stackoverflow.com/a/39684775
     glEnableVertexAttribArray (position_id);
@@ -161,12 +162,13 @@ void renderGL(void) {
        
         hnode_hierarchy_matrix_stack = glm::mat4(1);
         rider->render_dag(lightcam);
-
+        
         hnode_viewproject = lightspace_matrix;
         hnode_viewmatrix = view_matrix;
         hnode_lightspacematrix = lightspace_matrix;
        
-        hnode_hierarchy_matrix_stack = glm::mat4(1);
+        hnode_hierarchy_matrix_stack = glm::translate(glm::mat4(1), glm::vec3(1200, 275, -450))* glm::rotate(glm::mat4(1), (glm::mediump_float)(M_PI/2 + M_PI/3), glm::vec3(0, 1, 0));
+
         bike->render_dag(lightcam);
     }
     else {
@@ -193,12 +195,13 @@ void renderGL(void) {
        
         hnode_hierarchy_matrix_stack = glm::mat4(1);
         rider->render_dag(true);
-
+        
         hnode_viewproject = lightspace_matrix;
         hnode_viewmatrix = view_matrix;
         hnode_lightspacematrix = lightspace_matrix;
        
-        hnode_hierarchy_matrix_stack = glm::mat4(1);
+        hnode_hierarchy_matrix_stack = glm::translate(glm::mat4(1), glm::vec3(1200, 275, -450))* glm::rotate(glm::mat4(1), (glm::mediump_float)(M_PI/2 + M_PI/3), glm::vec3(0, 1, 0));
+
         bike->render_dag(true);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -237,7 +240,7 @@ void renderGL(void) {
         hnode_viewmatrix = modelviewproject_matrix;
         hnode_lightspacematrix = lightspace_matrix;
 
-        hnode_hierarchy_matrix_stack = glm::mat4(1);
+        hnode_hierarchy_matrix_stack = glm::translate(glm::mat4(1), glm::vec3(1200, 275, -450))* glm::rotate(glm::mat4(1), (glm::mediump_float)(M_PI/2 + M_PI/3), glm::vec3(0, 1, 0));
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, depthMap_texture);
         bike->render_dag(false);

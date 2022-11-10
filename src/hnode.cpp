@@ -21,8 +21,6 @@ HierarchyNode::HierarchyNode() {
     this->init_default_dof_transform();
     this->dof_transform = glm::mat4(1);
 
-    this->vbo_offset = 0;
-
     this->draw_triangle = (this->triangle_list.size() > 0);
     this->draw_line = (this->line_list.size() > 0);
 }
@@ -64,17 +62,17 @@ HierarchyNode::HierarchyNode(StackedPolyPrism p) {
         this->vbo_copy[27*i+24] = this->triangle_list[i].p3.normal.x;
         this->vbo_copy[27*i+25] = this->triangle_list[i].p3.normal.y;
         this->vbo_copy[27*i+26] = this->triangle_list[i].p3.normal.z; 
+        /*
         std::cout << "p1: " << this->triangle_list[i].p1.to_str() << "\n";
         std::cout << "p2: " << this->triangle_list[i].p2.to_str() << "\n";
         std::cout << "p3: " << this->triangle_list[i].p3.to_str() << "\n";
+        */
     }
     this->local_transform = p.init_transform;
     this->private_transform = glm::mat4(1);
     
     this->init_default_dof_transform();
     this->dof_transform = glm::mat4(1);
-
-    this->vbo_offset = 0;
 
     this->draw_triangle = (this->triangle_list.size() > 0);
     this->draw_line = (this->line_list.size() > 0);
@@ -151,10 +149,11 @@ HierarchyNode::HierarchyNode(std::string fname) {
                 this->triangle_list[i].p1.normal = point_to_final_normal[this->triangle_list[i].p1];
                 this->triangle_list[i].p2.normal = point_to_final_normal[this->triangle_list[i].p2];
                 this->triangle_list[i].p3.normal = point_to_final_normal[this->triangle_list[i].p3];
-                
+                /* 
                 std::cout << "p1:" << this->triangle_list[i].p1.to_str() << "\n";
                 std::cout << "p2:" << this->triangle_list[i].p2.to_str() << "\n";
                 std::cout << "p3:" << this->triangle_list[i].p3.to_str() << "\n";
+                */
             }
             /* this->vbo_copy needs to be created manually */
             this->vbo_copy = new float[t * 3 * 3 * 3]();
@@ -194,8 +193,6 @@ HierarchyNode::HierarchyNode(std::string fname) {
             this->init_default_dof_transform();
             this->dof_transform = glm::mat4(1);
 
-            this->vbo_offset = 0;
-
             this->draw_triangle = (this->triangle_list.size() > 0);
             this->draw_line = (this->line_list.size() > 0);
         }
@@ -233,16 +230,16 @@ HierarchyNode::HierarchyNode(std::string name, std::vector<Triangle> t, std::vec
 
     for(auto it: point_to_all_normals) {
         glm::vec3 tmp = glm::vec3(0,0,0);
-        std::cout << "(" << it.first.x << ", " << it.first.y << ", " << it.first.z << "):\n";
+        //std::cout << "(" << it.first.x << ", " << it.first.y << ", " << it.first.z << "):\n";
         for(auto n: it.second) {
             tmp += n;
-            std::cout << "tmp = [" << tmp.x << ", " << tmp.y << ", " << tmp.z << "], n = " << n.x << ", " << n.y << ", " << n.z << "\n";
+            //std::cout << "tmp = [" << tmp.x << ", " << tmp.y << ", " << tmp.z << "], n = " << n.x << ", " << n.y << ", " << n.z << "\n";
         }
-        std::cout << "----------------------------\n";
+        //std::cout << "----------------------------\n";
         tmp /= it.second.size();
-        std::cout << "tmp = [" << tmp.x << ", " << tmp.y << ", " << tmp.z << "]\n";
-        std::cout << "----------------------------\n";
-        std::cout << "----------------------------\n";
+        //std::cout << "tmp = [" << tmp.x << ", " << tmp.y << ", " << tmp.z << "]\n";
+        //std::cout << "----------------------------\n";
+        //std::cout << "----------------------------\n";
         point_to_final_normal[it.first] = glm::normalize(tmp);
     }
 
@@ -250,10 +247,12 @@ HierarchyNode::HierarchyNode(std::string name, std::vector<Triangle> t, std::vec
         this->triangle_list[i].p1.normal = point_to_final_normal[this->triangle_list[i].p1];
         this->triangle_list[i].p2.normal = point_to_final_normal[this->triangle_list[i].p2];
         this->triangle_list[i].p3.normal = point_to_final_normal[this->triangle_list[i].p3];
-        
+       
+        /*
         std::cout << "p1:" << this->triangle_list[i].p1.to_str() << "\n";
         std::cout << "p2:" << this->triangle_list[i].p2.to_str() << "\n";
         std::cout << "p3:" << this->triangle_list[i].p3.to_str() << "\n";
+        */
     }
     this->vbo_copy = new float[t.size() * 3 * 3 * 3 + l.size() * 2 * 3 * 3]();
     std::cout << "len(vbo_copy) = " << t.size() * 3 * 3 * 3 + l.size() * 2 * 3 * 3 << "\n";
@@ -311,8 +310,6 @@ HierarchyNode::HierarchyNode(std::string name, std::vector<Triangle> t, std::vec
 
     this->init_default_dof_transform();
     this->dof_transform = glm::mat4(1);
-
-    this->vbo_offset = 0;
 
     this->draw_triangle = (this->triangle_list.size() > 0);
     this->draw_line = (this->line_list.size() > 0);
@@ -388,7 +385,7 @@ void HierarchyNode::update_dof_transform() {
 }
 
 void HierarchyNode::prepare_vbo() {
-    glBufferSubData(GL_ARRAY_BUFFER, this->vbo_offset * 3 * 3 * sizeof(float), this->triangle_list.size() * 3 * 3 * 3 * sizeof(float) + this->line_list.size() * 2 * 3 * 3 * sizeof(float), this->vbo_copy);
+    glBufferSubData(GL_ARRAY_BUFFER, this->gl_info["vbo_offset"] * 3 * 3 * sizeof(float), this->triangle_list.size() * 3 * 3 * 3 * sizeof(float) + this->line_list.size() * 2 * 3 * 3 * sizeof(float), this->vbo_copy);
     for(auto it : this->children) {
         it->prepare_vbo();
     }
@@ -433,14 +430,14 @@ void HierarchyNode::render(bool shadowmap) {
     std::cout << "--------------\n";
     */
     if(draw_triangle) {
-        glDrawArrays(GL_TRIANGLES, this->vbo_offset, this->triangle_list.size() * 3);
+        glDrawArrays(GL_TRIANGLES, this->gl_info["vbo_offset"], this->triangle_list.size() * 3);
         error = glGetError();
-        std::cout << "After glDrawArrays drawing " << this->triangle_list.size() * 3 << " points from offset " << this->vbo_offset << ", glError = " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
+        std::cout << "After glDrawArrays drawing " << this->triangle_list.size() * 3 << " points from offset " << this->gl_info["vbo_offset"] << ", glError = " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
     }
     if(draw_line) {
-        glDrawArrays(GL_LINES, this->vbo_offset + this->triangle_list.size() * 3, this->line_list.size() * 2);
+        glDrawArrays(GL_LINES, this->gl_info["vbo_offset"] + this->triangle_list.size() * 3, this->line_list.size() * 2);
         error = glGetError();
-        std::cout << "After glDrawArrays drawing " << this->line_list.size() * 2<< " points from offset " << this->vbo_offset + this->triangle_list.size() * 3<< ", glError = " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
+        std::cout << "After glDrawArrays drawing " << this->line_list.size() * 2<< " points from offset " << this->gl_info["vbo_offset"] + this->triangle_list.size() * 3<< ", glError = " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
     }
 }
 
@@ -501,8 +498,8 @@ void global_to_local(HierarchyNode *n) {
 void add_edge(HierarchyNode *parent, HierarchyNode *child, unsigned int *next_available_vbo_offset) {
     // Add an edge from parent to child
     // Adjust GL related properties first
-    child->vbo_offset = *next_available_vbo_offset;
     child->setGLInfo(parent->gl_info);
+    child->gl_info["vbo_offset"] = *next_available_vbo_offset;
     *next_available_vbo_offset += 3 * child->triangle_list.size() + 2 * child->line_list.size();
     parent->children.push_back(child);
     child->parent = parent;

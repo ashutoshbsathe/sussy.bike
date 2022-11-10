@@ -2,7 +2,13 @@
 
 std::pair<HierarchyNode *, unsigned int> build_bike(std::map<std::string, GLuint> gl_info) {
     unsigned int next_available_vbo_offset;
-    next_available_vbo_offset = gl_info.find("vbo_offset") == gl_info.end() ? 0 : gl_info["vbo_offset"];
+    if(gl_info.find("vbo_offset") == gl_info.end()) {
+        gl_info["vbo_offset"] = 0;
+    }
+    for(auto it : gl_info) {
+        std::cout << it.first << ": " << it.second << "\n";
+    }
+    next_available_vbo_offset = gl_info["vbo_offset"];
     StackedPolyPrism p_back_wheel_part_1 = StackedPolyPrism("./bike_parts/back_wheel_part_1.txt");
 	HierarchyNode *back_wheel_part_1 = new HierarchyNode(p_back_wheel_part_1);
 	StackedPolyPrism p_back_wheel_part_2 = StackedPolyPrism("./bike_parts/back_wheel_part_2.txt");
@@ -146,25 +152,28 @@ std::pair<HierarchyNode *, unsigned int> build_bike(std::map<std::string, GLuint
         {0, glm::vec3(1, 0, 0)},
     };
 
-    body->vbo_offset = 0;
     body->setGLInfo(gl_info);
    
     next_available_vbo_offset += 3 * body->triangle_list.size() + 2 * body->line_list.size();
-
+    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
     add_edge(body, back_wheel_part_1, &next_available_vbo_offset);
     add_edge(body, engine, &next_available_vbo_offset);
     add_edge(body, footrest, &next_available_vbo_offset);
     add_edge(body, handlebar, &next_available_vbo_offset);
 
+    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
     add_edge(back_wheel_part_1, back_wheel_part_2, &next_available_vbo_offset);
     add_edge(back_wheel_part_2, back_wheel_part_3, &next_available_vbo_offset);
     add_edge(back_wheel_part_3, back_wheel_spokes, &next_available_vbo_offset);
 
+    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
     add_edge(handlebar, front_scope_1, &next_available_vbo_offset);
     add_edge(handlebar, front_scope_2, &next_available_vbo_offset);
 
+    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
     add_edge(front_scope_1, front_wheel_part_1, &next_available_vbo_offset);
 
+    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
     add_edge(front_wheel_part_1, front_wheel_part_2, &next_available_vbo_offset);
     add_edge(front_wheel_part_2, front_wheel_part_3, &next_available_vbo_offset);
     add_edge(front_wheel_part_3, front_wheel_spokes, &next_available_vbo_offset);

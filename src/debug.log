@@ -161,7 +161,7 @@ Type: Performance
 Severity: medium
 
 ---------------
-Debug message (2): using glBufferSubData(buffer 1, offset 0, size 9072) to update a GL_STATIC_DRAW buffer
+Debug message (2): using glBufferSubData(buffer 1, offset 458784, size 9072) to update a GL_STATIC_DRAW buffer
 Source: API
 Type: Performance
 Severity: medium
