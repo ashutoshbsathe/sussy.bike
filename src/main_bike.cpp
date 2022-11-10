@@ -1,6 +1,7 @@
 #include "main.hpp"
 #include "bike.hpp"
 #include "rider.hpp"
+#include "track.hpp"
 #include <GLFW/glfw3.h>
 
 #define MAX_BIKE_VBO_BYTES 1024000
@@ -21,7 +22,7 @@ glm::mat4 rotation_matrix;
 glm::mat4 light_movement_matrix;
 glm::mat3 normal_matrix;
 
-HierarchyNode *bike, *rider, *curr_node;
+HierarchyNode *bike, *rider, *track, *curr_node;
 std::vector<AnimationEntity> entities;
 int entity_idx = 0;
 
@@ -70,7 +71,8 @@ void initVertexBufferGL(void) {
     //Set it as the current buffer to be used by binding it
     glBindBuffer (GL_ARRAY_BUFFER, vbo);
  
-    glBufferData(GL_ARRAY_BUFFER, 2*MAX_BIKE_VBO_BYTES, NULL, GL_STATIC_DRAW);
+    // TODO: See if this much memory is actually required
+    glBufferData(GL_ARRAY_BUFFER, 3*MAX_BIKE_VBO_BYTES, NULL, GL_STATIC_DRAW);
     
     gl_info["uniform_xform_id"] = uModelViewProjectMatrix_id;
     gl_info["normal_matrix_id"] = uNormalMatrix_id;
@@ -82,7 +84,6 @@ void initVertexBufferGL(void) {
     pair = build_humanoid(gl_info);
     rider = pair.first;
     vbo_offset = pair.second;
-    body_vbo_offset = pair.second;
     rider->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_rider", rider));
     curr_node = rider;
@@ -101,9 +102,22 @@ void initVertexBufferGL(void) {
     bike->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_bike", bike));
     curr_node = bike;
+
+    gl_info["uniform_xform_id"] = uModelViewProjectMatrix_id;
+    gl_info["normal_matrix_id"] = uNormalMatrix_id;
+    gl_info["view_matrix_id"] = uViewMatrix_id;
+    gl_info["light_space_matrix_id"] = uLightSpaceMatrix_id;
+    gl_info["shadow_map_id"] = uShadowMap_id;
+    gl_info["shadow_light_space_matrix_id"] = shadow_uLightSpaceMatrix_id;
+    gl_info["vbo_offset"] = vbo_offset;
+    pair = build_track(gl_info);
+    track = pair.first;
+    vbo_offset = pair.second;
+    track->prepare_vbo();
+    entities.push_back(AnimationEntity("standalone_track", track));
+    curr_node = track;
     
     std::cout << "VBO successfully initialized\n";
-    std::cout << "vbo_offset = " << vbo_offset << ", body_vbo_offset = " << body_vbo_offset << std::endl;
     // Enable the vertex attribute
     // Excellent answer -- https://stackoverflow.com/a/39684775
     glEnableVertexAttribArray (position_id);
@@ -147,6 +161,12 @@ void renderScene(glm::mat4 viewproject, glm::mat4 view, glm::mat4 lightspace, gl
     hnode_lightspacematrix = lightspace;
     hnode_hierarchy_matrix_stack = bike_hierarchy;
     bike->render_dag(lightcam);
+
+    hnode_viewproject = viewproject;
+    hnode_viewmatrix = view;
+    hnode_lightspacematrix = lightspace;
+    hnode_hierarchy_matrix_stack = glm::mat4(1);
+    track->render_dag(lightcam);
 }
 
 void renderGL(void) {   
