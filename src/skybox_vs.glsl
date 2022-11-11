@@ -6,6 +6,6 @@ out vec3 vTex;
 uniform mat4 uModelViewProjectMatrix;
 
 void main() {
-    vTex = vPosition / 15000.0;
+    vTex = vPosition;
     gl_Position = uModelViewProjectMatrix * vec4(vPosition, 1);
 }

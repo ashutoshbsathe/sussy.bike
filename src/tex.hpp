@@ -11,14 +11,13 @@
 #include <string>
 
 #include "stb_image.h"
-GLuint loadCubemap(std::vector<std::string> fnames) {
+void loadCubemap(std::vector<std::string> fnames, GLuint *ret) {
     /*
      * fnames must be in
      * right, left, top, bottom, front, back order
      */
-    GLuint ret;
-    glGenTextures(1, &ret);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, ret);
+    glGenTextures(1, ret);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, *ret);
 
     int width, height, n_channels;
     for(unsigned int i = 0; i < 6; i++) {
@@ -44,7 +43,5 @@ GLuint loadCubemap(std::vector<std::string> fnames) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_REPEAT);
-
-    return ret;
 }
 #endif

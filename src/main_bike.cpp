@@ -37,7 +37,7 @@ std::vector<std::string> skybox_fnames = {
     "./resources/skybox/front.png",
     "./resources/skybox/back.png",
 };
-GLuint skybox_texture = loadCubemap(skybox_fnames), skybox_vao, skybox_vbo, skybox_shader_program, skybox_position_id, skybox_uModelViewProject_id, skybox_sampler_id;
+GLuint skybox_texture, skybox_vao, skybox_vbo, skybox_shader_program, skybox_position_id, skybox_uModelViewProject_id, skybox_sampler_id;
 float skybox_radius = 15000.f;
 float skybox_vertices[] = { 
     -skybox_radius,  skybox_radius, -skybox_radius,
@@ -189,6 +189,7 @@ void initVertexBufferGL(void) {
     glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
 
     /* Init for skybox */
+    loadCubemap(skybox_fnames, &skybox_texture);
     glGenVertexArrays (1, &skybox_vao);
     glBindVertexArray (skybox_vao);
     glGenBuffers (1, &skybox_vbo);
@@ -306,6 +307,8 @@ void renderGL(void) {
         rotation_matrix = glm::rotate(rotation_matrix, yrot, glm::vec3(0, 1, 0));
         rotation_matrix = glm::rotate(rotation_matrix, zrot, glm::vec3(0, 0, 1));
 
+        modelviewproject_matrix *= rotation_matrix;
+        
         /* Rendering skybox before the scene 
          * Not great for performance but hey, it works
          */
@@ -318,8 +321,6 @@ void renderGL(void) {
         glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_texture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthMask(GL_TRUE);
-
-        modelviewproject_matrix *= rotation_matrix;
 
         glUseProgram(shader_program);
         glBindVertexArray(vao);
