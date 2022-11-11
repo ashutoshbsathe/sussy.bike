@@ -30,15 +30,15 @@ bool lightcam = true;
 std::ofstream fout; // OpenGL logging
 
 std::vector<std::string> skybox_fnames = {
-    "./resources/skybox/right.png",
-    "./resources/skybox/left.png",
-    "./resources/skybox/top.png",
-    "./resources/skybox/bottom.png",
-    "./resources/skybox/front.png",
-    "./resources/skybox/back.png",
+    "./resources/skybox/right.jpg",
+    "./resources/skybox/left.jpg",
+    "./resources/skybox/top.jpg",
+    "./resources/skybox/bottom.jpg",
+    "./resources/skybox/back.jpg",
+    "./resources/skybox/front.jpg",
 };
 GLuint skybox_texture, skybox_vao, skybox_vbo, skybox_shader_program, skybox_position_id, skybox_uModelViewProject_id, skybox_sampler_id;
-float skybox_radius = 15000.f;
+float skybox_radius = 1500.f;
 float skybox_vertices[] = { 
     -skybox_radius,  skybox_radius, -skybox_radius,
     -skybox_radius, -skybox_radius, -skybox_radius,
