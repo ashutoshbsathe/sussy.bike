@@ -39,6 +39,32 @@ std::vector<std::string> skybox_fnames = {
 };
 GLuint skybox_texture, skybox_vao, skybox_vbo, skybox_shader_program, skybox_position_id, skybox_uModelViewProject_id, skybox_sampler_id;
 float skybox_radius = 25000.f;
+
+/* skybox_vertices_points
+              (+Y)
+              |
+              g--------f
+             /|       /|
+            / |      / |
+           h--------e  |
+           |  |     |  |
+           |  c-----|--b----(+X)
+           | /      | /
+           |/       |/
+           d--------a
+          /
+         /
+      (+Z)
+*/
+float c[3] = {-skybox_radius, -skybox_radius, -skybox_radius};
+float a[3] = {skybox_radius, -skybox_radius, skybox_radius};
+float b[3] = {skybox_radius, -skybox_radius, -skybox_radius};
+float d[3] = {-skybox_radius, -skybox_radius, skybox_radius};
+float e[3] = {skybox_radius, skybox_radius, skybox_radius};
+float f[3] = {skybox_radius, skybox_radius, -skybox_radius};
+float g[3] = {-skybox_radius, skybox_radius, -skybox_radius};
+float h[3] = {-skybox_radius, skybox_radius, skybox_radius};
+
 float skybox_vertices[] = { 
     -skybox_radius,  skybox_radius, -skybox_radius,
     -skybox_radius, -skybox_radius, -skybox_radius,
