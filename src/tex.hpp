@@ -1,6 +1,8 @@
 #ifndef __TEX_H__
 #define __TEX_H__
 
+#define STB_IMAGE_IMPLEMENTATION // recommended by `stb_image.h`
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -28,17 +30,20 @@ GLuint loadCubemap(std::vector<std::string> fnames) {
                 GL_UNSIGNED_BYTE, data
             );
             stbi_image_free(data);
+            std::cout << "Loaded " << fnames[i] << "\n";
         }
         else {
             std::cout << "Cubemap texture failed to load at: " << fnames[i] << "\n";
+            stbi_image_free(data);
+            exit(0);
         }
     }
     // TODO: Use MipMaps
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_REPEAT);
 
     return ret;
 }

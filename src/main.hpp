@@ -6,6 +6,7 @@
 #include "spprism.hpp"
 #include "hnode.hpp"
 #include "entity.hpp"
+#include "tex.hpp"
 
 #include "gl_framework.hpp"
 #include "shader_util.hpp"

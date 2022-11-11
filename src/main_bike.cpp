@@ -27,7 +27,61 @@ std::vector<AnimationEntity> entities;
 int entity_idx = 0;
 
 bool lightcam = true; 
-std::ofstream fout;
+std::ofstream fout; // OpenGL logging
+
+std::vector<std::string> skybox_fnames = {
+    "./resources/skybox/right.png",
+    "./resources/skybox/left.png",
+    "./resources/skybox/top.png",
+    "./resources/skybox/bottom.png",
+    "./resources/skybox/front.png",
+    "./resources/skybox/back.png",
+};
+GLuint skybox_texture = loadCubemap(skybox_fnames), skybox_vao, skybox_vbo, skybox_shader_program, skybox_position_id, skybox_uModelViewProject_id, skybox_sampler_id;
+float skybox_radius = 15000.f;
+float skybox_vertices[] = { 
+    -skybox_radius,  skybox_radius, -skybox_radius,
+    -skybox_radius, -skybox_radius, -skybox_radius,
+     skybox_radius, -skybox_radius, -skybox_radius,
+     skybox_radius, -skybox_radius, -skybox_radius,
+     skybox_radius,  skybox_radius, -skybox_radius,
+    -skybox_radius,  skybox_radius, -skybox_radius,
+
+    -skybox_radius, -skybox_radius,  skybox_radius,
+    -skybox_radius, -skybox_radius, -skybox_radius,
+    -skybox_radius,  skybox_radius, -skybox_radius,
+    -skybox_radius,  skybox_radius, -skybox_radius,
+    -skybox_radius,  skybox_radius,  skybox_radius,
+    -skybox_radius, -skybox_radius,  skybox_radius,
+
+     skybox_radius, -skybox_radius, -skybox_radius,
+     skybox_radius, -skybox_radius,  skybox_radius,
+     skybox_radius,  skybox_radius,  skybox_radius,
+     skybox_radius,  skybox_radius,  skybox_radius,
+     skybox_radius,  skybox_radius, -skybox_radius,
+     skybox_radius, -skybox_radius, -skybox_radius,
+
+    -skybox_radius, -skybox_radius,  skybox_radius,
+    -skybox_radius,  skybox_radius,  skybox_radius,
+     skybox_radius,  skybox_radius,  skybox_radius,
+     skybox_radius,  skybox_radius,  skybox_radius,
+     skybox_radius, -skybox_radius,  skybox_radius,
+    -skybox_radius, -skybox_radius,  skybox_radius,
+
+    -skybox_radius,  skybox_radius, -skybox_radius,
+     skybox_radius,  skybox_radius, -skybox_radius,
+     skybox_radius,  skybox_radius,  skybox_radius,
+     skybox_radius,  skybox_radius,  skybox_radius,
+    -skybox_radius,  skybox_radius,  skybox_radius,
+    -skybox_radius,  skybox_radius, -skybox_radius,
+
+    -skybox_radius, -skybox_radius, -skybox_radius,
+    -skybox_radius, -skybox_radius,  skybox_radius,
+     skybox_radius, -skybox_radius, -skybox_radius,
+     skybox_radius, -skybox_radius, -skybox_radius,
+    -skybox_radius, -skybox_radius,  skybox_radius,
+     skybox_radius, -skybox_radius,  skybox_radius
+};
 void initShadersGL(void) {
     std::string vertex_shader_file("shading_vs.glsl");
     std::string fragment_shader_file("shading_fs.glsl");
@@ -54,21 +108,24 @@ void initShadersGL(void) {
     shadow_position_id = glGetAttribLocation(shadow_shader_program, "vPosition");
     shadow_uLightSpaceMatrix_id = glGetUniformLocation(shadow_shader_program, "uLightSpaceMatrix");
 
-    std::cout << shadow_shader_program << shadow_position_id << shadow_uLightSpaceMatrix_id << "\n";
-    std::cout << shader_program << position_id << uLightSpaceMatrix_id << "\n";
+    shaderList.clear();
+    shaderList.push_back(csX75::LoadShaderGL(GL_VERTEX_SHADER, "skybox_vs.glsl"));
+    shaderList.push_back(csX75::LoadShaderGL(GL_FRAGMENT_SHADER, "skybox_fs.glsl"));
+
+    skybox_shader_program = csX75::CreateProgramGL(shaderList);
+    skybox_position_id = glGetAttribLocation(skybox_shader_program, "vPosition");
+    skybox_uModelViewProject_id = glGetUniformLocation(skybox_shader_program, "uModelViewProjectMatrix");
+    skybox_sampler_id = glGetUniformLocation(skybox_shader_program, "skybox");
 }
 
 void initVertexBufferGL(void) {
     unsigned int vbo_offset = 0, body_vbo_offset = 0;
     std::pair<HierarchyNode *, unsigned int> pair;
     std::map<std::string, GLuint> gl_info;
-    //Ask GL for a Vertex Attribute Object (vao)
+
     glGenVertexArrays (1, &vao);
-    //Set it as the current array to be used by binding it
     glBindVertexArray (vao);
-    //Ask GL for a Vertex Buffer Object (vbo)
     glGenBuffers (1, &vbo);
-    //Set it as the current buffer to be used by binding it
     glBindBuffer (GL_ARRAY_BUFFER, vbo);
  
     // TODO: See if this much memory is actually required
@@ -102,7 +159,8 @@ void initVertexBufferGL(void) {
     bike->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_bike", bike));
     curr_node = bike;
-
+    
+    /*
     gl_info["uniform_xform_id"] = uModelViewProjectMatrix_id;
     gl_info["normal_matrix_id"] = uNormalMatrix_id;
     gl_info["view_matrix_id"] = uViewMatrix_id;
@@ -116,6 +174,7 @@ void initVertexBufferGL(void) {
     track->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_track", track));
     curr_node = track;
+    */
     
     std::cout << "VBO successfully initialized\n";
     // Enable the vertex attribute
@@ -128,6 +187,16 @@ void initVertexBufferGL(void) {
 
     glEnableVertexAttribArray(normal_id);
     glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
+
+    /* Init for skybox */
+    glGenVertexArrays (1, &skybox_vao);
+    glBindVertexArray (skybox_vao);
+    glGenBuffers (1, &skybox_vbo);
+    glBindBuffer (GL_ARRAY_BUFFER, skybox_vbo);
+ 
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_vertices) , &skybox_vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(skybox_position_id);
+    glVertexAttribPointer(shadow_position_id, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), BUFFER_OFFSET(0));
 
     /* Init depth buffer for shadow mapping */
     glGenFramebuffers(1, &depthMapFBO);
@@ -162,11 +231,13 @@ void renderScene(glm::mat4 viewproject, glm::mat4 view, glm::mat4 lightspace, gl
     hnode_hierarchy_matrix_stack = bike_hierarchy;
     bike->render_dag(lightcam);
 
+    /*
     hnode_viewproject = viewproject;
     hnode_viewmatrix = view;
     hnode_lightspacematrix = lightspace;
     hnode_hierarchy_matrix_stack = glm::mat4(1);
     track->render_dag(lightcam);
+    */
 }
 
 void renderGL(void) {   
@@ -235,8 +306,23 @@ void renderGL(void) {
         rotation_matrix = glm::rotate(rotation_matrix, yrot, glm::vec3(0, 1, 0));
         rotation_matrix = glm::rotate(rotation_matrix, zrot, glm::vec3(0, 0, 1));
 
+        /* Rendering skybox before the scene 
+         * Not great for performance but hey, it works
+         */
+        glDepthMask(GL_FALSE);
+        glUseProgram(skybox_shader_program);
+        glUniformMatrix4fv(skybox_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+        glUniform1i(skybox_sampler_id, 0);
+        glBindVertexArray(skybox_vao);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_texture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDepthMask(GL_TRUE);
+
         modelviewproject_matrix *= rotation_matrix;
+
         glUseProgram(shader_program);
+        glBindVertexArray(vao);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, depthMap_texture);
         
@@ -309,7 +395,7 @@ void APIENTRY glDebugOutput(GLenum source,
     
     switch (severity)
     {
-        case GL_DEBUG_SEVERITY_HIGH:         std::cout << "Severity: high"; break;
+        case GL_DEBUG_SEVERITY_HIGH:         std::cout << "Severity: high"; exit(0);break;
         case GL_DEBUG_SEVERITY_MEDIUM:       std::cout << "Severity: medium"; break;
         case GL_DEBUG_SEVERITY_LOW:          std::cout << "Severity: low"; break;
         case GL_DEBUG_SEVERITY_NOTIFICATION: std::cout << "Severity: notification"; break;
