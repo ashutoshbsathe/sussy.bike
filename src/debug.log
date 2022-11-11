@@ -244,3 +244,69 @@ Source: API
 Type: Performance
 Severity: medium
 
+---------------
+Debug message (2): using glBufferSubData(buffer 1, offset 587520, size 54864) to update a GL_STATIC_DRAW buffer
+Source: API
+Type: Performance
+Severity: medium
+
+---------------
+Debug message (2): using glBufferSubData(buffer 1, offset 678960, size 1728) to update a GL_STATIC_DRAW buffer
+Source: API
+Type: Performance
+Severity: medium
+
+---------------
+Debug message (2): using glBufferSubData(buffer 1, offset 680688, size 5616) to update a GL_STATIC_DRAW buffer
+Source: API
+Type: Performance
+Severity: medium
+
+---------------
+Debug message (2): using glBufferSubData(buffer 1, offset 686304, size 3888) to update a GL_STATIC_DRAW buffer
+Source: API
+Type: Performance
+Severity: medium
+
+---------------
+Debug message (2): using glBufferSubData(buffer 1, offset 690192, size 864) to update a GL_STATIC_DRAW buffer
+Source: API
+Type: Performance
+Severity: medium
+
+---------------
+Debug message (2): using glBufferSubData(buffer 1, offset 691056, size 1944) to update a GL_STATIC_DRAW buffer
+Source: API
+Type: Performance
+Severity: medium
+
+---------------
+Debug message (2): using glBufferSubData(buffer 1, offset 693000, size 2160) to update a GL_STATIC_DRAW buffer
+Source: API
+Type: Performance
+Severity: medium
+
+---------------
+Debug message (2): using glBufferSubData(buffer 1, offset 695160, size 7128) to update a GL_STATIC_DRAW buffer
+Source: API
+Type: Performance
+Severity: medium
+
+---------------
+Debug message (2): using glBufferSubData(buffer 1, offset 702288, size 7128) to update a GL_STATIC_DRAW buffer
+Source: API
+Type: Performance
+Severity: medium
+
+---------------
+Debug message (2): using glBufferSubData(buffer 1, offset 709416, size 3888) to update a GL_STATIC_DRAW buffer
+Source: API
+Type: Performance
+Severity: medium
+
+---------------
+Debug message (2): using glBufferSubData(buffer 1, offset 713304, size 2808) to update a GL_STATIC_DRAW buffer
+Source: API
+Type: Performance
+Severity: medium
+

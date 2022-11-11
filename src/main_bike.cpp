@@ -30,15 +30,15 @@ bool lightcam = true;
 std::ofstream fout; // OpenGL logging
 
 std::vector<std::string> skybox_fnames = {
-    "./resources/skybox/right.jpg",
-    "./resources/skybox/left.jpg",
-    "./resources/skybox/top.jpg",
-    "./resources/skybox/bottom.jpg",
-    "./resources/skybox/back.jpg",
-    "./resources/skybox/front.jpg",
+    "./resources/skybox_test/right.png",
+    "./resources/skybox_test/left.png",
+    "./resources/skybox_test/top.png",
+    "./resources/skybox_test/bottom.png",
+    "./resources/skybox_test/back.png",
+    "./resources/skybox_test/front.png",
 };
 GLuint skybox_texture, skybox_vao, skybox_vbo, skybox_shader_program, skybox_position_id, skybox_uModelViewProject_id, skybox_sampler_id;
-float skybox_radius = 1500.f;
+float skybox_radius = 25000.f;
 float skybox_vertices[] = { 
     -skybox_radius,  skybox_radius, -skybox_radius,
     -skybox_radius, -skybox_radius, -skybox_radius,
@@ -160,7 +160,6 @@ void initVertexBufferGL(void) {
     entities.push_back(AnimationEntity("standalone_bike", bike));
     curr_node = bike;
     
-    /*
     gl_info["uniform_xform_id"] = uModelViewProjectMatrix_id;
     gl_info["normal_matrix_id"] = uNormalMatrix_id;
     gl_info["view_matrix_id"] = uViewMatrix_id;
@@ -174,7 +173,6 @@ void initVertexBufferGL(void) {
     track->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_track", track));
     curr_node = track;
-    */
     
     std::cout << "VBO successfully initialized\n";
     // Enable the vertex attribute
@@ -232,13 +230,11 @@ void renderScene(glm::mat4 viewproject, glm::mat4 view, glm::mat4 lightspace, gl
     hnode_hierarchy_matrix_stack = bike_hierarchy;
     bike->render_dag(lightcam);
 
-    /*
     hnode_viewproject = viewproject;
     hnode_viewmatrix = view;
     hnode_lightspacematrix = lightspace;
     hnode_hierarchy_matrix_stack = glm::mat4(1);
     track->render_dag(lightcam);
-    */
 }
 
 void renderGL(void) {   
