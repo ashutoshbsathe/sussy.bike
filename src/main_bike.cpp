@@ -240,6 +240,8 @@ void renderScene(glm::mat4 viewproject, glm::mat4 view, glm::mat4 lightspace, gl
 }
 
 void renderGL(void) {   
+    // WHY THE FUCK IS THAT CAMERA WORKING NOW ?
+    // https://gamedev.stackexchange.com/questions/8174/rendering-skybox-in-first-person-shooter
     glBindVertexArray(vao);
     light_movement_matrix = glm::rotate(glm::mat4(1), light_x, glm::vec3(1, 0, 0));
     light_movement_matrix = glm::rotate(light_movement_matrix, light_y, glm::vec3(0, 1, 0));
