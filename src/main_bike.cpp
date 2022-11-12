@@ -56,57 +56,21 @@ float skybox_radius = 25000.f;
          /
       (+Z)
 */
-float c[3] = {-skybox_radius, -skybox_radius, -skybox_radius};
-float a[3] = {skybox_radius, -skybox_radius, skybox_radius};
-float b[3] = {skybox_radius, -skybox_radius, -skybox_radius};
-float d[3] = {-skybox_radius, -skybox_radius, skybox_radius};
-float e[3] = {skybox_radius, skybox_radius, skybox_radius};
-float f[3] = {skybox_radius, skybox_radius, -skybox_radius};
-float g[3] = {-skybox_radius, skybox_radius, -skybox_radius};
-float h[3] = {-skybox_radius, skybox_radius, skybox_radius};
-
-float skybox_vertices[] = { 
-    -skybox_radius,  skybox_radius, -skybox_radius,
-    -skybox_radius, -skybox_radius, -skybox_radius,
-     skybox_radius, -skybox_radius, -skybox_radius,
-     skybox_radius, -skybox_radius, -skybox_radius,
-     skybox_radius,  skybox_radius, -skybox_radius,
-    -skybox_radius,  skybox_radius, -skybox_radius,
-
-    -skybox_radius, -skybox_radius,  skybox_radius,
-    -skybox_radius, -skybox_radius, -skybox_radius,
-    -skybox_radius,  skybox_radius, -skybox_radius,
-    -skybox_radius,  skybox_radius, -skybox_radius,
-    -skybox_radius,  skybox_radius,  skybox_radius,
-    -skybox_radius, -skybox_radius,  skybox_radius,
-
-     skybox_radius, -skybox_radius, -skybox_radius,
-     skybox_radius, -skybox_radius,  skybox_radius,
-     skybox_radius,  skybox_radius,  skybox_radius,
-     skybox_radius,  skybox_radius,  skybox_radius,
-     skybox_radius,  skybox_radius, -skybox_radius,
-     skybox_radius, -skybox_radius, -skybox_radius,
-
-    -skybox_radius, -skybox_radius,  skybox_radius,
-    -skybox_radius,  skybox_radius,  skybox_radius,
-     skybox_radius,  skybox_radius,  skybox_radius,
-     skybox_radius,  skybox_radius,  skybox_radius,
-     skybox_radius, -skybox_radius,  skybox_radius,
-    -skybox_radius, -skybox_radius,  skybox_radius,
-
-    -skybox_radius,  skybox_radius, -skybox_radius,
-     skybox_radius,  skybox_radius, -skybox_radius,
-     skybox_radius,  skybox_radius,  skybox_radius,
-     skybox_radius,  skybox_radius,  skybox_radius,
-    -skybox_radius,  skybox_radius,  skybox_radius,
-    -skybox_radius,  skybox_radius, -skybox_radius,
-
-    -skybox_radius, -skybox_radius, -skybox_radius,
-    -skybox_radius, -skybox_radius,  skybox_radius,
-     skybox_radius, -skybox_radius, -skybox_radius,
-     skybox_radius, -skybox_radius, -skybox_radius,
-    -skybox_radius, -skybox_radius,  skybox_radius,
-     skybox_radius, -skybox_radius,  skybox_radius
+Point c = Point(-skybox_radius, -skybox_radius, -skybox_radius);
+Point a = Point(skybox_radius, -skybox_radius, skybox_radius);
+Point b = Point(skybox_radius, -skybox_radius, -skybox_radius);
+Point d = Point(-skybox_radius, -skybox_radius, skybox_radius);
+Point e = Point(skybox_radius, skybox_radius, skybox_radius);
+Point f = Point(skybox_radius, skybox_radius, -skybox_radius);
+Point g = Point(-skybox_radius, skybox_radius, -skybox_radius);
+Point h = Point(-skybox_radius, skybox_radius, skybox_radius);
+std::vector<Triangle> skybox_triangle_list = {
+    Triangle(c, h, g), Triangle(c, d, h),
+    Triangle(b, a, e), Triangle(b, e, f),
+    Triangle(c, a, d), Triangle(c, b, a),
+    Triangle(g, e, h), Triangle(g, f, e),
+    Triangle(d, e, a), Triangle(d, h, e),
+    Triangle(c, f, b), Triangle(c, g, f)
 };
 void initShadersGL(void) {
     std::string vertex_shader_file("shading_vs.glsl");
@@ -214,6 +178,18 @@ void initVertexBufferGL(void) {
 
     /* Init for skybox */
     loadCubemap(skybox_fnames, &skybox_texture);
+    float skybox_vertices[12 * 3 * 3];
+    for(unsigned int i = 0; i < 12; i++) {
+        skybox_vertices[9*i] = skybox_triangle_list[i].p1.x;
+        skybox_vertices[9*i+1] = skybox_triangle_list[i].p1.y;
+        skybox_vertices[9*i+2] = skybox_triangle_list[i].p1.z;
+        skybox_vertices[9*i+3] = skybox_triangle_list[i].p2.x;
+        skybox_vertices[9*i+4] = skybox_triangle_list[i].p2.y;
+        skybox_vertices[9*i+5] = skybox_triangle_list[i].p2.z;
+        skybox_vertices[9*i+6] = skybox_triangle_list[i].p3.x;
+        skybox_vertices[9*i+7] = skybox_triangle_list[i].p3.y;
+        skybox_vertices[9*i+8] = skybox_triangle_list[i].p3.z;
+    }
     glGenVertexArrays (1, &skybox_vao);
     glBindVertexArray (skybox_vao);
     glGenBuffers (1, &skybox_vbo);
