@@ -38,7 +38,7 @@ std::vector<std::string> skybox_fnames = {
     "./resources/skybox_test/front.png",
 };
 GLuint skybox_texture, skybox_vao, skybox_vbo, skybox_shader_program, skybox_position_id, skybox_uModelViewProject_id, skybox_sampler_id;
-float skybox_radius = 25000.f;
+float skybox_radius = 102400.f;
 
 /* skybox_vertices_points
               (+Y)
@@ -66,7 +66,7 @@ Point g = Point(-skybox_radius, skybox_radius, -skybox_radius);
 Point h = Point(-skybox_radius, skybox_radius, skybox_radius);
 std::vector<Triangle> skybox_triangle_list = {
     Triangle(c, h, g), Triangle(c, d, h),
-    Triangle(b, a, e), Triangle(b, e, f),
+    Triangle(b, e, a), Triangle(b, f, e),
     Triangle(c, a, d), Triangle(c, b, a),
     Triangle(g, e, h), Triangle(g, f, e),
     Triangle(d, e, a), Triangle(d, h, e),
@@ -288,7 +288,16 @@ void renderGL(void) {
 
         // normal rendering
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        view_matrix = glm::lookAt(glm::vec3(0.0,0.0,1.0*VIEW_PADDING*DRAW_MIN),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+
+        rotation_matrix = glm::rotate(glm::mat4(1), xrot, glm::vec3(1, 0, 0));
+        rotation_matrix = glm::rotate(rotation_matrix, yrot, glm::vec3(0, 1, 0));
+        rotation_matrix = glm::rotate(rotation_matrix, zrot, glm::vec3(0, 0, 1));
+        auto eye = glm::vec4(0.f, 0.f, -20000.f, 1.f);
+        auto lookat_transform = glm::translate(glm::mat4(1), glm::vec3(-eye.x/eye.w, -eye.y/eye.z, -eye.w)); // move eye to origin
+        lookat_transform = rotation_matrix * lookat_transform; // rotate
+        lookat_transform = glm::translate(glm::mat4(1), glm::vec3(eye.x/eye.w, eye.y/eye.w, eye.z/eye.w)) * lookat_transform; // move eye back
+        auto lookat_point = glm::vec4(0.f, 0.f, 0.f, 1.f);
+        view_matrix = glm::lookAt(glm::vec3(eye.x/eye.w, eye.y/eye.w, eye.z/eye.w),glm::vec3(lookat_point.x/lookat_point.w,lookat_point.y/lookat_point.w, lookat_point.z/lookat_point.w),glm::vec3(0.0,1.0,0.0));
 
         ortho_matrix = glm::ortho(
                            VIEW_PADDING * DRAW_MIN * 1.f, VIEW_PADDING * DRAW_MAX * 1.f,
@@ -301,11 +310,7 @@ void renderGL(void) {
         else
             modelviewproject_matrix = ortho_matrix * view_matrix;
 
-        rotation_matrix = glm::rotate(glm::mat4(1), xrot, glm::vec3(1, 0, 0));
-        rotation_matrix = glm::rotate(rotation_matrix, yrot, glm::vec3(0, 1, 0));
-        rotation_matrix = glm::rotate(rotation_matrix, zrot, glm::vec3(0, 0, 1));
-
-        modelviewproject_matrix *= rotation_matrix;
+        modelviewproject_matrix = modelviewproject_matrix * rotation_matrix;
         
         /* Rendering skybox before the scene 
          * Not great for performance but hey, it works
@@ -328,7 +333,6 @@ void renderGL(void) {
         renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), false);
     }
 }
-
 
 void APIENTRY glDebugOutput(GLenum source, 
                             GLenum type, 

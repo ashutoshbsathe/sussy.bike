@@ -169,11 +169,11 @@ namespace csX75 {
         } else if(key == GLFW_KEY_K && action == GLFW_PRESS) {
             auto curr = entities[entity_idx];
             curr.save_params_to_file("params_" + curr.name + ".txt");
-        } else if(key == GLFW_KEY_M && action == GLFW_PRESS){
+        }/* else if(key == GLFW_KEY_M && action == GLFW_PRESS){
             VIEW_PADDING += zoomamount;
         } else if(key == GLFW_KEY_N && action == GLFW_PRESS){
             VIEW_PADDING -= zoomamount;
-        } else if(key == GLFW_KEY_Z && action == GLFW_PRESS) {
+        } */else if(key == GLFW_KEY_Z && action == GLFW_PRESS) {
             lightcam = !lightcam;
         } else if(key == GLFW_KEY_UP) {
             light_y += light_moveamount;
