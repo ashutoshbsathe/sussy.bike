@@ -11,10 +11,10 @@ uniform mat4 uViewMatrix;
 
 out vec4 frag_colour;
 
-float ShadowCalculation(vec4 fragPosLightSpace)
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightDir)
 {
+    float bias = max(0.0015 * (1.0 - dot(normal, lightDir+(eye.xyz/eye.w))), 0.001);
     // perform perspective divide
-    float bias = 0.0005;
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
@@ -22,7 +22,17 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     float closestDepth = texture(shadowMap, projCoords.xy).r; 
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
-    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0; 
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -3; x <= 3; ++x)
+    {
+        for(int y = -3; y <= 3; ++y)
+        {
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 49.0;
     return shadow;
 }
 
@@ -54,9 +64,8 @@ void main ()
 
   frag_colour = vec4(color, 1.0);
 
-  frag_colour = max((intensity * diffuse + spec)*frag_colour, ambient*frag_colour);
-
-  if(ShadowCalculation(lightspace_pos) > 0.0) {
-    frag_colour = frag_colour * vec4(0.75, 0.75, 0.75, 1);
-  }
+  //frag_colour = max((intensity * diffuse + spec)*frag_colour, ambient*frag_colour);
+  float shadow = ShadowCalculation(lightspace_pos, lightDir);
+  frag_colour = (ambient + (1.0 - shadow) * (diffuse + spec)) * frag_colour;
+  
 }

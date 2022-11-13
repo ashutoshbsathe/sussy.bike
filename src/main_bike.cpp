@@ -29,7 +29,7 @@ int entity_idx = 0;
 bool lightcam = true; 
 std::ofstream fout; // OpenGL logging
 
-Camera global_camera(glm::vec3(0.f, 0.f, -20000.f), glm::vec3(0.f, 0.f, -25000.f), glm::vec3(0.f, 1.f, 0.f), 0, 0);
+Camera global_camera(glm::vec3(0.f, 0.f, -20000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0, 0);
 
 std::vector<std::string> skybox_fnames = {
     /*"./resources/skybox/right.jpg",
@@ -254,20 +254,13 @@ void renderGL(void) {
     light_movement_matrix = glm::rotate(light_movement_matrix, light_z, glm::vec3(0, 0, 1));
     if(lightcam) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        view_matrix = glm::lookAt(glm::vec3(1060.f, 1060.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
-        projection_matrix = glm::ortho(
-                /*-2120.f, 2120.f,
-                -2120.f, 2120.f,
-                 0.f, 3180.f*/
-                           3 * DRAW_MIN * 2.f, 3 * DRAW_MAX * 2.f,
-                           3 * DRAW_MIN * 2.f, 3 * DRAW_MAX * 2.f,
-                           20.f * 3 * DRAW_MIN, 20.f * 3 * DRAW_MAX
-        );
+        view_matrix = glm::lookAt(glm::vec3(12500.f, 12500.f, 12500.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+        projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
         ortho_matrix = projection_matrix;
         lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
         
         glUseProgram(shadow_shader_program);
-
+        
         renderScene(lightspace_matrix, view_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), lightcam);
     }
     else {
@@ -276,15 +269,8 @@ void renderGL(void) {
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        view_matrix = glm::lookAt(glm::vec3(1060.f, 1060.f, 1060.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
-        projection_matrix = glm::ortho(
-                /*2120.f, -2120.f,
-                -2120.f, 2120.f,
-                 0.f, 3180.f*/
-                           3 * DRAW_MIN * 2.f, 3 * DRAW_MAX * 2.f,
-                           3 * DRAW_MIN * 2.f, 3 * DRAW_MAX * 2.f,
-                           20.f * 3 * DRAW_MIN, 20.f * 3 * DRAW_MAX
-        );
+        view_matrix = glm::lookAt(glm::vec3(12500.f, 12500.f, 12500.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+        projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
         ortho_matrix = projection_matrix;
         lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
 
