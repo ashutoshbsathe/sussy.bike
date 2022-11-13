@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 extern bool persp;
 extern float xrot, yrot, zrot, rotamount, VIEW_PADDING, zoomamount, light_x, light_y, light_z, light_moveamount;
+extern float xmove, ymove, zmove, moveamount;
 extern HierarchyNode *curr_node;
 extern std::vector<AnimationEntity> entities;
 extern int entity_idx;
@@ -136,30 +137,32 @@ namespace csX75 {
             curr_node->update_dof_transform();
             auto params = curr_node->dof_params[dof_id];
             std::cout << curr_node->name << "[dof#" << dof_id + 1 << "]: value = " << params.first << ", delta = " << curr_node->dof_deltas[dof_id] << ", along (" << params.second[0] << ", " << params.second[1] << ", " << params.second[2] << ")\n";
-        } else if(key == GLFW_KEY_W) {
-            xrot += rotamount;
-            if(xrot >= M_PI/2 - 0.05) xrot = M_PI/2 - 0.05;
-            if(xrot <= -M_PI/2 - 0.05) xrot = -M_PI/2 - 0.05;
-        } else if(key == GLFW_KEY_S) {
-            xrot -= rotamount;
-            if(xrot >= M_PI/2 - 0.05) xrot = M_PI/2 - 0.05;
-            if(xrot <= -M_PI/2 - 0.05) xrot = -M_PI/2 - 0.05;
-        } else if(key == GLFW_KEY_A) {
-            yrot += rotamount;
-            if(yrot >= M_PI/2 - 0.05) yrot = M_PI/2 - 0.05;
-            if(yrot <= -M_PI/2 - 0.05) yrot = -M_PI/2 - 0.05;
+        }  else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_W) {
+            xmove += moveamount;
+        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_S) {
+            xmove -= moveamount;
+        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_D) {
+            ymove += moveamount;
+        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_A) {
+            ymove -= moveamount;
+        }else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_Q) {
+            zmove += moveamount;
+        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_E) {
+            zmove -= moveamount;
         } else if(key == GLFW_KEY_D) {
+            xrot += rotamount;
+        } else if(key == GLFW_KEY_A) {
+            xrot -= rotamount;
+        } else if(key == GLFW_KEY_W) {
+            yrot += rotamount;
+            if(yrot > M_PI/2 - 0.1) yrot = M_PI/2 - 0.1;
+        } else if(key == GLFW_KEY_S) {
             yrot -= rotamount;
-            if(yrot >= M_PI/2 - 0.05) yrot = M_PI/2 - 0.05;
-            if(yrot <= -M_PI/2 - 0.05) yrot = -M_PI/2 - 0.05;
+            if(yrot < -M_PI/2 + 0.1) yrot = -M_PI/2 + 0.1;
         }else if(key == GLFW_KEY_Q) {
             zrot += rotamount;
-            if(zrot >= M_PI/2 - 0.05) zrot = M_PI/2 - 0.05;
-            if(zrot <= -M_PI/2 - 0.05) zrot = -M_PI/2 - 0.05;
         } else if(key == GLFW_KEY_E) {
             zrot -= rotamount;
-            if(zrot >= M_PI/2 - 0.05) zrot = M_PI/2 - 0.05;
-            if(zrot <= -M_PI/2 - 0.05) zrot = -M_PI/2 - 0.05;
         } else if(key == GLFW_KEY_COMMA && action == GLFW_PRESS) {
             if(entity_idx == 0) {
                 std::cout << "Already at the leftmost entity : " << entities[entity_idx].name << "\n";

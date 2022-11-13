@@ -10,39 +10,37 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 struct Camera {
-    glm::vec3 eye, lookat, up, right, worldup;
+    glm::vec3 eye, lookat, worldup;
+    glm::vec3 n, u, v; // camera vectors
     float yaw, pitch;
     glm::mat4 viewMatrix; 
 
     Camera() {
         this->eye = glm::vec3(0.f, 0.f, 0.f);
         this->lookat = glm::vec3(0, 0, -1);
-        this->up = glm::vec3(0.f, 1.f, 0.f);
-        this->yaw = M_PI/2;
+        this->worldup = glm::vec3(0.f, 1.f, 0.f);
+        this->yaw = 0;
         this->pitch = 0;
-        this->worldup = this->up;
         updateCameraVectors();
     }
     
-    Camera(glm::vec3 eye, glm::vec3 lookat, glm::vec3 up, float yaw, float pitch) {
+    Camera(glm::vec3 eye, glm::vec3 lookat, glm::vec3 worldup, float yaw, float pitch) {
         this->eye = eye;
         this->lookat = lookat;
-        this->up = up;
+        this->worldup = worldup;
         this->yaw = yaw;
         this->pitch = pitch;
-        this->worldup = up;
     }
     
     void updateCameraVectors() {
-        glm::vec3 front, right;
-        front.x = cos(this->yaw) * cos(this->pitch);
-        front.y = sin(this->pitch);
-        front.z = sin(this->yaw) * cos(this->pitch);
-        front = glm::normalize(front);
-        right = glm::normalize(glm::cross(front, this->worldup));
-        this->up = glm::normalize(glm::cross(right, front));
-        this->lookat = this->eye + front;
-        this->viewMatrix = glm::lookAt(this->eye, this->lookat, this->up);
+        glm::vec3 new_n;
+        new_n.x = cos(this->yaw) * cos(this->pitch);
+        new_n.y = sin(this->pitch);
+        new_n.z = sin(this->yaw) * cos(this->pitch);
+        this->n = glm::normalize(new_n);
+        this->u = glm::normalize(glm::cross(n, this->worldup));
+        this->v = glm::normalize(glm::cross(this->u, this->n));
+        this->viewMatrix = glm::lookAt(this->eye, this->eye + this->n, this->v);
     }
 };
 #endif

@@ -29,7 +29,7 @@ int entity_idx = 0;
 bool lightcam = true; 
 std::ofstream fout; // OpenGL logging
 
-Camera global_camera(glm::vec3(0.f, 0.f, -20000.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f), 0, 0);
+Camera global_camera(glm::vec3(0.f, 0.f, -20000.f), glm::vec3(0.f, 0.f, -25000.f), glm::vec3(0.f, 1.f, 0.f), 0, 0);
 
 std::vector<std::string> skybox_fnames = {
     "./resources/skybox_test/right.png",
@@ -68,7 +68,7 @@ Point g = Point(-skybox_radius, skybox_radius, -skybox_radius);
 Point h = Point(-skybox_radius, skybox_radius, skybox_radius);
 std::vector<Triangle> skybox_triangle_list = {
     Triangle(c, h, g), Triangle(c, d, h),
-    Triangle(b, e, a), Triangle(b, f, e),
+    Triangle(b, a, e), Triangle(b, e, f),
     Triangle(c, a, d), Triangle(c, b, a),
     Triangle(g, e, h), Triangle(g, f, e),
     Triangle(d, e, a), Triangle(d, h, e),
@@ -241,9 +241,7 @@ void renderScene(glm::mat4 viewproject, glm::mat4 view, glm::mat4 lightspace, gl
     track->render_dag(lightcam);
 }
 
-void renderGL(void) {   
-    // WHY THE FUCK IS THAT CAMERA WORKING NOW ?
-    // https://gamedev.stackexchange.com/questions/8174/rendering-skybox-in-first-person-shooter
+void renderGL(void) { 
     glBindVertexArray(vao);
     light_movement_matrix = glm::rotate(glm::mat4(1), light_x, glm::vec3(1, 0, 0));
     light_movement_matrix = glm::rotate(light_movement_matrix, light_y, glm::vec3(0, 1, 0));
@@ -293,9 +291,15 @@ void renderGL(void) {
         // normal rendering
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
+        global_camera.eye = global_camera.eye + xmove * global_camera.n;
+        global_camera.eye = global_camera.eye + ymove * global_camera.u;
+        global_camera.eye = global_camera.eye + zmove * global_camera.v;
+        xmove = ymove = zmove = 0;
+        global_camera.updateCameraVectors();
         global_camera.yaw = xrot;
         global_camera.pitch = yrot;
-        global_camera.updateCameraVectors();      
+        global_camera.updateCameraVectors();
+
         view_matrix = global_camera.viewMatrix;
 
         ortho_matrix = glm::ortho(
@@ -304,12 +308,12 @@ void renderGL(void) {
                            10.f * VIEW_PADDING * DRAW_MIN, 10.f * VIEW_PADDING * DRAW_MAX
                        );
         projection_matrix = glm::frustum(-1,1,-1,1,1,10);
-        if(false) 
+        if(true) 
             modelviewproject_matrix = projection_matrix * view_matrix;
         else
             modelviewproject_matrix = ortho_matrix * view_matrix;
 
-        modelviewproject_matrix = modelviewproject_matrix * rotation_matrix;
+        //modelviewproject_matrix = modelviewproject_matrix * rotation_matrix;
         
         /* Rendering skybox before the scene 
          * Not great for performance but hey, it works
