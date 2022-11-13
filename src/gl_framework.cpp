@@ -138,16 +138,28 @@ namespace csX75 {
             std::cout << curr_node->name << "[dof#" << dof_id + 1 << "]: value = " << params.first << ", delta = " << curr_node->dof_deltas[dof_id] << ", along (" << params.second[0] << ", " << params.second[1] << ", " << params.second[2] << ")\n";
         } else if(key == GLFW_KEY_W) {
             xrot += rotamount;
+            if(xrot >= M_PI/2 - 0.05) xrot = M_PI/2 - 0.05;
+            if(xrot <= -M_PI/2 - 0.05) xrot = -M_PI/2 - 0.05;
         } else if(key == GLFW_KEY_S) {
             xrot -= rotamount;
+            if(xrot >= M_PI/2 - 0.05) xrot = M_PI/2 - 0.05;
+            if(xrot <= -M_PI/2 - 0.05) xrot = -M_PI/2 - 0.05;
         } else if(key == GLFW_KEY_A) {
             yrot += rotamount;
+            if(yrot >= M_PI/2 - 0.05) yrot = M_PI/2 - 0.05;
+            if(yrot <= -M_PI/2 - 0.05) yrot = -M_PI/2 - 0.05;
         } else if(key == GLFW_KEY_D) {
             yrot -= rotamount;
+            if(yrot >= M_PI/2 - 0.05) yrot = M_PI/2 - 0.05;
+            if(yrot <= -M_PI/2 - 0.05) yrot = -M_PI/2 - 0.05;
         }else if(key == GLFW_KEY_Q) {
             zrot += rotamount;
+            if(zrot >= M_PI/2 - 0.05) zrot = M_PI/2 - 0.05;
+            if(zrot <= -M_PI/2 - 0.05) zrot = -M_PI/2 - 0.05;
         } else if(key == GLFW_KEY_E) {
             zrot -= rotamount;
+            if(zrot >= M_PI/2 - 0.05) zrot = M_PI/2 - 0.05;
+            if(zrot <= -M_PI/2 - 0.05) zrot = -M_PI/2 - 0.05;
         } else if(key == GLFW_KEY_COMMA && action == GLFW_PRESS) {
             if(entity_idx == 0) {
                 std::cout << "Already at the leftmost entity : " << entities[entity_idx].name << "\n";

@@ -29,6 +29,8 @@ int entity_idx = 0;
 bool lightcam = true; 
 std::ofstream fout; // OpenGL logging
 
+Camera global_camera(glm::vec3(0.f, 0.f, -20000.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f), 0, 0);
+
 std::vector<std::string> skybox_fnames = {
     "./resources/skybox_test/right.png",
     "./resources/skybox_test/left.png",
@@ -290,16 +292,11 @@ void renderGL(void) {
 
         // normal rendering
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        rotation_matrix = glm::rotate(glm::mat4(1), xrot, glm::vec3(1, 0, 0));
-        rotation_matrix = glm::rotate(rotation_matrix, yrot, glm::vec3(0, 1, 0));
-        rotation_matrix = glm::rotate(rotation_matrix, zrot, glm::vec3(0, 0, 1));
-        auto eye = glm::vec4(0.f, 0.f, -20000.f, 1.f);
-        auto lookat_transform = glm::translate(glm::mat4(1), glm::vec3(-eye.x/eye.w, -eye.y/eye.z, -eye.w)); // move eye to origin
-        lookat_transform = rotation_matrix * lookat_transform; // rotate
-        lookat_transform = glm::translate(glm::mat4(1), glm::vec3(eye.x/eye.w, eye.y/eye.w, eye.z/eye.w)) * lookat_transform; // move eye back
-        auto lookat_point = glm::vec4(0.f, 0.f, 0.f, 1.f);
-        view_matrix = glm::lookAt(glm::vec3(eye.x/eye.w, eye.y/eye.w, eye.z/eye.w),glm::vec3(lookat_point.x/lookat_point.w,lookat_point.y/lookat_point.w, lookat_point.z/lookat_point.w),glm::vec3(0.0,1.0,0.0));
+        
+        global_camera.yaw = xrot;
+        global_camera.pitch = yrot;
+        global_camera.updateCameraVectors();      
+        view_matrix = global_camera.viewMatrix;
 
         ortho_matrix = glm::ortho(
                            VIEW_PADDING * DRAW_MIN * 1.f, VIEW_PADDING * DRAW_MAX * 1.f,

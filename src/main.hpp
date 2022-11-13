@@ -7,6 +7,7 @@
 #include "hnode.hpp"
 #include "entity.hpp"
 #include "tex.hpp"
+#include "camera.hpp"
 
 #include "gl_framework.hpp"
 #include "shader_util.hpp"
