@@ -32,12 +32,18 @@ std::ofstream fout; // OpenGL logging
 Camera global_camera(glm::vec3(0.f, 0.f, -20000.f), glm::vec3(0.f, 0.f, -25000.f), glm::vec3(0.f, 1.f, 0.f), 0, 0);
 
 std::vector<std::string> skybox_fnames = {
-    "./resources/skybox_test/right.png",
-    "./resources/skybox_test/left.png",
-    "./resources/skybox_test/top.png",
-    "./resources/skybox_test/bottom.png",
-    "./resources/skybox_test/back.png",
-    "./resources/skybox_test/front.png",
+    /*"./resources/skybox/right.jpg",
+    "./resources/skybox/left.jpg",
+    "./resources/skybox/top.jpg",
+    "./resources/skybox/bottom.jpg",
+    "./resources/skybox/front.jpg",
+    "./resources/skybox/back.jpg",*/
+    "./resources/skybox_sand/posx.jpg",
+    "./resources/skybox_sand/negx.jpg",
+    "./resources/skybox_sand/posy.jpg",
+    "./resources/skybox_sand/negy.jpg",
+    "./resources/skybox_sand/posz.jpg",
+    "./resources/skybox_sand/negz.jpg",
 };
 GLuint skybox_texture, skybox_vao, skybox_vbo, skybox_shader_program, skybox_position_id, skybox_uModelViewProject_id, skybox_sampler_id;
 float skybox_radius = 102400.f;
