@@ -50,15 +50,6 @@ struct Camera {
         this->u = glm::normalize(glm::cross(n, this->worldup));
         this->v = glm::normalize(glm::cross(this->u, this->n));
         this->viewMatrix = glm::lookAt(this->eye, this->eye + this->n, this->v);
-        std::cout << this->n.x << ", " << this->n.y << ", " << this->n.z << "\n";
-        std::cout << this->u.x << ", " << this->u.y << ", " << this->u.z << "\n";
-        std::cout << this->v.x << ", " << this->v.y << ", " << this->v.z << "\n";
-        for(int i = 0; i < 4; i++) {
-            for(int j = 0; j < 4; j++) {
-                std::cout << this->viewMatrix[i][j] << " ";
-            }
-            std::cout << "\n";
-        }
     }
 };
 #endif

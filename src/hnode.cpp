@@ -352,7 +352,7 @@ void HierarchyNode::make_rigid() {
 
 void HierarchyNode::init_default_dof_transform() {
     this->n_dof = 6;
-    this->dof_deltas = {M_PI/12., M_PI/12., M_PI/12., 5, 5, 5};
+    this->dof_deltas = {M_PI/12., M_PI/12., M_PI/12., 50, 50, 50};
     this->dof_limits = {
         {-M_PI, M_PI},
         {-M_PI, M_PI},
@@ -398,28 +398,13 @@ void HierarchyNode::render(bool shadowmap) {
     glm::mat4 overall_lightspace = hnode_lightspacematrix * hnode_hierarchy_matrix_stack * this->private_transform;
     GLint error = glGetError();
     if(shadowmap) {
-        std::cout << this->name << ": Rendering shadowmap\n";
         glUniformMatrix4fv(this->gl_info["shadow_light_space_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall)); // WHERE HAVE YOU INITIALIZED THIS 'shadow_light_space_matrix_id' ?
-        error = glGetError();
-        std::cout << "AFter passing light space: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
     }
     else {
-        std::cout << this->name << ": Rendering normally\n";
         glUniformMatrix4fv(this->gl_info["uniform_xform_id"], 1, GL_FALSE, glm::value_ptr(overall_model)); // value_ptr needed for proper pointer conversion
-        error = glGetError();
-        std::cout << "AFter passing transform: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
         glUniformMatrix3fv(this->gl_info["normal_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
-        error = glGetError();
-        std::cout << "AFter passing normals: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
-        glUniformMatrix4fv(this->gl_info["view_matrix_id"], 1, GL_FALSE, glm::value_ptr(hnode_viewproject)); // value_ptr needed for proper pointer conversion
-        error = glGetError();
-        std::cout << "AFter passing viewmatrix: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
         glUniformMatrix4fv(this->gl_info["light_space_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall_lightspace)); // value_ptr needed for proper pointer conversion
-        error = glGetError();
-        std::cout << "AFter passing lightspace: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
-        glUniform1i(this->gl_info["shadow_map_id"], 0);
-        error = glGetError();
-        std::cout << "AFter passing shadowmap: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
+        //glUniformMatrix4fv(this->gl_info["view_matrix_id"], 1, GL_FALSE, glm::value_ptr(hnode_viewproject)); // value_ptr needed for proper pointer conversion
     }
     /*  
     for(int i = 0; i < 3; i++) {
@@ -432,13 +417,9 @@ void HierarchyNode::render(bool shadowmap) {
     */
     if(draw_triangle) {
         glDrawArrays(GL_TRIANGLES, this->gl_info["vbo_offset"], this->triangle_list.size() * 3);
-        error = glGetError();
-        std::cout << "After glDrawArrays drawing " << this->triangle_list.size() * 3 << " points from offset " << this->gl_info["vbo_offset"] << ", glError = " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
     }
     if(draw_line) {
         glDrawArrays(GL_LINES, this->gl_info["vbo_offset"] + this->triangle_list.size() * 3, this->line_list.size() * 2);
-        error = glGetError();
-        std::cout << "After glDrawArrays drawing " << this->line_list.size() * 2<< " points from offset " << this->gl_info["vbo_offset"] + this->triangle_list.size() * 3<< ", glError = " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
     }
 }
 
