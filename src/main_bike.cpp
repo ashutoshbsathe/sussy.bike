@@ -84,10 +84,10 @@ std::vector<Triangle> skybox_triangle_list = {
 // Sand track texture
 GLuint sandTrack_texture, sandTrack_vao, sandTrack_vbo, sandTrack_shader_program, sandTrack_position_id, sandTrack_uModelViewProject_id, sandTrack_sampler_id;
 std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg";
-Point sandPoint1 = Point(-1000, -1000, 1000);
-Point sandPoint2 = Point(-1000, 1000, 1000);
-Point sandPoint3 = Point(1000, -1000, 1000);
-Point sandPoint4 = Point(1000, 1000, 1000);
+Point sandPoint1 = Point(-1000, -1000+5000, 1000);
+Point sandPoint2 = Point(-1000, 1000+5000, 1000);
+Point sandPoint3 = Point(1000, -1000+5000, 1000);
+Point sandPoint4 = Point(1000, 1000+5000, 1000);
 std::vector<Triangle> sandTrack_triangle_list = {
     Triangle(sandPoint3,sandPoint2,sandPoint1), Triangle(sandPoint3,sandPoint4,sandPoint2) 
 };
@@ -369,11 +369,22 @@ void renderGL(void) {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthMask(GL_TRUE);
 
+        /* Rendering sandTrack texture */
+        glDepthMask(GL_FALSE);
+        glUseProgram(sandTrack_shader_program);
+        glUniformMatrix4fv(sandTrack_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+        glUniform1i(sandTrack_sampler_id, 0);
+        glBindVertexArray(sandTrack_vao);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, sandTrack_texture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDepthMask(GL_TRUE);
+        
+
         glUseProgram(shader_program);
         glBindVertexArray(vao);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, depthMap_texture);
-        
         renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), false);
     }
 }
