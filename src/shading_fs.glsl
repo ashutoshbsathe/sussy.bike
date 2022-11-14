@@ -55,7 +55,6 @@ void main ()
   vec3 n = normalize(normal);
   float dotProd = dot(n, lightDir);
   float intensity = max(dotProd, 0);
-
   if(intensity > 0.0) {
     vec3 e = normalize(vec3(eye));
     vec3 h = normalize(lightDir + e);

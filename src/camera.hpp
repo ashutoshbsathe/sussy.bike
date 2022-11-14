@@ -2,6 +2,7 @@
 #define __CAMERA_H__
 
 #include <cmath>
+#include <iostream>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -21,17 +22,25 @@ struct Camera {
         this->worldup = glm::vec3(0.f, 1.f, 0.f);
         this->yaw = 0;
         this->pitch = 0;
-        updateCameraVectors();
+        focusAtPoint(this->lookat);
     }
     
-    Camera(glm::vec3 eye, glm::vec3 lookat, glm::vec3 worldup, float yaw, float pitch) {
+    Camera(glm::vec3 eye, glm::vec3 lookat, glm::vec3 worldup) {
         this->eye = eye;
         this->lookat = lookat;
         this->worldup = worldup;
-        this->yaw = yaw;
-        this->pitch = pitch;
+        focusAtPoint(this->lookat);
     }
     
+    void focusAtPoint(glm::vec3 point) {
+        // makes eye look at a specific point
+        // ref: https://stackoverflow.com/a/58469298
+        glm::vec3 diff = point - this->eye;
+        this->yaw = atan2(diff.z, diff.x);
+        this->pitch = atan2(diff.y, sqrt(diff.z*diff.z + diff.x*diff.x));
+        updateCameraVectors();
+    }
+
     void updateCameraVectors() {
         glm::vec3 new_n;
         new_n.x = cos(this->yaw) * cos(this->pitch);
@@ -41,6 +50,15 @@ struct Camera {
         this->u = glm::normalize(glm::cross(n, this->worldup));
         this->v = glm::normalize(glm::cross(this->u, this->n));
         this->viewMatrix = glm::lookAt(this->eye, this->eye + this->n, this->v);
+        std::cout << this->n.x << ", " << this->n.y << ", " << this->n.z << "\n";
+        std::cout << this->u.x << ", " << this->u.y << ", " << this->u.z << "\n";
+        std::cout << this->v.x << ", " << this->v.y << ", " << this->v.z << "\n";
+        for(int i = 0; i < 4; i++) {
+            for(int j = 0; j < 4; j++) {
+                std::cout << this->viewMatrix[i][j] << " ";
+            }
+            std::cout << "\n";
+        }
     }
 };
 #endif

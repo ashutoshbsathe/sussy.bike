@@ -29,7 +29,7 @@ int entity_idx = 0;
 bool lightcam = true; 
 std::ofstream fout; // OpenGL logging
 
-Camera global_camera(glm::vec3(0.f, 0.f, -20000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0, 0);
+Camera global_camera(glm::vec3(0.f, 0.f, -20000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
 std::vector<std::string> skybox_fnames = {
     /*"./resources/skybox/right.jpg",
@@ -254,7 +254,7 @@ void renderGL(void) {
     light_movement_matrix = glm::rotate(light_movement_matrix, light_z, glm::vec3(0, 0, 1));
     if(lightcam) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        view_matrix = glm::lookAt(glm::vec3(12500.f, 12500.f, 12500.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+        view_matrix = Camera(glm::vec3(12500.f, 12500.f, 12500.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0)).viewMatrix;
         projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
         ortho_matrix = projection_matrix;
         lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
@@ -269,7 +269,7 @@ void renderGL(void) {
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        view_matrix = glm::lookAt(glm::vec3(12500.f, 12500.f, 12500.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+        view_matrix = Camera(glm::vec3(12500.f, 12500.f, 12500.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0)).viewMatrix;
         projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
         ortho_matrix = projection_matrix;
         lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
@@ -288,8 +288,9 @@ void renderGL(void) {
         global_camera.eye = global_camera.eye + zmove * global_camera.v;
         xmove = ymove = zmove = 0;
         global_camera.updateCameraVectors();
-        global_camera.yaw = xrot;
-        global_camera.pitch = yrot;
+        global_camera.yaw += xrot;
+        global_camera.pitch += yrot;
+        xrot = yrot = 0;
         global_camera.updateCameraVectors();
 
         view_matrix = global_camera.viewMatrix;
