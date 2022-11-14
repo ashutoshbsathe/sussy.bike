@@ -2,6 +2,7 @@
 #include "entity.hpp"
 #include <GLFW/glfw3.h>
 extern bool persp;
+extern int curr_camera;
 extern float xrot, yrot, zrot, rotamount, VIEW_PADDING, zoomamount, light_x, light_y, light_z, light_moveamount;
 extern float xmove, ymove, zmove, moveamount;
 extern HierarchyNode *curr_node;
@@ -183,13 +184,13 @@ namespace csX75 {
         } else if(key == GLFW_KEY_K && action == GLFW_PRESS) {
             auto curr = entities[entity_idx];
             curr.save_params_to_file("params_" + curr.name + ".txt");
-        }/* else if(key == GLFW_KEY_M && action == GLFW_PRESS){
-            VIEW_PADDING += zoomamount;
+        } else if(key == GLFW_KEY_B && action == GLFW_PRESS){
+            curr_camera = 0;
         } else if(key == GLFW_KEY_N && action == GLFW_PRESS){
-            VIEW_PADDING -= zoomamount;
-        } else if(key == GLFW_KEY_Z && action == GLFW_PRESS) {
-            lightcam = !lightcam;
-        } */else if(key == GLFW_KEY_UP) {
+            curr_camera = 1;
+        } else if(key == GLFW_KEY_M && action == GLFW_PRESS) {
+            curr_camera = 2;
+        } else if(key == GLFW_KEY_UP) {
             light_y += light_moveamount;
         } else if(key == GLFW_KEY_DOWN) {
             light_y -= light_moveamount;

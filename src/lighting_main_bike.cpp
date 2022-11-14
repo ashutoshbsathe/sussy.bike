@@ -28,7 +28,7 @@ glm::vec3 bike_headlight, bike_headlight_lookat, third_person_position, third_pe
 
 HierarchyNode *bike, *rider, *track, *curr_node;
 std::vector<AnimationEntity> entities;
-int entity_idx = 0;
+int entity_idx = 0, curr_camera = 0;
 
 std::ofstream fout; // OpenGL logging
 
@@ -324,7 +324,7 @@ void renderGL(void) {
     // normal rendering
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    if(false) {
+    if(curr_camera == 0) {
         global_camera.eye = global_camera.eye + xmove * global_camera.n;
         global_camera.eye = global_camera.eye + ymove * global_camera.u;
         global_camera.eye = global_camera.eye + zmove * global_camera.v;
@@ -337,14 +337,14 @@ void renderGL(void) {
 
         view_matrix = global_camera.viewMatrix;
         projection_matrix = glm::frustum(-1,1,-1,1,1,10);
-    } else if(false) {
+    } else if(curr_camera == 1) {
         third_person_camera.eye = glm::vec3(rider->local_transform * rider->dof_transform * rider->private_transform * glm::vec4(third_person_position, 1));
         third_person_camera.focusAtPoint(glm::vec3(rider->local_transform * rider->dof_transform * rider->private_transform * glm::vec4(third_person_lookat, 1)));
         third_person_camera.updateCameraVectors();
 
         view_matrix = third_person_camera.viewMatrix;
         projection_matrix = glm::frustum(-1,1,-1,1,1,10);
-    } else if(true) {
+    } else if(curr_camera == 2) {
         first_person_camera.eye = glm::vec3(HEAD_GLOBAL_TRANSFORM(rider) * glm::vec4(first_person_position, 1));
         first_person_camera.focusAtPoint(glm::vec3(HEAD_GLOBAL_TRANSFORM(rider) * glm::vec4(first_person_position, 1)));
 
