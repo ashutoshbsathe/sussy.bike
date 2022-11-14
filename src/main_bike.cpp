@@ -245,6 +245,8 @@ void renderScene(glm::mat4 viewproject, glm::mat4 view, glm::mat4 lightspace, gl
     hnode_lightspacematrix = lightspace;
     hnode_hierarchy_matrix_stack = glm::mat4(1);
     track->render_dag(lightcam);
+
+    //Render textures
 }
 
 void renderGL(void) { 
