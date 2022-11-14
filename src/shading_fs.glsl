@@ -14,7 +14,7 @@ out vec4 frag_colour;
 
 float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightDir)
 {
-    float bias = max(0.0015 * (1.0 - dot(normal, lightDir+(eye.xyz/eye.w))), 0.001);
+    float bias = max(0.005 * (1.0 - dot(normal, lightDir+(eye.xyz/eye.w))), 0.002);
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // transform to [0,1] range
