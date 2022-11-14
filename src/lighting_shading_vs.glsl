@@ -23,8 +23,8 @@ void main ()
   normal = uNormalMatrix * normalize(vNormal);
   eye = -gl_Position;
   color = vColor;
+  frag_pos = vec3(uModelMatrix * position);
   for(int i = 0; i < num_lights; i++) {
     lightspace_pos[i] = uLightSpaceMatrix[i] * position;
   }
-  frag_pos = vec3(uModelMatrix * position);
 }

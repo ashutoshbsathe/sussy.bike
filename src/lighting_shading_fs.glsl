@@ -53,7 +53,6 @@ float ShadowCalculation(int light_idx) {
 
 vec4 LightCalculation(int light_idx) {
     vec4 diffuse = vec4(vec3(material.x), 1);
-    vec4 ambient = vec4(vec3(material.y), 1);
     vec4 specular = vec4(vec3(material.z), 1);
     float shininess = material.w;
     vec4 spec = vec4(0);
@@ -74,7 +73,7 @@ vec4 LightCalculation(int light_idx) {
             vec3 h = normalize(lightDir + e);
             float intSpec = max(dot(h, n), 0.0);
             spec = specular * pow(intSpec, shininess);
-        } 
+        }
     }
     return intensity * diffuse + spec;
 }
@@ -83,11 +82,12 @@ void main ()
 {
     vec4 lighting = vec4(0);
     float shadow = 0;
+    vec4 final = vec4(0);
     for(int i = 0; i < num_lights; i++) {
-        lighting += LightCalculation(i);
-        shadow += ShadowCalculation(i);
+        lighting = LightCalculation(i);
+        shadow = ShadowCalculation(i);
+        final += vec4(vec3(material.y), 1) + (1.0 - shadow) * lighting;
     }
     frag_colour = vec4(color, 1);
-    frag_colour = (vec4(vec3(material.x), 1) + (1.0 - shadow/4) * lighting) * frag_colour;
-  
+    frag_colour = final / num_lights * frag_colour; 
 }

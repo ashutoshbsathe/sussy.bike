@@ -2,6 +2,7 @@
 #define __LIGHTS_H__
 #include <vector>
 #include <sstream>
+#include <cmath>
 #include <GL/glew.h>
 #include "camera.hpp"
 #include "glm/vec3.hpp"
@@ -22,7 +23,12 @@ std::vector<Light> all_lights = {
     Light(
         glm::vec3(12500.f, 12500.f, 12500.f),
         glm::vec3(0.f, 0.f, 0.f),
-        -1.f
+        -1.5f
+    ),
+    Light(
+        glm::vec3(-12500.f, 12500.f, -12500.f),
+        glm::vec3(0.f, 0.f, 0.f),
+        -1.5f
     )
 };
 
@@ -36,7 +42,7 @@ void push_lights_to_uniform(GLuint shader_program) {
         ss << "lights[" << i << "].position";
         tmp = glGetUniformLocation(shader_program, ss.str().c_str());
         glUniform3f(tmp, all_lights[i].position.x, all_lights[i].position.y, all_lights[i].position.z);
-        dir = glm::normalize(all_lights[i].position - all_lights[i].spotPoint);
+        dir = -glm::normalize(all_lights[i].to_camera().n);
         ss.clear();
         ss << "lights[" << i << "].spotDir";
         tmp = glGetUniformLocation(shader_program, ss.str().c_str());
