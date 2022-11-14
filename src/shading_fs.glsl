@@ -48,13 +48,19 @@ void main ()
 
   // Defining Light 
   vec3 lightPos = vec3(12500, 12500, 12500);
-  vec3 lightDir = vec3(lightPos - frag_pos);
+  vec3 lightSpotDir = normalize(vec3(12500, 12500, 12500)); // focus point to light
+  vec3 lightDir = vec3(lightPos - frag_pos); // frag position to light
   lightDir = normalize(vec3(lightDir));  
 
   // Diffuse
   vec3 n = normalize(normal);
   float dotProd = dot(n, lightDir);
   float intensity = max(dotProd, 0);
+
+  if(dot(lightDir, lightSpotDir) < cos(radians(5))) {
+    intensity = 0;
+  }
+
   if(intensity > 0.0) {
     vec3 e = normalize(vec3(eye));
     vec3 h = normalize(lightDir + e);
