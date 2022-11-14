@@ -1,8 +1,8 @@
 #version 330
 
-in vec3 vTex;
+in vec2 vTex;
 
-uniform samplerCube sandTrack;
+uniform sampler2D sandTrack;
 
 out vec4 frag_colour;
 
