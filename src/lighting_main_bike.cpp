@@ -29,7 +29,7 @@ int entity_idx = 0;
 bool lightcam = true; 
 std::ofstream fout; // OpenGL logging
 
-Camera global_camera(glm::vec3(0.f, 10000.f, -10000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+Camera global_camera(glm::vec3(0.f, 1000.f, -1000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
 std::vector<std::string> skybox_fnames = {
     /*"./resources/skybox/right.jpg",
