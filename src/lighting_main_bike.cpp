@@ -354,7 +354,7 @@ void renderGL(void) {
         glUseProgram(shader_program);
         glBindVertexArray(vao);
         glUniformMatrix4fv(uViewMatrix_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix)); 
-        glUniform4f(uMaterial_id, 0.9, 0.75, 1.2, 2);
+        glUniform4f(uMaterial_id, 0.75, 0.5, 1.2, 2);
         glUniform1i(uShadowMap_id, 0);
         glUniform1i(uNumLights_id, all_lights.size());
         push_lights_to_uniform(shader_program);

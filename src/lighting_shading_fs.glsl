@@ -58,11 +58,11 @@ vec4 LightCalculation(int light_idx) {
     vec4 spec = vec4(0);
     float intensity = 0;
 
-    vec3 lightDir = normalize(vec3(lights[light_idx].position - frag_pos));
+    vec3 lightDir = normalize(lights[light_idx].position - frag_pos);
     vec3 lightSpotDir = normalize(lights[light_idx].spotDir);
-
+    
     if(dot(lightDir, lightSpotDir) < lights[light_idx].cutOff) {
-        intensity = 0;
+        intensity = 0.0;
     }
     else {
         vec3 n = normalize(normal);
@@ -75,7 +75,7 @@ vec4 LightCalculation(int light_idx) {
             spec = specular * pow(intSpec, shininess);
         }
     }
-    return intensity * diffuse + spec;
+    return (intensity * diffuse + spec);
 }
 
 void main () 

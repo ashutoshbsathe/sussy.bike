@@ -23,12 +23,12 @@ std::vector<Light> all_lights = {
     Light(
         glm::vec3(12500.f, 12500.f, 12500.f),
         glm::vec3(0.f, 0.f, 0.f),
-        -1.5f
+        cos(M_PI/36)
     ),
     Light(
-        glm::vec3(-12500.f, 12500.f, -12500.f),
+        glm::vec3(-12500.f, 12500.f, 12500.f),
         glm::vec3(0.f, 0.f, 0.f),
-        -1.5f
+        cos(M_PI/36)
     )
 };
 
@@ -38,16 +38,16 @@ void push_lights_to_uniform(GLuint shader_program) {
     glm::vec3 dir;
     std::stringstream ss;
     for(unsigned int i = 0; i < num_lights; i++) {
-        ss.clear();
+        ss.str(std::string());
         ss << "lights[" << i << "].position";
         tmp = glGetUniformLocation(shader_program, ss.str().c_str());
         glUniform3f(tmp, all_lights[i].position.x, all_lights[i].position.y, all_lights[i].position.z);
         dir = -glm::normalize(all_lights[i].to_camera().n);
-        ss.clear();
+        ss.str(std::string());
         ss << "lights[" << i << "].spotDir";
         tmp = glGetUniformLocation(shader_program, ss.str().c_str());
         glUniform3f(tmp, dir.x, dir.y, dir.z);
-        ss.clear();
+        ss.str(std::string());
         ss << "lights[" << i << "].cutOff";
         tmp = glGetUniformLocation(shader_program, ss.str().c_str());
         glUniform1f(tmp, all_lights[i].cutOff);
