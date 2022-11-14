@@ -260,108 +260,86 @@ void renderScene(glm::mat4 viewproject, glm::mat4 view, std::vector<glm::mat4> l
     track->render_dag(lightcam);
 }
 
-void renderGL(void) { 
-    glBindVertexArray(vao);
-    light_movement_matrix = glm::rotate(glm::mat4(1), light_x, glm::vec3(1, 0, 0));
-    light_movement_matrix = glm::rotate(light_movement_matrix, light_y, glm::vec3(0, 1, 0));
-    light_movement_matrix = glm::rotate(light_movement_matrix, light_z, glm::vec3(0, 0, 1));
-    if(lightcam) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        entities[0].extract_params(entities[0].root);
-        glm::vec3 rider_pos;
-        int idx = entities[0].part_to_param_indices[entities[0].root->name].first;
-        rider_pos.x = entities[0].params[idx+3];
-        rider_pos.y = entities[0].params[idx+4];
-        rider_pos.z = entities[0].params[idx+5];
-        view_matrix = Camera(glm::vec3(12500.f, 12500.f, 12500.f),rider_pos,glm::vec3(0.0,1.0,0.0)).viewMatrix;
-        projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
-        ortho_matrix = projection_matrix;
-        lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
-        
-        glUseProgram(shadow_shader_program);
-        
-        renderScene(lightspace_matrix, view_matrix, {lightspace_matrix}, glm::mat4(1), glm::mat4(1), lightcam);
-    }
-    else {
-        // render into depthmap
-        std::vector<glm::mat4> lightspace_matrices;
-        lightspace_matrices.clear();
-        for(unsigned int i = 0; i < all_lights.size(); i++) {
-            glViewport(0, 0, depthMap_width, depthMap_height);
-            glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-            
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void updateLightCameraParams(int light_idx) {
+    if(light_idx >= all_lights.size())
+        return;
+    switch(light_idx) {
+        case 0: break;
+        case 1: break;
+        case 2:
+            // follows humanoid
             entities[0].extract_params(entities[0].root);
             int idx = entities[0].part_to_param_indices[entities[0].root->name].first;
-            all_lights[i].spotPoint.z = entities[0].params[idx+3];
-            all_lights[i].spotPoint.y = entities[0].params[idx+4];
-            all_lights[i].spotPoint.x = entities[0].params[idx+5];
-
-            view_matrix = all_lights[i].to_camera().viewMatrix;
-            projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
-            ortho_matrix = projection_matrix;
-            lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
-
-            glUseProgram(shadow_shader_program);
-            
-            renderScene(lightspace_matrix, view_matrix, {lightspace_matrix}, glm::mat4(1), glm::mat4(1), true);
-
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            lightspace_matrices.push_back(lightspace_matrix);
-            glCopyImageSubData(depthMap_texture, GL_TEXTURE_2D, 0, 0, 0, 0, depthMap_texture_array, GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, depthMap_width, depthMap_height, 1);
-        }
-        // normal rendering
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        global_camera.eye = global_camera.eye + xmove * global_camera.n;
-        global_camera.eye = global_camera.eye + ymove * global_camera.u;
-        global_camera.eye = global_camera.eye + zmove * global_camera.v;
-        xmove = ymove = zmove = 0;
-        global_camera.updateCameraVectors();
-        global_camera.yaw += xrot;
-        global_camera.pitch += yrot;
-        xrot = yrot = 0;
-        global_camera.updateCameraVectors();
-
-        view_matrix = global_camera.viewMatrix;
-
-        ortho_matrix = glm::ortho(
-                           VIEW_PADDING * DRAW_MIN * 1.f, VIEW_PADDING * DRAW_MAX * 1.f,
-                           VIEW_PADDING * DRAW_MIN * 1.f, VIEW_PADDING * DRAW_MAX * 1.f,
-                           10.f * VIEW_PADDING * DRAW_MIN, 10.f * VIEW_PADDING * DRAW_MAX
-                       );
-        projection_matrix = glm::frustum(-1,1,-1,1,1,10);
-        if(true) 
-            modelviewproject_matrix = projection_matrix * view_matrix;
-        else
-            modelviewproject_matrix = ortho_matrix * view_matrix;
-
-        //modelviewproject_matrix = modelviewproject_matrix * rotation_matrix;
-        
-        /* Rendering skybox before the scene 
-         * Not great for performance but hey, it works
-         */
-        glDepthMask(GL_FALSE);
-        glUseProgram(skybox_shader_program);
-        glUniformMatrix4fv(skybox_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
-        glUniform1i(skybox_sampler_id, 0);
-        glBindVertexArray(skybox_vao);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_texture);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glDepthMask(GL_TRUE);
-
-        glUseProgram(shader_program);
-        glBindVertexArray(vao);
-        glUniformMatrix4fv(uViewMatrix_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix)); 
-        glUniform4f(uMaterial_id, 0.75, 0.5, 1.2, 2);
-        glUniform1i(uShadowMap_id, 0);
-        glUniform1i(uNumLights_id, all_lights.size());
-        push_lights_to_uniform(shader_program);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, depthMap_texture_array);      
-        renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrices, glm::mat4(1), glm::mat4(1), false);
+            all_lights[light_idx].spotPoint.z = entities[0].params[idx+3];
+            all_lights[light_idx].spotPoint.y = entities[0].params[idx+4];
+            all_lights[light_idx].spotPoint.x = entities[0].params[idx+5];
+            break;
     }
+}
+
+void renderGL(void) { 
+    glBindVertexArray(vao);
+    // render into depthmap
+    std::vector<glm::mat4> lightspace_matrices;
+    lightspace_matrices.clear();
+    for(unsigned int i = 0; i < all_lights.size(); i++) {
+        updateLightCameraParams(i);
+        glViewport(0, 0, depthMap_width, depthMap_height);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        view_matrix = all_lights[i].to_camera().viewMatrix;
+        projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
+        lightspace_matrix = projection_matrix * view_matrix;
+
+        glUseProgram(shadow_shader_program);
+        
+        renderScene(lightspace_matrix, view_matrix, {lightspace_matrix}, glm::mat4(1), glm::mat4(1), true);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        lightspace_matrices.push_back(lightspace_matrix);
+        glCopyImageSubData(depthMap_texture, GL_TEXTURE_2D, 0, 0, 0, 0, depthMap_texture_array, GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, depthMap_width, depthMap_height, 1);
+    }
+    // normal rendering
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    global_camera.eye = global_camera.eye + xmove * global_camera.n;
+    global_camera.eye = global_camera.eye + ymove * global_camera.u;
+    global_camera.eye = global_camera.eye + zmove * global_camera.v;
+    xmove = ymove = zmove = 0;
+    global_camera.updateCameraVectors();
+    global_camera.yaw += xrot;
+    global_camera.pitch += yrot;
+    xrot = yrot = 0;
+    global_camera.updateCameraVectors();
+
+    view_matrix = global_camera.viewMatrix;
+    projection_matrix = glm::frustum(-1,1,-1,1,1,10);
+    modelviewproject_matrix = projection_matrix * view_matrix; 
+    /* Rendering skybox before the scene 
+     * Not great for performance but hey, it works
+     */
+    glDepthMask(GL_FALSE);
+    glUseProgram(skybox_shader_program);
+    glUniformMatrix4fv(skybox_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+    glUniform1i(skybox_sampler_id, 0);
+    glBindVertexArray(skybox_vao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_texture);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDepthMask(GL_TRUE);
+
+    glUseProgram(shader_program);
+    glBindVertexArray(vao);
+    glUniformMatrix4fv(uViewMatrix_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix)); 
+    glUniform4f(uMaterial_id, 0.75, 0.5, 1.2, 2);
+    glUniform1i(uShadowMap_id, 0);
+    glUniform1i(uNumLights_id, all_lights.size());
+    push_lights_to_uniform(shader_program);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, depthMap_texture_array);      
+    renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrices, glm::mat4(1), glm::mat4(1), false);
 }
 
 void APIENTRY glDebugOutput(GLenum source, 

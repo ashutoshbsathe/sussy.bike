@@ -23,10 +23,15 @@ std::vector<Light> all_lights = {
     Light(
         glm::vec3(12500.f, 12500.f, 12500.f),
         glm::vec3(0.f, 0.f, 0.f),
-        cos(M_PI/36)
+        -10000
     ),
     Light(
         glm::vec3(-12500.f, 12500.f, 12500.f),
+        glm::vec3(0.f, 0.f, 0.f),
+        -10000
+    ),
+    Light(
+        glm::vec3(0.f, 12500.f, 0.f),
         glm::vec3(0.f, 0.f, 0.f),
         cos(M_PI/36)
     )
