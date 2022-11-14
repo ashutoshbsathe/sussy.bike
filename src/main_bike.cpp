@@ -83,7 +83,7 @@ std::vector<Triangle> skybox_triangle_list = {
 
 // Sand track texture
 GLuint sandTrack_texture, sandTrack_vao, sandTrack_vbo, sandTrack_shader_program, sandTrack_position_id, sandTrack_uModelViewProject_id, sandTrack_sampler_id;
-std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg"
+std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg";
 Point sandPoint1 = Point(-1000, -1000, 1000);
 Point sandPoint2 = Point(-1000, 1000, 1000);
 Point sandPoint3 = Point(1000, -1000, 1000);
