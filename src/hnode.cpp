@@ -373,12 +373,29 @@ void HierarchyNode::init_default_dof_transform() {
 
 void HierarchyNode::update_dof_transform() {
     this->dof_transform = glm::mat4(1);
-    this->dof_transform = glm::rotate(this->dof_transform, this->dof_params[0].first, this->dof_params[0].second);
-    this->dof_transform = glm::rotate(this->dof_transform, this->dof_params[1].first, this->dof_params[1].second);
-    this->dof_transform = glm::rotate(this->dof_transform, this->dof_params[2].first, this->dof_params[2].second);
-    this->dof_transform = glm::translate(this->dof_transform, this->dof_params[3].first * this->dof_params[3].second);
-    this->dof_transform = glm::translate(this->dof_transform, this->dof_params[4].first * this->dof_params[4].second);
-    this->dof_transform = glm::translate(this->dof_transform, this->dof_params[5].first * this->dof_params[5].second);
+    if(this->parent == NULL) {
+        auto translation_to_origin = glm::translate(this->dof_transform, -this->dof_params[3].first * this->dof_params[3].second);
+        translation_to_origin = glm::translate(translation_to_origin, -this->dof_params[4].first * this->dof_params[4].second);
+        translation_to_origin = glm::translate(translation_to_origin, -this->dof_params[5].first * this->dof_params[5].second);
+        auto rotation = glm::rotate(this->dof_transform, this->dof_params[0].first, this->dof_params[0].second);
+        rotation = glm::rotate(rotation, this->dof_params[1].first, this->dof_params[1].second);
+        rotation = glm::rotate(rotation, this->dof_params[2].first, this->dof_params[2].second);
+        auto translation_back = glm::translate(this->dof_transform, this->dof_params[3].first * this->dof_params[3].second);
+        translation_back = glm::translate(translation_back, this->dof_params[4].first * this->dof_params[4].second);
+        translation_back = glm::translate(translation_back, this->dof_params[5].first * this->dof_params[5].second);
+        this->dof_transform = translation_back * rotation * translation_to_origin;
+        this->dof_transform = glm::translate(this->dof_transform, this->dof_params[3].first * this->dof_params[3].second);
+        this->dof_transform = glm::translate(this->dof_transform, this->dof_params[4].first * this->dof_params[4].second);
+        this->dof_transform = glm::translate(this->dof_transform, this->dof_params[5].first * this->dof_params[5].second);
+    }
+    else {
+        this->dof_transform = glm::rotate(this->dof_transform, this->dof_params[0].first, this->dof_params[0].second);
+        this->dof_transform = glm::rotate(this->dof_transform, this->dof_params[1].first, this->dof_params[1].second);
+        this->dof_transform = glm::rotate(this->dof_transform, this->dof_params[2].first, this->dof_params[2].second);
+        this->dof_transform = glm::translate(this->dof_transform, this->dof_params[3].first * this->dof_params[3].second);
+        this->dof_transform = glm::translate(this->dof_transform, this->dof_params[4].first * this->dof_params[4].second);
+        this->dof_transform = glm::translate(this->dof_transform, this->dof_params[5].first * this->dof_params[5].second);
+    }
     for(auto it : this->children) {
         it->update_dof_transform();
     }
