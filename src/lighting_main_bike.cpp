@@ -278,9 +278,9 @@ void renderGL(void) {
         entities[0].extract_params(entities[0].root);
         glm::vec3 rider_pos;
         int idx = entities[0].part_to_param_indices[entities[0].root->name].first;
-        rider_pos.x = entities[0].params[idx+3];
+        rider_pos.z = entities[0].params[idx+3];
         rider_pos.y = entities[0].params[idx+4];
-        rider_pos.z = entities[0].params[idx+5];
+        rider_pos.x = entities[0].params[idx+5];
         Camera light_camera = Camera(glm::vec3(12500.f, 12500.f, 12500.f),rider_pos,glm::vec3(0.0,1.0,0.0));
         view_matrix = light_camera.viewMatrix;
         projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);

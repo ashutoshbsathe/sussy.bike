@@ -37,12 +37,6 @@ std::pair<HierarchyNode *, unsigned int> build_humanoid(std::map<std::string, GL
 	HierarchyNode *other_uthigh = new HierarchyNode(StackedPolyPrism("./body_parts/other_uthigh.txt"));
 	HierarchyNode *other_hip = new HierarchyNode(StackedPolyPrism("./body_parts/other_hip.txt"));
 
-    // dummy node for testing light
-    HierarchyNode *light = new HierarchyNode(StackedPolyPrism("./body_parts/light.txt"));
-    light->make_rigid();
-    HierarchyNode *floor = new HierarchyNode(StackedPolyPrism("./body_parts/floor.txt"));
-    floor->make_rigid();
-
     head->make_rigid();
     uarm->make_rigid();
     larm->make_rigid();
@@ -374,9 +368,6 @@ std::pair<HierarchyNode *, unsigned int> build_humanoid(std::map<std::string, GL
     add_edge(other_ankle, other_feet, &next_available_vbo_offset);
     std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
 
-    //add_edge(torso_2, light, &next_available_vbo_offset);
-    add_edge(torso_2, floor, &next_available_vbo_offset);
-    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
     return std::pair<HierarchyNode *, unsigned int>(torso_2, next_available_vbo_offset);
 }
 

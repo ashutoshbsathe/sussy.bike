@@ -57,7 +57,7 @@ void main ()
   float dotProd = dot(n, lightDir);
   float intensity = max(dotProd, 0);
 
-  if(dot(lightDir, normalize(lightSpotDir)) < cos(radians(5))) {
+  if(dot(lightDir, normalize(lightSpotDir)) < cos(radians(5.0))) {
     intensity = 0;
   }
 
