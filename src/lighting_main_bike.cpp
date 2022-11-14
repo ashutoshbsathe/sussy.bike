@@ -14,13 +14,14 @@ GLuint shadow_shader_program, shadow_position_id, shadow_uLightSpaceMatrix_id;
 glm::mat4 view_matrix;
 GLuint depthMapFBO, depthMap_width = 1024, depthMap_height = 1024, depthMap_texture, depthMap_texture_array;
 
-glm::mat4 ortho_matrix;
 glm::mat4 projection_matrix;
 glm::mat4 modelviewproject_matrix;
 glm::mat4 lightspace_matrix;
 glm::mat4 rotation_matrix;
 glm::mat4 light_movement_matrix;
 glm::mat3 normal_matrix;
+
+glm::vec3 bike_headlight, bike_headlight_lookat;
 
 HierarchyNode *bike, *rider, *track, *curr_node;
 std::vector<AnimationEntity> entities;
@@ -29,7 +30,7 @@ int entity_idx = 0;
 bool lightcam = true; 
 std::ofstream fout; // OpenGL logging
 
-Camera global_camera(glm::vec3(0.f, 1000.f, -1000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+Camera global_camera(glm::vec3(0.f, 2000.f, -2000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
 std::vector<std::string> skybox_fnames = {
     /*"./resources/skybox/right.jpg",
@@ -157,6 +158,19 @@ void initVertexBufferGL(void) {
     gl_info["vbo_offset"] = vbo_offset;
     pair = build_bike(gl_info);
     bike = pair.first;
+    for(unsigned int i = 0; i < bike->triangle_list.size(); i++) {
+        if(bike->triangle_list[i].c.y > 0.8) {
+            std::cout << "i = " << i << "\n";
+        }
+    }
+    bike_headlight = ((
+        bike->triangle_list[70].p1 +
+        bike->triangle_list[70].p2 +
+        bike->triangle_list[70].p3 +
+        bike->triangle_list[71].p3
+    ) * 0.25).to_vec3() + glm::vec3(200, 0, 0); // pull the headlight "out"
+    bike_headlight_lookat = bike_headlight + glm::vec3(2000, 0, 0);
+    all_lights.push_back(Light(bike_headlight, bike_headlight_lookat, cos(M_PI/36)));
     vbo_offset = pair.second;
     bike->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_bike", bike));
@@ -263,16 +277,21 @@ void renderScene(glm::mat4 viewproject, glm::mat4 view, std::vector<glm::mat4> l
 void updateLightCameraParams(int light_idx) {
     if(light_idx >= all_lights.size())
         return;
+    int idx;
     switch(light_idx) {
         case 0: break;
         case 1: break;
         case 2:
             // follows humanoid
             entities[0].extract_params(entities[0].root);
-            int idx = entities[0].part_to_param_indices[entities[0].root->name].first;
+            idx = entities[0].part_to_param_indices[entities[0].root->name].first;
             all_lights[light_idx].spotPoint.z = entities[0].params[idx+3];
             all_lights[light_idx].spotPoint.y = entities[0].params[idx+4];
             all_lights[light_idx].spotPoint.x = entities[0].params[idx+5];
+            break;
+        case 3: 
+            all_lights[light_idx].position = glm::vec3(bike->local_transform * bike->dof_transform * bike->private_transform * glm::vec4(bike_headlight, 1));
+            all_lights[light_idx].spotPoint = glm::vec3(bike->local_transform * bike->dof_transform * bike->private_transform * glm::vec4(bike_headlight_lookat, 1));
             break;
     }
 }
