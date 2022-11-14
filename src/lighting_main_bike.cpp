@@ -337,13 +337,21 @@ void renderGL(void) {
 
         view_matrix = global_camera.viewMatrix;
         projection_matrix = glm::frustum(-1,1,-1,1,1,10);
-    } else if(true) {
+    } else if(false) {
         third_person_camera.eye = glm::vec3(rider->local_transform * rider->dof_transform * rider->private_transform * glm::vec4(third_person_position, 1));
         third_person_camera.focusAtPoint(glm::vec3(rider->local_transform * rider->dof_transform * rider->private_transform * glm::vec4(third_person_lookat, 1)));
         third_person_camera.updateCameraVectors();
 
         view_matrix = third_person_camera.viewMatrix;
         projection_matrix = glm::frustum(-1,1,-1,1,1,10);
+    } else if(true) {
+        first_person_camera.eye = glm::vec3(HEAD_GLOBAL_TRANSFORM(rider) * glm::vec4(first_person_position, 1));
+        first_person_camera.focusAtPoint(glm::vec3(HEAD_GLOBAL_TRANSFORM(rider) * glm::vec4(first_person_position, 1)));
+
+        first_person_camera.updateCameraVectors();
+
+        view_matrix = first_person_camera.viewMatrix;
+        projection_matrix = glm::frustum(-1, 1, -1, 1, 1, 10);
     }
     modelviewproject_matrix = projection_matrix * view_matrix; 
     /* Rendering skybox before the scene 
