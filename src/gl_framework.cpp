@@ -7,7 +7,6 @@ extern float xmove, ymove, zmove, moveamount;
 extern HierarchyNode *curr_node;
 extern std::vector<AnimationEntity> entities;
 extern int entity_idx;
-extern bool lightcam;
 namespace csX75 {
 
     unsigned int dof_id = 0;
@@ -188,9 +187,9 @@ namespace csX75 {
             VIEW_PADDING += zoomamount;
         } else if(key == GLFW_KEY_N && action == GLFW_PRESS){
             VIEW_PADDING -= zoomamount;
-        } */else if(key == GLFW_KEY_Z && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_Z && action == GLFW_PRESS) {
             lightcam = !lightcam;
-        } else if(key == GLFW_KEY_UP) {
+        } */else if(key == GLFW_KEY_UP) {
             light_y += light_moveamount;
         } else if(key == GLFW_KEY_DOWN) {
             light_y -= light_moveamount;

@@ -3,7 +3,10 @@
 #include "rider.hpp"
 #include "track.hpp"
 #include <GLFW/glfw3.h>
-
+#define TORSO_2(X) ((X)->children[0]) 
+#define NECK(X) ((TORSO_2(X))->children[0])
+#define HEAD(X) ((NECK(X))->children[0])
+#define HEAD_GLOBAL_TRANSFORM(X) (X->local_transform * X->dof_transform * TORSO_2(X)->local_transform * TORSO_2(X)->dof_transform * NECK(X)->local_transform * NECK(X)->dof_transform * HEAD(X)->local_transform * HEAD(X)->dof_transform)
 #define MAX_BIKE_VBO_BYTES 1024000
 //                          914112
 
@@ -21,16 +24,15 @@ glm::mat4 rotation_matrix;
 glm::mat4 light_movement_matrix;
 glm::mat3 normal_matrix;
 
-glm::vec3 bike_headlight, bike_headlight_lookat;
+glm::vec3 bike_headlight, bike_headlight_lookat, third_person_position, third_person_lookat, first_person_position, first_person_lookat;
 
 HierarchyNode *bike, *rider, *track, *curr_node;
 std::vector<AnimationEntity> entities;
 int entity_idx = 0;
 
-bool lightcam = true; 
 std::ofstream fout; // OpenGL logging
 
-Camera global_camera(glm::vec3(0.f, 2000.f, -2000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+Camera global_camera(glm::vec3(0.f, 2000.f, -2000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f)), third_person_camera, first_person_camera;
 
 std::vector<std::string> skybox_fnames = {
     /*"./resources/skybox/right.jpg",
@@ -142,6 +144,10 @@ void initVertexBufferGL(void) {
     gl_info["vbo_offset"] = vbo_offset;
     pair = build_humanoid(gl_info);
     rider = pair.first;
+    third_person_position = glm::vec3(0, 3000, 0);
+    third_person_lookat = glm::vec3(0, 0, 0);
+    first_person_position = glm::vec3(HEAD_GLOBAL_TRANSFORM(rider) * glm::vec4(glm::vec3(100, 0, 0), 1));
+    first_person_lookat = glm::vec3(HEAD_GLOBAL_TRANSFORM(rider) * glm::vec4(glm::vec3(105, 0, 0), 1));
     vbo_offset = pair.second;
     rider->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_rider", rider));
@@ -158,11 +164,6 @@ void initVertexBufferGL(void) {
     gl_info["vbo_offset"] = vbo_offset;
     pair = build_bike(gl_info);
     bike = pair.first;
-    for(unsigned int i = 0; i < bike->triangle_list.size(); i++) {
-        if(bike->triangle_list[i].c.y > 0.8) {
-            std::cout << "i = " << i << "\n";
-        }
-    }
     bike_headlight = ((
         bike->triangle_list[70].p1 +
         bike->triangle_list[70].p2 +
@@ -323,18 +324,27 @@ void renderGL(void) {
     // normal rendering
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    global_camera.eye = global_camera.eye + xmove * global_camera.n;
-    global_camera.eye = global_camera.eye + ymove * global_camera.u;
-    global_camera.eye = global_camera.eye + zmove * global_camera.v;
-    xmove = ymove = zmove = 0;
-    global_camera.updateCameraVectors();
-    global_camera.yaw += xrot;
-    global_camera.pitch += yrot;
-    xrot = yrot = 0;
-    global_camera.updateCameraVectors();
+    if(false) {
+        global_camera.eye = global_camera.eye + xmove * global_camera.n;
+        global_camera.eye = global_camera.eye + ymove * global_camera.u;
+        global_camera.eye = global_camera.eye + zmove * global_camera.v;
+        xmove = ymove = zmove = 0;
+        global_camera.updateCameraVectors();
+        global_camera.yaw += xrot;
+        global_camera.pitch += yrot;
+        xrot = yrot = 0;
+        global_camera.updateCameraVectors();
 
-    view_matrix = global_camera.viewMatrix;
-    projection_matrix = glm::frustum(-1,1,-1,1,1,10);
+        view_matrix = global_camera.viewMatrix;
+        projection_matrix = glm::frustum(-1,1,-1,1,1,10);
+    } else if(true) {
+        third_person_camera.eye = glm::vec3(rider->local_transform * rider->dof_transform * rider->private_transform * glm::vec4(third_person_position, 1));
+        third_person_camera.focusAtPoint(glm::vec3(rider->local_transform * rider->dof_transform * rider->private_transform * glm::vec4(third_person_lookat, 1)));
+        third_person_camera.updateCameraVectors();
+
+        view_matrix = third_person_camera.viewMatrix;
+        projection_matrix = glm::frustum(-1,1,-1,1,1,10);
+    }
     modelviewproject_matrix = projection_matrix * view_matrix; 
     /* Rendering skybox before the scene 
      * Not great for performance but hey, it works
