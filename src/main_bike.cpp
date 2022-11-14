@@ -80,6 +80,20 @@ std::vector<Triangle> skybox_triangle_list = {
     Triangle(d, e, a), Triangle(d, h, e),
     Triangle(c, f, b), Triangle(c, g, f)
 };
+
+// Sand track texture
+GLuint sandTrack_texture, sandTrack_vao, sandTrack_vbo, sandTrack_shader_program, sandTrack_position_id, sandTrack_uModelViewProject_id, sandTrack_sampler_id;
+std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg"
+Point sandPoint1 = Point(-1000, -1000, 1000);
+Point sandPoint2 = Point(-1000, 1000, 1000);
+Point sandPoint3 = Point(1000, -1000, 1000);
+Point sandPoint4 = Point(1000, 1000, 1000);
+std::vector<Triangle> sandTrack_triangle_list = {
+    Triangle(sandPoint3,sandPoint2,sandPoint1), Triangle(sandPoint3,sandPoint4,sandPoint2) 
+};
+
+
+
 void initShadersGL(void) {
     std::string vertex_shader_file("shading_vs.glsl");
     std::string fragment_shader_file("shading_fs.glsl");
@@ -114,6 +128,15 @@ void initShadersGL(void) {
     skybox_position_id = glGetAttribLocation(skybox_shader_program, "vPosition");
     skybox_uModelViewProject_id = glGetUniformLocation(skybox_shader_program, "uModelViewProjectMatrix");
     skybox_sampler_id = glGetUniformLocation(skybox_shader_program, "skybox");
+
+    shaderList.clear();
+    shaderList.push_back(csX75::LoadShaderGL(GL_VERTEX_SHADER, "sandTrack_vs.glsl"));
+    shaderList.push_back(csX75::LoadShaderGL(GL_FRAGMENT_SHADER, "sandTrack_fs.glsl"));
+
+    sandTrack_shader_program = csX75::CreateProgramGL(shaderList);
+    sandTrack_position_id = glGetAttribLocation(sandTrack_shader_program, "vPosition");
+    sandTrack_uModelViewProject_id = glGetUniformLocation(sandTrack_shader_program, "uModelViewProjectMatrix");
+    sandTrack_sampler_id = glGetUniformLocation(sandTrack_shader_program, "sandTrack");
 }
 
 void initVertexBufferGL(void) {
@@ -206,6 +229,29 @@ void initVertexBufferGL(void) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_vertices) , &skybox_vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(skybox_position_id);
     glVertexAttribPointer(shadow_position_id, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), BUFFER_OFFSET(0));
+
+    /* Init for sandTrack */
+    loadTexmap(sandTrack_texture_fname, &sandTrack_texture);
+    float sandTrack_vertices[2 * 3 * 3];
+    for(unsigned int i = 0; i < 2; i++) {
+        sandTrack_vertices[9*i] = sandTrack_triangle_list[i].p1.x;
+        sandTrack_vertices[9*i+1] = sandTrack_triangle_list[i].p1.y;
+        sandTrack_vertices[9*i+2] = sandTrack_triangle_list[i].p1.z;
+        sandTrack_vertices[9*i+3] = sandTrack_triangle_list[i].p2.x;
+        sandTrack_vertices[9*i+4] = sandTrack_triangle_list[i].p2.y;
+        sandTrack_vertices[9*i+5] = sandTrack_triangle_list[i].p2.z;
+        sandTrack_vertices[9*i+6] = sandTrack_triangle_list[i].p3.x;
+        sandTrack_vertices[9*i+7] = sandTrack_triangle_list[i].p3.y;
+        sandTrack_vertices[9*i+8] = sandTrack_triangle_list[i].p3.z;
+    }
+    glGenVertexArrays (1, &sandTrack_vao);
+    glBindVertexArray (sandTrack_vao);
+    glGenBuffers (1, &sandTrack_vbo);
+    glBindBuffer (GL_ARRAY_BUFFER, sandTrack_vbo);
+ 
+    glBufferData(GL_ARRAY_BUFFER, sizeof(sandTrack_vertices) , &sandTrack_vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(sandTrack_position_id);
+    glVertexAttribPointer(sandTrack_position_id, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), BUFFER_OFFSET(0));
 
     /* Init depth buffer for shadow mapping */
     glGenFramebuffers(1, &depthMapFBO);
