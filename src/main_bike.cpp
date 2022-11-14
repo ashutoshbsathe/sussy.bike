@@ -97,18 +97,23 @@ Point sandPoint1 = Point(-1000, -1000+5000, 1000);
 Point sandPoint2 = Point(-1000, 1000+5000, 1000);
 Point sandPoint3 = Point(1000, -1000+5000, 1000);
 Point sandPoint4 = Point(1000, 1000+5000, 1000);
-std::vector<Triangle> sandTrack_triangle_list = {
-    Triangle(sandPoint1,sandPoint2,sandPoint4), Triangle(sandPoint3,sandPoint1,sandPoint4) 
-};
-std::vector<Triangle> sandTrack_triangle_list = track->triangle_list;
-std::vector<float> sandTrack_tex_vertices = {
-    1.0f, 0.0f, //bottom right(sandPoint1)
-    1.0f, 1.0f, //top right(sandPoint2)
-    0.0f, 1.0f, //top left(sandPoint4)
-    0.0f, 0.0f, //bottom left(sandPoint3)
-    1.0f, 0.0f, //bottom right(sandPoint1)
-    0.0f, 1.0f, //top left(sandPoint4)
-};
+// std::vector<Triangle> sandTrack_triangle_list = {
+//     Triangle(sandPoint1,sandPoint2,sandPoint4), Triangle(sandPoint3,sandPoint1,sandPoint4) 
+// };
+// auto start = track->triangle_list.begin();
+// auto end = track->triangle_list.begin() + 64;
+// std::vector<Triangle> sandTrack_triangle_list(start, end);
+std::vector<Triangle> sandTrack_triangle_list;
+// std::vector<float> sandTrack_tex_vertices = {
+//     1.0f, 0.0f, //bottom right(sandPoint1)
+//     1.0f, 1.0f, //top right(sandPoint2)
+//     0.0f, 1.0f, //top left(sandPoint4)
+//     0.0f, 0.0f, //bottom left(sandPoint3)
+//     1.0f, 0.0f, //bottom right(sandPoint1)
+//     0.0f, 1.0f, //top left(sandPoint4)
+// };
+std::vector<float> sandTrack_tex_vertices;
+
 
 
 
@@ -251,23 +256,39 @@ void initVertexBufferGL(void) {
 
     /* Init for sandTrack */
     loadTexmap(sandTrack_texture_fname, &sandTrack_texture);
-    float sandTrack_vertices[2 * 3 * 3 + 2 * 3 * 2];
-    for(unsigned int i = 0, j = 0; i < 2; i++) {
+    // for (int i=0; i<2; i++){
+    //     sandTrack_triangle_list.push_back(Triangle(Point(15000, 500, 10000), Point(15000, 500, -10000), Point(-15000, 500, 10000)));
+    //     // sandTrack_triangle_list.push_back(Triangle(Point(-15000, 500, 10000), Point(-15000, 500, -10000), Point(15000, 500, 10000)));
+    // }
+    for (int i=0;i<64; i++){
+        sandTrack_triangle_list.push_back(track->triangle_list[i]);
+    }
+    std::cout<<sandTrack_triangle_list.size();
+    for(auto it: sandTrack_triangle_list){
+        sandTrack_tex_vertices.push_back(it.p1.x);
+        sandTrack_tex_vertices.push_back(it.p1.z);
+        sandTrack_tex_vertices.push_back(it.p2.x);
+        sandTrack_tex_vertices.push_back(it.p2.z);
+        sandTrack_tex_vertices.push_back(it.p3.x);
+        sandTrack_tex_vertices.push_back(it.p3.z);
+    };
+    float sandTrack_vertices[sandTrack_triangle_list.size() * 3 * 5];
+    for(unsigned int i = 0, j = 0; i < sandTrack_triangle_list.size(); i++) {
         sandTrack_vertices[15*i] = sandTrack_triangle_list[i].p1.x;
-        sandTrack_vertices[15*i+1] = sandTrack_triangle_list[i].p1.y;
-        sandTrack_vertices[15*i+2] = sandTrack_triangle_list[i].p1.z;
+        sandTrack_vertices[15*i+1] = sandTrack_triangle_list[i].p1.z+500;
+        sandTrack_vertices[15*i+2] = sandTrack_triangle_list[i].p1.y;
         sandTrack_vertices[15*i+3] = sandTrack_tex_vertices[j++];
         sandTrack_vertices[15*i+4] = sandTrack_tex_vertices[j++];
 
         sandTrack_vertices[15*i+5] = sandTrack_triangle_list[i].p2.x;
-        sandTrack_vertices[15*i+6] = sandTrack_triangle_list[i].p2.y;
-        sandTrack_vertices[15*i+7] = sandTrack_triangle_list[i].p2.z;
+        sandTrack_vertices[15*i+6] = sandTrack_triangle_list[i].p2.z+500;
+        sandTrack_vertices[15*i+7] = sandTrack_triangle_list[i].p2.y;
         sandTrack_vertices[15*i+8] = sandTrack_tex_vertices[j++];
         sandTrack_vertices[15*i+9] = sandTrack_tex_vertices[j++];
 
         sandTrack_vertices[15*i+10] = sandTrack_triangle_list[i].p3.x;
-        sandTrack_vertices[15*i+11] = sandTrack_triangle_list[i].p3.y;
-        sandTrack_vertices[15*i+12] = sandTrack_triangle_list[i].p3.z;
+        sandTrack_vertices[15*i+11] = sandTrack_triangle_list[i].p3.z+500;
+        sandTrack_vertices[15*i+12] = sandTrack_triangle_list[i].p3.y;
         sandTrack_vertices[15*i+13] = sandTrack_tex_vertices[j++];
         sandTrack_vertices[15*i+14] = sandTrack_tex_vertices[j++];
         sandTrack_vertices[15*i+15] = sandTrack_tex_vertices[j++];
@@ -399,6 +420,15 @@ void renderGL(void) {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthMask(GL_TRUE);
 
+
+        glUseProgram(shader_program);
+        glBindVertexArray(vao);
+        glUniformMatrix4fv(uViewMatrix_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+        glUniform1i(uShadowMap_id, 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, depthMap_texture);
+        renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), false);
+
         /* Rendering sandTrack texture */
         glDepthMask(GL_FALSE);
         glUseProgram(sandTrack_shader_program);
@@ -407,15 +437,8 @@ void renderGL(void) {
         glBindVertexArray(sandTrack_vao);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, sandTrack_texture);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawArrays(GL_TRIANGLES, 0, sandTrack_triangle_list.size()*3);
         glDepthMask(GL_TRUE);
-        
-
-        glUseProgram(shader_program);
-        glBindVertexArray(vao);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, depthMap_texture);
-        renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), false);
     }
 }
 
