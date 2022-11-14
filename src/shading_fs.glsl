@@ -4,6 +4,7 @@ in vec3 normal;
 in vec4 eye;
 in vec3 color;
 in vec4 lightspace_pos;
+in vec3 frag_pos;
 
 uniform sampler2D shadowMap;
 
@@ -40,14 +41,14 @@ void main ()
 {
   // Defining Materials
   vec4 diffuse = vec4(1.0, 1.0, 1.0, 1.0); 
-  vec4 ambient = vec4(0.75, 0.75, 0.75, 1.0);
+  vec4 ambient = vec4(0.5, 0.5, 0.5, 1.0);
   vec4 specular = vec4(0.9, 0.9, 0.9, 1.0);
   float shininess = 0.1;
   vec4 spec = vec4(0.0); 
 
   // Defining Light 
-  vec4 lightPos = vec4(1060, 1060, 1060, 1);
-  vec3 lightDir = vec3(uViewMatrix * lightPos);  // Transforms with camera
+  vec3 lightPos = vec3(12500, 12500, 12500);
+  vec3 lightDir = vec3(lightPos - frag_pos);
   lightDir = normalize(vec3(lightDir));  
 
   // Diffuse
@@ -66,6 +67,6 @@ void main ()
 
   //frag_colour = max((intensity * diffuse + spec)*frag_colour, ambient*frag_colour);
   float shadow = ShadowCalculation(lightspace_pos, lightDir);
-  frag_colour = (ambient + (1.0 - shadow) * (diffuse + spec)) * frag_colour;
+  frag_colour = (ambient + (1.0 - shadow) * (intensity * diffuse + spec)) * frag_colour;
   
 }

@@ -392,8 +392,9 @@ void HierarchyNode::prepare_vbo() {
 }
 
 void HierarchyNode::render(bool shadowmap) {
-    glm::mat4 overall = hnode_viewproject * hnode_hierarchy_matrix_stack * this->private_transform;
-    glm::mat3 overall_normals = glm::transpose(glm::inverse(glm::mat3(overall)));
+    glm::mat4 overall_model = hnode_hierarchy_matrix_stack * this->private_transform;
+    glm::mat4 overall = hnode_viewproject * overall_model;
+    glm::mat3 overall_normals = glm::transpose(glm::inverse(glm::mat3(overall_model)));
     glm::mat4 overall_lightspace = hnode_lightspacematrix * hnode_hierarchy_matrix_stack * this->private_transform;
     GLint error = glGetError();
     if(shadowmap) {
@@ -404,13 +405,13 @@ void HierarchyNode::render(bool shadowmap) {
     }
     else {
         std::cout << this->name << ": Rendering normally\n";
-        glUniformMatrix4fv(this->gl_info["uniform_xform_id"], 1, GL_FALSE, glm::value_ptr(overall)); // value_ptr needed for proper pointer conversion
+        glUniformMatrix4fv(this->gl_info["uniform_xform_id"], 1, GL_FALSE, glm::value_ptr(overall_model)); // value_ptr needed for proper pointer conversion
         error = glGetError();
         std::cout << "AFter passing transform: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
         glUniformMatrix3fv(this->gl_info["normal_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
         error = glGetError();
         std::cout << "AFter passing normals: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
-        glUniformMatrix4fv(this->gl_info["view_matrix_id"], 1, GL_FALSE, glm::value_ptr(hnode_viewmatrix)); // value_ptr needed for proper pointer conversion
+        glUniformMatrix4fv(this->gl_info["view_matrix_id"], 1, GL_FALSE, glm::value_ptr(hnode_viewproject)); // value_ptr needed for proper pointer conversion
         error = glGetError();
         std::cout << "AFter passing viewmatrix: " << error << ", " << glewGetErrorString(error) << "\n"; if(error != 0) exit(0);
         glUniformMatrix4fv(this->gl_info["light_space_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall_lightspace)); // value_ptr needed for proper pointer conversion
