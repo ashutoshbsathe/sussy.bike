@@ -2,7 +2,7 @@
 
 glm::mat4 hnode_viewproject = glm::mat4(1);
 glm::mat4 hnode_viewmatrix = glm::mat4(1);
-glm::mat4 hnode_lightspacematrix = glm::mat4(1);
+std::vector<glm::mat4> hnode_lightspacematrix;
 glm::mat4 hnode_hierarchy_matrix_stack = glm::mat4(1);
 
 HierarchyNode::HierarchyNode() {
@@ -412,26 +412,26 @@ void HierarchyNode::render(bool shadowmap) {
     glm::mat4 overall_model = hnode_hierarchy_matrix_stack * this->private_transform;
     glm::mat4 overall = hnode_viewproject * overall_model;
     glm::mat3 overall_normals = glm::transpose(glm::inverse(glm::mat3(overall_model)));
-    glm::mat4 overall_lightspace = hnode_lightspacematrix * hnode_hierarchy_matrix_stack * this->private_transform;
     GLint error = glGetError();
     if(shadowmap) {
         glUniformMatrix4fv(this->gl_info["shadow_light_space_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall)); // WHERE HAVE YOU INITIALIZED THIS 'shadow_light_space_matrix_id' ?
     }
     else {
+        unsigned int num_lights = hnode_lightspacematrix.size();
+        std::vector<glm::mat4> overall_lightspace;
+        float copy_to_uniform_lightspace[4 * 16]; // Max 4 mat4s
+        for(unsigned int i = 0; i < num_lights; i++) {
+            overall_lightspace.push_back(hnode_lightspacematrix[i] * hnode_hierarchy_matrix_stack * this->private_transform);
+        }
+        for(unsigned int i = 0; i < num_lights; i++) 
+            for(unsigned int j = 0; j < 4; j++)
+                for(unsigned int k = 0; k < 4; k++)
+                    copy_to_uniform_lightspace[i*16+j*4+k] = overall_lightspace[i][j][k];
+        
         glUniformMatrix4fv(this->gl_info["uniform_xform_id"], 1, GL_FALSE, glm::value_ptr(overall_model)); // value_ptr needed for proper pointer conversion
         glUniformMatrix3fv(this->gl_info["normal_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall_normals)); // value_ptr needed for proper pointer conversion
-        glUniformMatrix4fv(this->gl_info["light_space_matrix_id"], 1, GL_FALSE, glm::value_ptr(overall_lightspace)); // value_ptr needed for proper pointer conversion
-        //glUniformMatrix4fv(this->gl_info["view_matrix_id"], 1, GL_FALSE, glm::value_ptr(hnode_viewproject)); // value_ptr needed for proper pointer conversion
+        glUniformMatrix4fv(this->gl_info["light_space_matrix_id"], num_lights, GL_FALSE, copy_to_uniform_lightspace); // value_ptr needed for proper pointer conversion
     }
-    /*  
-    for(int i = 0; i < 3; i++) {
-        for(int j = 0; j < 3; j++) {
-            std::cout << overall_normals[i][j] << " ";
-        }
-        std::cout << "\n";
-    }
-    std::cout << "--------------\n";
-    */
     if(draw_triangle) {
         glDrawArrays(GL_TRIANGLES, this->gl_info["vbo_offset"], this->triangle_list.size() * 3);
     }

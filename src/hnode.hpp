@@ -3,6 +3,8 @@
 #include "triangle.hpp"
 #include "spprism.hpp"
 
+#include <sstream>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -59,7 +61,7 @@ struct HierarchyNode {
 
 extern glm::mat4 hnode_viewproject;
 extern glm::mat4 hnode_viewmatrix;
-extern glm::mat4 hnode_lightspacematrix;
+extern std::vector<glm::mat4> hnode_lightspacematrix;
 extern glm::mat4 hnode_hierarchy_matrix_stack;
 extern GLuint depthMap;
 void global_to_local(HierarchyNode *n);

@@ -7,12 +7,12 @@
 #define MAX_BIKE_VBO_BYTES 1024000
 //                          914112
 
-GLuint shader_program, vbo, vao, uModelViewProjectMatrix_id, uNormalMatrix_id, uViewMatrix_id, position_id, color_id, normal_id, uLightSpaceMatrix_id, uModelMatrix_id, uShadowMap_id;
+GLuint shader_program, vbo, vao, uModelMatrix_id, uNormalMatrix_id, uViewMatrix_id, position_id, color_id, normal_id, uLightSpaceMatrix_id, uShadowMap_id, uNumLights_id, uMaterial_id;
 
 GLuint shadow_shader_program, shadow_position_id, shadow_uLightSpaceMatrix_id;
 
 glm::mat4 view_matrix;
-GLuint depthMapFBO, depthMap_width = 1024, depthMap_height = 1024, depthMap_texture;
+GLuint depthMapFBO, depthMap_width = 1024, depthMap_height = 1024, depthMap_texture, depthMap_texture_array;
 
 glm::mat4 ortho_matrix;
 glm::mat4 projection_matrix;
@@ -80,6 +80,7 @@ std::vector<Triangle> skybox_triangle_list = {
     Triangle(d, e, a), Triangle(d, h, e),
     Triangle(c, f, b), Triangle(c, g, f)
 };
+
 void initShadersGL(void) {
     std::string vertex_shader_file("lighting_shading_vs.glsl");
     std::string fragment_shader_file("lighting_shading_fs.glsl");
@@ -92,11 +93,13 @@ void initShadersGL(void) {
     position_id = glGetAttribLocation(shader_program, "vPosition");
     color_id = glGetAttribLocation(shader_program, "vColor");
     normal_id = glGetAttribLocation(shader_program, "vNormal");
-    uModelViewProjectMatrix_id = glGetUniformLocation(shader_program, "uModelMatrix");
+    uModelMatrix_id = glGetUniformLocation(shader_program, "uModelMatrix");
     uNormalMatrix_id = glGetUniformLocation(shader_program, "uNormalMatrix");
     uViewMatrix_id = glGetUniformLocation(shader_program, "uViewMatrix");
     uLightSpaceMatrix_id = glGetUniformLocation(shader_program, "uLightSpaceMatrix");
     uShadowMap_id = glGetUniformLocation(shader_program, "shadowMap");
+    uNumLights_id = glGetUniformLocation(shader_program, "num_lights");
+    uMaterial_id = glGetUniformLocation(shader_program, "material");
     
     shaderList.clear();
     shaderList.push_back(csX75::LoadShaderGL(GL_VERTEX_SHADER, "shadow_mapping_vs.glsl"));
@@ -129,7 +132,7 @@ void initVertexBufferGL(void) {
     // TODO: See if this much memory is actually required
     glBufferData(GL_ARRAY_BUFFER, 3*MAX_BIKE_VBO_BYTES, NULL, GL_STATIC_DRAW);
     
-    gl_info["uniform_xform_id"] = uModelViewProjectMatrix_id;
+    gl_info["uniform_xform_id"] = uModelMatrix_id;
     gl_info["normal_matrix_id"] = uNormalMatrix_id;
     gl_info["view_matrix_id"] = uViewMatrix_id;
     gl_info["light_space_matrix_id"] = uLightSpaceMatrix_id;
@@ -141,10 +144,11 @@ void initVertexBufferGL(void) {
     vbo_offset = pair.second;
     rider->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_rider", rider));
+    entities[0].read_params_from_file("./params_rider.txt");
     curr_node = rider;
     std::cout << "vbo_offset = " << vbo_offset << std::endl;
 
-    gl_info["uniform_xform_id"] = uModelViewProjectMatrix_id;
+    gl_info["uniform_xform_id"] = uModelMatrix_id;
     gl_info["normal_matrix_id"] = uNormalMatrix_id;
     gl_info["view_matrix_id"] = uViewMatrix_id;
     gl_info["light_space_matrix_id"] = uLightSpaceMatrix_id;
@@ -156,9 +160,10 @@ void initVertexBufferGL(void) {
     vbo_offset = pair.second;
     bike->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_bike", bike));
+    entities[1].read_params_from_file("./params_bike.txt");
     curr_node = bike;
     
-    gl_info["uniform_xform_id"] = uModelViewProjectMatrix_id;
+    gl_info["uniform_xform_id"] = uModelMatrix_id;
     gl_info["normal_matrix_id"] = uNormalMatrix_id;
     gl_info["view_matrix_id"] = uViewMatrix_id;
     gl_info["light_space_matrix_id"] = uLightSpaceMatrix_id;
@@ -225,9 +230,17 @@ void initVertexBufferGL(void) {
     assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    glGenTextures(1, &depthMap_texture_array);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, depthMap_texture_array);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, depthMap_width, depthMap_height, 4, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
-void renderScene(glm::mat4 viewproject, glm::mat4 view, glm::mat4 lightspace, glm::mat4 rider_hierarchy, glm::mat4 bike_hierarchy, bool lightcam) {
+void renderScene(glm::mat4 viewproject, glm::mat4 view, std::vector<glm::mat4> lightspace, glm::mat4 rider_hierarchy, glm::mat4 bike_hierarchy, bool lightcam) {
     hnode_viewproject = viewproject;
     hnode_viewmatrix = view;
     hnode_lightspacematrix = lightspace;
@@ -267,32 +280,36 @@ void renderGL(void) {
         
         glUseProgram(shadow_shader_program);
         
-        renderScene(lightspace_matrix, view_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), lightcam);
+        renderScene(lightspace_matrix, view_matrix, {lightspace_matrix}, glm::mat4(1), glm::mat4(1), lightcam);
     }
     else {
         // render into depthmap
-        glViewport(0, 0, depthMap_width, depthMap_height);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        entities[0].extract_params(entities[0].root);
-        glm::vec3 rider_pos;
-        int idx = entities[0].part_to_param_indices[entities[0].root->name].first;
-        rider_pos.z = entities[0].params[idx+3];
-        rider_pos.y = entities[0].params[idx+4];
-        rider_pos.x = entities[0].params[idx+5];
-        Camera light_camera = Camera(glm::vec3(12500.f, 12500.f, 12500.f),rider_pos,glm::vec3(0.0,1.0,0.0));
-        view_matrix = light_camera.viewMatrix;
-        projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
-        ortho_matrix = projection_matrix;
-        lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
+        std::vector<glm::mat4> lightspace_matrices;
+        lightspace_matrices.clear();
+        for(unsigned int i = 0; i < all_lights.size(); i++) {
+            glViewport(0, 0, depthMap_width, depthMap_height);
+            glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+            
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            entities[0].extract_params(entities[0].root);
+            int idx = entities[0].part_to_param_indices[entities[0].root->name].first;
+            all_lights[i].spotPoint.z = entities[0].params[idx+3];
+            all_lights[i].spotPoint.y = entities[0].params[idx+4];
+            all_lights[i].spotPoint.x = entities[0].params[idx+5];
 
-        glUseProgram(shadow_shader_program);
-        
-        renderScene(lightspace_matrix, view_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), true);
+            view_matrix = all_lights[i].to_camera().viewMatrix;
+            projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
+            ortho_matrix = projection_matrix;
+            lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glUseProgram(shadow_shader_program);
+            
+            renderScene(lightspace_matrix, view_matrix, {lightspace_matrix}, glm::mat4(1), glm::mat4(1), true);
 
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            lightspace_matrices.push_back(lightspace_matrix);
+            glCopyImageSubData(depthMap_texture, GL_TEXTURE_2D, 0, 0, 0, 0, depthMap_texture_array, GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, depthMap_width, depthMap_height, 1);
+        }
         // normal rendering
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
@@ -337,12 +354,13 @@ void renderGL(void) {
         glUseProgram(shader_program);
         glBindVertexArray(vao);
         glUniformMatrix4fv(uViewMatrix_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix)); 
-        glUniform3f(glGetUniformLocation(shader_program, "lightSpotDir"), -light_camera.n.x, -light_camera.n.y, -light_camera.n.z);
+        glUniform4f(uMaterial_id, 0.5, 1.0, 0.9, 0.1);
         glUniform1i(uShadowMap_id, 0);
+        glUniform1i(uNumLights_id, all_lights.size());
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, depthMap_texture);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, depthMap_texture_array);
         
-        renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), false);
+        renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrices, glm::mat4(1), glm::mat4(1), false);
     }
 }
 

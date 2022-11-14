@@ -2,7 +2,6 @@
 #define __CAMERA_H__
 
 #include <cmath>
-#include <iostream>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>

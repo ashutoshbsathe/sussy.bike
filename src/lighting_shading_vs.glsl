@@ -7,13 +7,14 @@ in vec3 vNormal;
 out vec3 normal;
 out vec4 eye;
 out vec3 color;
-out vec4 lightspace_pos;
+out vec4 lightspace_pos[4];
 out vec3 frag_pos;
 
+uniform int num_lights;
 uniform mat4 uModelMatrix;
 uniform mat3 uNormalMatrix;
 uniform mat4 uViewMatrix;
-uniform mat4 uLightSpaceMatrix;
+uniform mat4 uLightSpaceMatrix[4];
 
 void main () 
 {
@@ -22,6 +23,8 @@ void main ()
   normal = uNormalMatrix * normalize(vNormal);
   eye = -gl_Position;
   color = vColor;
-  lightspace_pos = uLightSpaceMatrix * position;
+  for(int i = 0; i < num_lights; i++) {
+    lightspace_pos[i] = uLightSpaceMatrix[i] * position;
+  }
   frag_pos = vec3(uModelMatrix * position);
 }

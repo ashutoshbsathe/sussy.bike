@@ -8,6 +8,7 @@
 #include "entity.hpp"
 #include "tex.hpp"
 #include "camera.hpp"
+#include "light.hpp"
 
 #include "gl_framework.hpp"
 #include "shader_util.hpp"
