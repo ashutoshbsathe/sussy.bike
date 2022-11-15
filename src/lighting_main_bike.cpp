@@ -24,7 +24,7 @@ glm::mat4 rotation_matrix;
 glm::mat4 light_movement_matrix;
 glm::mat3 normal_matrix;
 
-glm::vec3 bike_headlight, bike_headlight_lookat, third_person_position, third_person_lookat, first_person_position, first_person_lookat;
+glm::vec3 bike_headlight, bike_headlight_lookat_dir, third_person_position, third_person_lookat, first_person_position, first_person_lookat_dir;
 
 HierarchyNode *bike, *rider, *track, *curr_node;
 std::vector<AnimationEntity> entities;
@@ -146,8 +146,8 @@ void initVertexBufferGL(void) {
     rider = pair.first;
     third_person_position = glm::vec3(0, 3000, 0);
     third_person_lookat = glm::vec3(0, 0, 0);
-    first_person_position = glm::vec3(HEAD_GLOBAL_TRANSFORM(rider) * glm::vec4(glm::vec3(100, 0, 0), 1));
-    first_person_lookat = glm::vec3(HEAD_GLOBAL_TRANSFORM(rider) * glm::vec4(glm::vec3(105, 0, 0), 1));
+    first_person_position = glm::vec3(0, 0, 250);
+    first_person_lookat_dir = glm::vec3(0, -1, 0);
     vbo_offset = pair.second;
     rider->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_rider", rider));
@@ -169,9 +169,9 @@ void initVertexBufferGL(void) {
         bike->triangle_list[70].p2 +
         bike->triangle_list[70].p3 +
         bike->triangle_list[71].p3
-    ) * 0.25).to_vec3() + glm::vec3(200, 0, 0); // pull the headlight "out"
-    bike_headlight_lookat = bike_headlight + glm::vec3(2000, 0, 0);
-    all_lights.push_back(Light(bike_headlight, bike_headlight_lookat, cos(M_PI/36)));
+    ) * 0.25).to_vec3() + glm::vec3(150, 0, 0); // pull the headlight "out"
+    bike_headlight_lookat_dir = glm::vec3(0, 1, 0);
+    all_lights.push_back(Light(bike_headlight, bike_headlight + bike_headlight_lookat_dir, cos(M_PI/36)));
     vbo_offset = pair.second;
     bike->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_bike", bike));
@@ -291,8 +291,12 @@ void updateLightCameraParams(int light_idx) {
             all_lights[light_idx].spotPoint.x = entities[0].params[idx+5];
             break;
         case 3: 
-            all_lights[light_idx].position = glm::vec3(bike->local_transform * bike->dof_transform * bike->private_transform * glm::vec4(bike_headlight, 1));
-            all_lights[light_idx].spotPoint = glm::vec3(bike->local_transform * bike->dof_transform * bike->private_transform * glm::vec4(bike_headlight_lookat, 1));
+            glm::vec3 normal = glm::normalize(bike_headlight_lookat_dir);
+            glm::mat4 model_handlebar = bike->dof_transform * bike->children[3]->dof_transform;
+            glm::mat4 model_bike = bike->local_transform * bike->dof_transform * bike->private_transform * bike->children[3]->local_transform * bike->children[3]->dof_transform * bike->children[3]->private_transform;
+            normal = glm::transpose(glm::inverse(glm::mat3(model_handlebar))) * normal;
+            all_lights[light_idx].position = glm::vec3(model_bike * glm::vec4(bike_headlight, 1));
+            all_lights[light_idx].spotPoint = all_lights[light_idx].position + normal;
             break;
     }
 }
@@ -345,8 +349,11 @@ void renderGL(void) {
         view_matrix = third_person_camera.viewMatrix;
         projection_matrix = glm::frustum(-1,1,-1,1,1,10);
     } else if(curr_camera == 2) {
-        first_person_camera.eye = glm::vec3(HEAD_GLOBAL_TRANSFORM(rider) * glm::vec4(first_person_position, 1));
-        first_person_camera.focusAtPoint(glm::vec3(HEAD_GLOBAL_TRANSFORM(rider) * glm::vec4(first_person_position, 1)));
+        glm::mat4 model = HEAD_GLOBAL_TRANSFORM(rider);
+        first_person_camera.eye = glm::vec3(model * glm::vec4(first_person_position, 1));
+        glm::vec3 transformed_dir = glm::transpose(glm::inverse(glm::mat3(model))) * first_person_lookat_dir;
+        auto spotPoint = first_person_camera.eye + transformed_dir;
+        first_person_camera.focusAtPoint(spotPoint);
 
         first_person_camera.updateCameraVectors();
 
