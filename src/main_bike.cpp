@@ -24,7 +24,7 @@ glm::mat3 normal_matrix;
 
 HierarchyNode *bike, *rider, *track, *curr_node;
 std::vector<AnimationEntity> entities;
-int entity_idx = 0;
+int entity_idx = 0, curr_camera = 0;
 
 bool lightcam = true; 
 std::ofstream fout; // OpenGL logging
@@ -327,19 +327,19 @@ void initVertexBufferGL(void) {
 void renderScene(glm::mat4 viewproject, glm::mat4 view, glm::mat4 lightspace, glm::mat4 rider_hierarchy, glm::mat4 bike_hierarchy, bool lightcam) {
     hnode_viewproject = viewproject;
     hnode_viewmatrix = view;
-    hnode_lightspacematrix = lightspace;
+    hnode_lightspacematrix = {lightspace};
     hnode_hierarchy_matrix_stack = rider_hierarchy;
     rider->render_dag(lightcam);
 
     hnode_viewproject = viewproject;
     hnode_viewmatrix = view;
-    hnode_lightspacematrix = lightspace;
+    hnode_lightspacematrix = {lightspace};
     hnode_hierarchy_matrix_stack = bike_hierarchy;
     bike->render_dag(lightcam);
 
     hnode_viewproject = viewproject;
     hnode_viewmatrix = view;
-    hnode_lightspacematrix = lightspace;
+    hnode_lightspacematrix = {lightspace};
     hnode_hierarchy_matrix_stack = glm::mat4(1);
     track->render_dag(lightcam);
 
@@ -351,18 +351,6 @@ void renderGL(void) {
     light_movement_matrix = glm::rotate(glm::mat4(1), light_x, glm::vec3(1, 0, 0));
     light_movement_matrix = glm::rotate(light_movement_matrix, light_y, glm::vec3(0, 1, 0));
     light_movement_matrix = glm::rotate(light_movement_matrix, light_z, glm::vec3(0, 0, 1));
-    if(lightcam) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        view_matrix = Camera(glm::vec3(12500.f, 12500.f, 12500.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0)).viewMatrix;
-        projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
-        ortho_matrix = projection_matrix;
-        lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
-        
-        glUseProgram(shadow_shader_program);
-        
-        renderScene(lightspace_matrix, view_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), lightcam);
-    }
-    else {
         // render into depthmap
         glViewport(0, 0, depthMap_width, depthMap_height);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
@@ -439,7 +427,6 @@ void renderGL(void) {
         glBindTexture(GL_TEXTURE_2D, sandTrack_texture);
         glDrawArrays(GL_TRIANGLES, 0, sandTrack_triangle_list.size()*3);
         glDepthMask(GL_TRUE);
-    }
 }
 
 void APIENTRY glDebugOutput(GLenum source, 
