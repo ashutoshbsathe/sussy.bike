@@ -93,27 +93,20 @@ std::vector<Triangle> skybox_triangle_list = {
 */
 GLuint sandTrack_texture, sandTrack_vao, sandTrack_vbo, sandTrack_shader_program, sandTrack_position_id, sandTrack_texPosition_id, sandTrack_uModelViewProject_id, sandTrack_sampler_id;
 std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg";
-Point sandPoint1 = Point(-1000, -1000+5000, 1000);
-Point sandPoint2 = Point(-1000, 1000+5000, 1000);
-Point sandPoint3 = Point(1000, -1000+5000, 1000);
-Point sandPoint4 = Point(1000, 1000+5000, 1000);
-// std::vector<Triangle> sandTrack_triangle_list = {
-//     Triangle(sandPoint1,sandPoint2,sandPoint4), Triangle(sandPoint3,sandPoint1,sandPoint4) 
-// };
-// auto start = track->triangle_list.begin();
-// auto end = track->triangle_list.begin() + 64;
-// std::vector<Triangle> sandTrack_triangle_list(start, end);
 std::vector<Triangle> sandTrack_triangle_list;
-// std::vector<float> sandTrack_tex_vertices = {
-//     1.0f, 0.0f, //bottom right(sandPoint1)
-//     1.0f, 1.0f, //top right(sandPoint2)
-//     0.0f, 1.0f, //top left(sandPoint4)
-//     0.0f, 0.0f, //bottom left(sandPoint3)
-//     1.0f, 0.0f, //bottom right(sandPoint1)
-//     0.0f, 1.0f, //top left(sandPoint4)
-// };
 std::vector<float> sandTrack_tex_vertices;
 
+// Humanoid texture
+GLuint humanoidShirt_texture, humanoidShirt_vao, humanoidShirt_vbo, humanoidShirt_shader_program, humanoidShirt_position_id, humanoidShirt_texPosition_id, humanoidShirt_uModelViewProject_id, humanoidShirt_sampler_id;
+std::string humanoidShirt_texture_fname = "./resources/skybox_test/top.png";
+std::vector<Triangle> humanoidShirt_triangle_list;
+std::vector<float> humanoidShirt_tex_vertices;
+
+// bike texture
+GLuint bikeHeadlight_texture, bikeHeadlight_vao, bikeHeadlight_vbo, bikeHeadlight_shader_program, bikeHeadlight_position_id, bikeHeadlight_texPosition_id, bikeHeadlight_uModelViewProject_id, bikeHeadlight_sampler_id;
+std::string bikeHeadlight_texture_fname = "./resources/skybox_test/left.png";
+std::vector<Triangle> bikeHeadlight_triangle_list;
+std::vector<float> bikeHeadlight_tex_vertices;
 
 
 
@@ -161,6 +154,26 @@ void initShadersGL(void) {
     sandTrack_texPosition_id = glGetAttribLocation(sandTrack_shader_program, "vTexture");
     sandTrack_uModelViewProject_id = glGetUniformLocation(sandTrack_shader_program, "uModelViewProjectMatrix");
     sandTrack_sampler_id = glGetUniformLocation(sandTrack_shader_program, "sandTrack");
+
+    shaderList.clear();
+    shaderList.push_back(csX75::LoadShaderGL(GL_VERTEX_SHADER, "sandTrack_vs.glsl"));
+    shaderList.push_back(csX75::LoadShaderGL(GL_FRAGMENT_SHADER, "sandTrack_fs.glsl"));
+
+    humanoidShirt_shader_program = csX75::CreateProgramGL(shaderList);
+    humanoidShirt_position_id = glGetAttribLocation(humanoidShirt_shader_program, "vPosition");
+    humanoidShirt_texPosition_id = glGetAttribLocation(humanoidShirt_shader_program, "vTexture");
+    humanoidShirt_uModelViewProject_id = glGetUniformLocation(humanoidShirt_shader_program, "uModelViewProjectMatrix");
+    humanoidShirt_sampler_id = glGetUniformLocation(humanoidShirt_shader_program, "sandTrack");
+
+    shaderList.clear();
+    shaderList.push_back(csX75::LoadShaderGL(GL_VERTEX_SHADER, "sandTrack_vs.glsl"));
+    shaderList.push_back(csX75::LoadShaderGL(GL_FRAGMENT_SHADER, "sandTrack_fs.glsl"));
+
+    bikeHeadlight_shader_program = csX75::CreateProgramGL(shaderList);
+    bikeHeadlight_position_id = glGetAttribLocation(bikeHeadlight_shader_program, "vPosition");
+    bikeHeadlight_texPosition_id = glGetAttribLocation(bikeHeadlight_shader_program, "vTexture");
+    bikeHeadlight_uModelViewProject_id = glGetUniformLocation(bikeHeadlight_shader_program, "uModelViewProjectMatrix");
+    bikeHeadlight_sampler_id = glGetUniformLocation(bikeHeadlight_shader_program, "sandTrack");
 }
 
 void initVertexBufferGL(void) {
@@ -200,6 +213,12 @@ void initVertexBufferGL(void) {
     gl_info["vbo_offset"] = vbo_offset;
     pair = build_bike(gl_info);
     bike = pair.first;
+    // bike_headlight = ((
+    //         bike->triangle_list[70].p1 +
+    //         bike->triangle_list[70].p2 +
+    //         bike->triangle_list[70].p3 +
+    //         bike->triangle_list[71].p3
+    //     ) * 0.25).to_vec3() + glm::vec3(150, 0, 0);
     vbo_offset = pair.second;
     bike->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_bike", bike));
@@ -256,10 +275,6 @@ void initVertexBufferGL(void) {
 
     /* Init for sandTrack */
     loadTexmap(sandTrack_texture_fname, &sandTrack_texture);
-    // for (int i=0; i<2; i++){
-    //     sandTrack_triangle_list.push_back(Triangle(Point(15000, 500, 10000), Point(15000, 500, -10000), Point(-15000, 500, 10000)));
-    //     // sandTrack_triangle_list.push_back(Triangle(Point(-15000, 500, 10000), Point(-15000, 500, -10000), Point(15000, 500, 10000)));
-    // }
     for (int i=0;i<64; i++){
         sandTrack_triangle_list.push_back(track->triangle_list[i]);
     }
@@ -303,6 +318,98 @@ void initVertexBufferGL(void) {
     glVertexAttribPointer(sandTrack_position_id, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(0));
     glEnableVertexAttribArray(sandTrack_texPosition_id);
     glVertexAttribPointer(sandTrack_texPosition_id, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(3*sizeof(float)));
+
+    /* Init for humanoidShirt */
+    loadTexmap(humanoidShirt_texture_fname, &humanoidShirt_texture);
+    for (int i=7;i<rider->children[0]->triangle_list.size()-7; i++){
+        humanoidShirt_triangle_list.push_back(rider->children[0]->triangle_list[i]);
+    }
+    std::cout<<humanoidShirt_triangle_list.size();
+    for(auto it: humanoidShirt_triangle_list){
+        humanoidShirt_tex_vertices.push_back(it.p1.x);
+        humanoidShirt_tex_vertices.push_back(it.p1.z);
+        humanoidShirt_tex_vertices.push_back(it.p2.x);
+        humanoidShirt_tex_vertices.push_back(it.p2.z);
+        humanoidShirt_tex_vertices.push_back(it.p3.x);
+        humanoidShirt_tex_vertices.push_back(it.p3.z);
+    };
+    float humanoidShirt_vertices[humanoidShirt_triangle_list.size() * 3 * 5];
+    for(unsigned int i = 0, j = 0; i < humanoidShirt_triangle_list.size(); i++) {
+        humanoidShirt_vertices[15*i] = humanoidShirt_triangle_list[i].p1.x;
+        humanoidShirt_vertices[15*i+1] = humanoidShirt_triangle_list[i].p1.y*0.65;
+        humanoidShirt_vertices[15*i+2] = humanoidShirt_triangle_list[i].p1.z;
+        humanoidShirt_vertices[15*i+3] = humanoidShirt_tex_vertices[j++];
+        humanoidShirt_vertices[15*i+4] = humanoidShirt_tex_vertices[j++];
+
+        humanoidShirt_vertices[15*i+5] = humanoidShirt_triangle_list[i].p2.x;
+        humanoidShirt_vertices[15*i+6] = humanoidShirt_triangle_list[i].p2.y*0.65;
+        humanoidShirt_vertices[15*i+7] = humanoidShirt_triangle_list[i].p2.z;
+        humanoidShirt_vertices[15*i+8] = humanoidShirt_tex_vertices[j++];
+        humanoidShirt_vertices[15*i+9] = humanoidShirt_tex_vertices[j++];
+
+        humanoidShirt_vertices[15*i+10] = humanoidShirt_triangle_list[i].p3.x;
+        humanoidShirt_vertices[15*i+11] = humanoidShirt_triangle_list[i].p3.y*0.65;
+        humanoidShirt_vertices[15*i+12] = humanoidShirt_triangle_list[i].p3.z;
+        humanoidShirt_vertices[15*i+13] = humanoidShirt_tex_vertices[j++];
+        humanoidShirt_vertices[15*i+14] = humanoidShirt_tex_vertices[j++];
+        humanoidShirt_vertices[15*i+15] = humanoidShirt_tex_vertices[j++];
+    }
+    glGenVertexArrays (1, &humanoidShirt_vao);
+    glBindVertexArray (humanoidShirt_vao);
+    glGenBuffers (1, &humanoidShirt_vbo);
+    glBindBuffer (GL_ARRAY_BUFFER, humanoidShirt_vbo);
+ 
+    glBufferData(GL_ARRAY_BUFFER, sizeof(humanoidShirt_vertices) , &humanoidShirt_vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(humanoidShirt_position_id);
+    glVertexAttribPointer(humanoidShirt_position_id, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(0));
+    glEnableVertexAttribArray(humanoidShirt_texPosition_id);
+    glVertexAttribPointer(humanoidShirt_texPosition_id, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(3*sizeof(float)));
+
+    /* Init for bikeHeadlight */
+    loadTexmap(bikeHeadlight_texture_fname, &bikeHeadlight_texture);
+    for (int i=70;i<72; i++){
+        bikeHeadlight_triangle_list.push_back(bike->triangle_list[i]);
+    }
+    std::cout<<bikeHeadlight_triangle_list.size();
+    for(auto it: bikeHeadlight_triangle_list){
+        bikeHeadlight_tex_vertices.push_back(it.p1.x);
+        bikeHeadlight_tex_vertices.push_back(it.p1.z);
+        bikeHeadlight_tex_vertices.push_back(it.p2.x);
+        bikeHeadlight_tex_vertices.push_back(it.p2.z);
+        bikeHeadlight_tex_vertices.push_back(it.p3.x);
+        bikeHeadlight_tex_vertices.push_back(it.p3.z);
+    };
+    float bikeHeadlight_vertices[bikeHeadlight_triangle_list.size() * 3 * 5];
+    for(unsigned int i = 0, j = 0; i < bikeHeadlight_triangle_list.size(); i++) {
+        bikeHeadlight_vertices[15*i] = bikeHeadlight_triangle_list[i].p1.x;
+        bikeHeadlight_vertices[15*i+1] = bikeHeadlight_triangle_list[i].p1.y;
+        bikeHeadlight_vertices[15*i+2] = bikeHeadlight_triangle_list[i].p1.z;
+        bikeHeadlight_vertices[15*i+3] = bikeHeadlight_tex_vertices[j++];
+        bikeHeadlight_vertices[15*i+4] = bikeHeadlight_tex_vertices[j++];
+
+        bikeHeadlight_vertices[15*i+5] = bikeHeadlight_triangle_list[i].p2.x;
+        bikeHeadlight_vertices[15*i+6] = bikeHeadlight_triangle_list[i].p2.y;
+        bikeHeadlight_vertices[15*i+7] = bikeHeadlight_triangle_list[i].p2.z;
+        bikeHeadlight_vertices[15*i+8] = bikeHeadlight_tex_vertices[j++];
+        bikeHeadlight_vertices[15*i+9] = bikeHeadlight_tex_vertices[j++];
+
+        bikeHeadlight_vertices[15*i+10] = bikeHeadlight_triangle_list[i].p3.x;
+        bikeHeadlight_vertices[15*i+11] = bikeHeadlight_triangle_list[i].p3.y;
+        bikeHeadlight_vertices[15*i+12] = bikeHeadlight_triangle_list[i].p3.z;
+        bikeHeadlight_vertices[15*i+13] = bikeHeadlight_tex_vertices[j++];
+        bikeHeadlight_vertices[15*i+14] = bikeHeadlight_tex_vertices[j++];
+        bikeHeadlight_vertices[15*i+15] = bikeHeadlight_tex_vertices[j++];
+    }
+    glGenVertexArrays (1, &bikeHeadlight_vao);
+    glBindVertexArray (bikeHeadlight_vao);
+    glGenBuffers (1, &bikeHeadlight_vbo);
+    glBindBuffer (GL_ARRAY_BUFFER, bikeHeadlight_vbo);
+ 
+    glBufferData(GL_ARRAY_BUFFER, sizeof(bikeHeadlight_vertices) , &bikeHeadlight_vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(bikeHeadlight_position_id);
+    glVertexAttribPointer(bikeHeadlight_position_id, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(0));
+    glEnableVertexAttribArray(bikeHeadlight_texPosition_id);
+    glVertexAttribPointer(bikeHeadlight_texPosition_id, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(3*sizeof(float)));
 
     /* Init depth buffer for shadow mapping */
     glGenFramebuffers(1, &depthMapFBO);
@@ -351,82 +458,104 @@ void renderGL(void) {
     light_movement_matrix = glm::rotate(glm::mat4(1), light_x, glm::vec3(1, 0, 0));
     light_movement_matrix = glm::rotate(light_movement_matrix, light_y, glm::vec3(0, 1, 0));
     light_movement_matrix = glm::rotate(light_movement_matrix, light_z, glm::vec3(0, 0, 1));
-        // render into depthmap
-        glViewport(0, 0, depthMap_width, depthMap_height);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        view_matrix = Camera(glm::vec3(12500.f, 12500.f, 12500.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0)).viewMatrix;
-        projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
-        ortho_matrix = projection_matrix;
-        lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
+    // render into depthmap
+    glViewport(0, 0, depthMap_width, depthMap_height);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    view_matrix = Camera(glm::vec3(12500.f, 12500.f, 12500.f),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0)).viewMatrix;
+    projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
+    ortho_matrix = projection_matrix;
+    lightspace_matrix = projection_matrix * view_matrix * light_movement_matrix;
 
-        glUseProgram(shadow_shader_program);
-        
-        renderScene(lightspace_matrix, view_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), true);
+    glUseProgram(shadow_shader_program);
+    
+    renderScene(lightspace_matrix, view_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), true);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // normal rendering
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        global_camera.eye = global_camera.eye + xmove * global_camera.n;
-        global_camera.eye = global_camera.eye + ymove * global_camera.u;
-        global_camera.eye = global_camera.eye + zmove * global_camera.v;
-        xmove = ymove = zmove = 0;
-        global_camera.updateCameraVectors();
-        global_camera.yaw += xrot;
-        global_camera.pitch += yrot;
-        xrot = yrot = 0;
-        global_camera.updateCameraVectors();
+    // normal rendering
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    global_camera.eye = global_camera.eye + xmove * global_camera.n;
+    global_camera.eye = global_camera.eye + ymove * global_camera.u;
+    global_camera.eye = global_camera.eye + zmove * global_camera.v;
+    xmove = ymove = zmove = 0;
+    global_camera.updateCameraVectors();
+    global_camera.yaw += xrot;
+    global_camera.pitch += yrot;
+    xrot = yrot = 0;
+    global_camera.updateCameraVectors();
 
-        view_matrix = global_camera.viewMatrix;
+    view_matrix = global_camera.viewMatrix;
 
-        ortho_matrix = glm::ortho(
-                           VIEW_PADDING * DRAW_MIN * 1.f, VIEW_PADDING * DRAW_MAX * 1.f,
-                           VIEW_PADDING * DRAW_MIN * 1.f, VIEW_PADDING * DRAW_MAX * 1.f,
-                           10.f * VIEW_PADDING * DRAW_MIN, 10.f * VIEW_PADDING * DRAW_MAX
-                       );
-        projection_matrix = glm::frustum(-1,1,-1,1,1,10);
-        if(true) 
-            modelviewproject_matrix = projection_matrix * view_matrix;
-        else
-            modelviewproject_matrix = ortho_matrix * view_matrix;
+    ortho_matrix = glm::ortho(
+                        VIEW_PADDING * DRAW_MIN * 1.f, VIEW_PADDING * DRAW_MAX * 1.f,
+                        VIEW_PADDING * DRAW_MIN * 1.f, VIEW_PADDING * DRAW_MAX * 1.f,
+                        10.f * VIEW_PADDING * DRAW_MIN, 10.f * VIEW_PADDING * DRAW_MAX
+                    );
+    projection_matrix = glm::frustum(-1,1,-1,1,1,10);
+    if(true) 
+        modelviewproject_matrix = projection_matrix * view_matrix;
+    else
+        modelviewproject_matrix = ortho_matrix * view_matrix;
 
-        //modelviewproject_matrix = modelviewproject_matrix * rotation_matrix;
-        
-        /* Rendering skybox before the scene 
-         * Not great for performance but hey, it works
-         */
-        glDepthMask(GL_FALSE);
-        glUseProgram(skybox_shader_program);
-        glUniformMatrix4fv(skybox_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
-        glUniform1i(skybox_sampler_id, 0);
-        glBindVertexArray(skybox_vao);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_texture);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glDepthMask(GL_TRUE);
+    //modelviewproject_matrix = modelviewproject_matrix * rotation_matrix;
+    
+    /* Rendering skybox before the scene 
+        * Not great for performance but hey, it works
+        */
+    glDepthMask(GL_FALSE);
+    glUseProgram(skybox_shader_program);
+    glUniformMatrix4fv(skybox_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+    glUniform1i(skybox_sampler_id, 0);
+    glBindVertexArray(skybox_vao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_texture);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDepthMask(GL_TRUE);
 
 
-        glUseProgram(shader_program);
-        glBindVertexArray(vao);
-        glUniformMatrix4fv(uViewMatrix_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
-        glUniform1i(uShadowMap_id, 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, depthMap_texture);
-        renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), false);
+    glUseProgram(shader_program);
+    glBindVertexArray(vao);
+    glUniformMatrix4fv(uViewMatrix_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+    glUniform1i(uShadowMap_id, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depthMap_texture);
+    renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrix, glm::mat4(1), glm::mat4(1), false);
 
-        /* Rendering sandTrack texture */
-        glDepthMask(GL_FALSE);
-        glUseProgram(sandTrack_shader_program);
-        glUniformMatrix4fv(sandTrack_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
-        glUniform1i(sandTrack_sampler_id, 0);
-        glBindVertexArray(sandTrack_vao);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, sandTrack_texture);
-        glDrawArrays(GL_TRIANGLES, 0, sandTrack_triangle_list.size()*3);
-        glDepthMask(GL_TRUE);
+    /* Rendering sandTrack texture */
+    glDepthMask(GL_FALSE);
+    glUseProgram(sandTrack_shader_program);
+    glUniformMatrix4fv(sandTrack_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+    glUniform1i(sandTrack_sampler_id, 0);
+    glBindVertexArray(sandTrack_vao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, sandTrack_texture);
+    glDrawArrays(GL_TRIANGLES, 0, sandTrack_triangle_list.size()*3);
+    glDepthMask(GL_TRUE);
+
+    /* Rendering humanoidShirt texture */
+    glDepthMask(GL_FALSE);
+    glUseProgram(humanoidShirt_shader_program);
+    glUniformMatrix4fv(humanoidShirt_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+    glUniform1i(humanoidShirt_sampler_id, 0);
+    glBindVertexArray(humanoidShirt_vao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, humanoidShirt_texture);
+    glDrawArrays(GL_TRIANGLES, 0, humanoidShirt_triangle_list.size()*3);
+    glDepthMask(GL_TRUE);
+
+    /* Rendering bikeHeadlight texture */
+    glDepthMask(GL_FALSE);
+    glUseProgram(bikeHeadlight_shader_program);
+    glUniformMatrix4fv(bikeHeadlight_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+    glUniform1i(bikeHeadlight_sampler_id, 0);
+    glBindVertexArray(bikeHeadlight_vao);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, bikeHeadlight_texture);
+    glDrawArrays(GL_TRIANGLES, 0, bikeHeadlight_triangle_list.size()*3);
+    glDepthMask(GL_TRUE);
 }
 
 void APIENTRY glDebugOutput(GLenum source, 
