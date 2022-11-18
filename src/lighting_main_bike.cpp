@@ -171,7 +171,7 @@ void initVertexBufferGL(void) {
         bike->triangle_list[71].p3
     ) * 0.25).to_vec3() + glm::vec3(150, 0, 0); // pull the headlight "out"
     bike_headlight_lookat_dir = glm::vec3(1, 0, 0);
-    all_lights.push_back(Light(bike_headlight, bike_headlight + bike_headlight_lookat_dir, cos(M_PI/36)));
+    all_lights.push_back(Light(bike_headlight, bike_headlight + bike_headlight_lookat_dir, cos(M_PI/36), false));
     vbo_offset = pair.second;
     bike->prepare_vbo();
     entities.push_back(AnimationEntity("standalone_bike", bike));
@@ -278,6 +278,7 @@ void renderScene(glm::mat4 viewproject, glm::mat4 view, std::vector<glm::mat4> l
 void updateLightCameraParams(int light_idx) {
     if(light_idx >= all_lights.size())
         return;
+    all_lights[light_idx].isActive = light_states[light_idx];
     int idx;
     switch(light_idx) {
         case 0: break;

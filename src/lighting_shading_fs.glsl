@@ -1,6 +1,7 @@
 #version 330
 
 struct Light {
+    bool isActive;
     vec3 position;
     vec3 spotDir;
     float cutOff; // cosine of angle
@@ -84,8 +85,10 @@ void main ()
     float shadow = 0;
     vec4 final = vec4(0);
     for(int i = 0; i < num_lights; i++) {
-        lighting = LightCalculation(i);
-        shadow = ShadowCalculation(i);
+        if(lights[i].isActive) {
+            lighting = LightCalculation(i);
+            shadow = ShadowCalculation(i);
+        }
         final += vec4(vec3(material.y), 1) + (1.0 - shadow) * lighting;
     }
     frag_colour = vec4(color, 1);
