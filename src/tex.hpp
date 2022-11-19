@@ -55,6 +55,7 @@ void loadTexmap(std::string fname, GLuint *ret) {
 
     int width, height, n_channels;
     unsigned char *data = stbi_load(fname.c_str(), &width, &height, &n_channels, 0);
+    std::cout << width << height << n_channels << "\n";
     if(data) {
         glTexImage2D(
             GL_TEXTURE_2D,
@@ -72,7 +73,7 @@ void loadTexmap(std::string fname, GLuint *ret) {
     // TODO: Use MipMaps
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 }

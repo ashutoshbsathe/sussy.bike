@@ -29,7 +29,7 @@ int entity_idx = 0, curr_camera = 0;
 bool lightcam = true; 
 std::ofstream fout; // OpenGL logging
 
-Camera global_camera(glm::vec3(0.f, 0.f, -20000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+Camera global_camera(glm::vec3(1000.f, 1000.f, -1000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
 std::vector<std::string> skybox_fnames = {
     /*"./resources/skybox/right.jpg",
@@ -92,19 +92,19 @@ std::vector<Triangle> skybox_triangle_list = {
 
 */
 GLuint sandTrack_texture, sandTrack_vao, sandTrack_vbo, sandTrack_shader_program, sandTrack_position_id, sandTrack_texPosition_id, sandTrack_uModelViewProject_id, sandTrack_sampler_id;
-std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg";
+std::string sandTrack_texture_fname = "./resources/skybox_sand/negy.jpg";
 std::vector<Triangle> sandTrack_triangle_list;
 std::vector<float> sandTrack_tex_vertices;
 
 // Humanoid texture
 GLuint humanoidShirt_texture, humanoidShirt_vao, humanoidShirt_vbo, humanoidShirt_shader_program, humanoidShirt_position_id, humanoidShirt_texPosition_id, humanoidShirt_uModelViewProject_id, humanoidShirt_sampler_id;
-std::string humanoidShirt_texture_fname = "./resources/skybox_test/rider.bmp";
+std::string humanoidShirt_texture_fname = "./resources/skybox_sand/posx.jpg";
 std::vector<Triangle> humanoidShirt_triangle_list;
 std::vector<float> humanoidShirt_tex_vertices;
 
 // bike texture
 GLuint bikeHeadlight_texture, bikeHeadlight_vao, bikeHeadlight_vbo, bikeHeadlight_shader_program, bikeHeadlight_position_id, bikeHeadlight_texPosition_id, bikeHeadlight_uModelViewProject_id, bikeHeadlight_sampler_id;
-std::string bikeHeadlight_texture_fname = "./resources/skybox_test/rider.bmp";
+std::string bikeHeadlight_texture_fname = "./resources/skybox_sand/posx.jpg";
 std::vector<Triangle> bikeHeadlight_triangle_list;
 std::vector<float> bikeHeadlight_tex_vertices;
 
@@ -301,7 +301,6 @@ void initVertexBufferGL(void) {
         sandTrack_vertices[15*i+12] = sandTrack_triangle_list[i].p3.y;
         sandTrack_vertices[15*i+13] = sandTrack_tex_vertices[j++];
         sandTrack_vertices[15*i+14] = sandTrack_tex_vertices[j++];
-        sandTrack_vertices[15*i+15] = sandTrack_tex_vertices[j++];
     }
     glGenVertexArrays (1, &sandTrack_vao);
     glBindVertexArray (sandTrack_vao);
@@ -365,7 +364,6 @@ void initVertexBufferGL(void) {
         humanoidShirt_vertices[15*i+12] = humanoidShirt_triangle_list[i].p3.z + z_offset;
         humanoidShirt_vertices[15*i+13] = humanoidShirt_tex_vertices[j++];
         humanoidShirt_vertices[15*i+14] = humanoidShirt_tex_vertices[j++];
-        humanoidShirt_vertices[15*i+15] = humanoidShirt_tex_vertices[j++];
     }
     glGenVertexArrays (1, &humanoidShirt_vao);
     glBindVertexArray (humanoidShirt_vao);
@@ -385,10 +383,10 @@ void initVertexBufferGL(void) {
     //     bikeHeadlight_triangle_list.push_back(bike->triangle_list[i]);
     //     std::cout<<bike->triangle_list[i].tri_str;
     // }
-    Point p1_bike(750, 675, 0);
-    Point p2_bike(875, 487.5, 0);
-    Point p3_bike(875, 487.5, 150);
-    Point p4_bike(750, 675, 150);
+    Point p1_bike(750+50, 675, 0);
+    Point p2_bike(875+50, 487.5, 0);
+    Point p3_bike(875+50, 487.5, 150);
+    Point p4_bike(750+50, 675, 150);
     bikeHeadlight_triangle_list.push_back(Triangle(p1_bike,p4_bike,p3_bike));
     bikeHeadlight_triangle_list.push_back(Triangle(p2_bike,p1_bike,p3_bike));
 
@@ -401,12 +399,12 @@ void initVertexBufferGL(void) {
     //     bikeHeadlight_tex_vertices.push_back(it.p3.x);
     //     bikeHeadlight_tex_vertices.push_back(it.p3.z);
     // };
-    bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(0.0f);
-    bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(1.0f);
-    bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(1.0f);
-    bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(0.0f);
-    bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(0.0f);
-    bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(1.0f);
+    bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(0.0f); // p1
+    bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(1.0f); // p4
+    bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(1.0f); // p3
+    bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(0.0f); // p2
+    bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(0.0f); // p1
+    bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(1.0f); // p3
     float bikeHeadlight_vertices[bikeHeadlight_triangle_list.size() * 3 * 5];
     for(unsigned int i = 0, j = 0; i < bikeHeadlight_triangle_list.size(); i++) {
         bikeHeadlight_vertices[15*i] = bikeHeadlight_triangle_list[i].p1.x;
@@ -426,7 +424,7 @@ void initVertexBufferGL(void) {
         bikeHeadlight_vertices[15*i+12] = bikeHeadlight_triangle_list[i].p3.z;
         bikeHeadlight_vertices[15*i+13] = bikeHeadlight_tex_vertices[j++];
         bikeHeadlight_vertices[15*i+14] = bikeHeadlight_tex_vertices[j++];
-        bikeHeadlight_vertices[15*i+15] = bikeHeadlight_tex_vertices[j++];
+        std::cout << "j = " << j << "\n";
     }
     glGenVertexArrays (1, &bikeHeadlight_vao);
     glBindVertexArray (bikeHeadlight_vao);
@@ -566,7 +564,7 @@ void renderGL(void) {
     /* Rendering humanoidShirt texture */
     glDepthMask(GL_FALSE);
     glUseProgram(humanoidShirt_shader_program);
-    glUniformMatrix4fv(humanoidShirt_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+    glUniformMatrix4fv(humanoidShirt_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix * rider->dof_transform * rider->children[0]->dof_transform));
     glUniform1i(humanoidShirt_sampler_id, 0);
     glBindVertexArray(humanoidShirt_vao);
     glActiveTexture(GL_TEXTURE0);
@@ -577,7 +575,7 @@ void renderGL(void) {
     /* Rendering bikeHeadlight texture */
     glDepthMask(GL_FALSE);
     glUseProgram(bikeHeadlight_shader_program);
-    glUniformMatrix4fv(bikeHeadlight_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+    glUniformMatrix4fv(bikeHeadlight_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix * bike->dof_transform * bike->children[3]->dof_transform));
     glUniform1i(bikeHeadlight_sampler_id, 0);
     glBindVertexArray(bikeHeadlight_vao);
     glActiveTexture(GL_TEXTURE0);
