@@ -247,6 +247,7 @@ void renderGL(void) {
                 global_animate_state.curr_keyframe = global_animate_state.interpolated_keyframes[global_animate_state.playback_idx];
                 global_animate_state.apply_keyframe();
                 global_animate_state.playback_idx++;
+                glfwSetTime(0);
             }
 
         }

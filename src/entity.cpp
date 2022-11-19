@@ -38,7 +38,6 @@ void AnimationEntity::extract_params(HierarchyNode *node) {
 
 void AnimationEntity::apply_params(HierarchyNode *node) {
     int start, end, i;
-    std::cout << "Applying params to " << node->name << "\n";
     auto range = this->part_to_param_indices[node->name];
     start = range.first;
     end = range.second;
