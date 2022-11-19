@@ -5,23 +5,8 @@
 #include <GLFW/glfw3.h>
 #define MAX_BIKE_VBO_BYTES 1024000
 //                          914112
+
 double total_time = 0, rendered_frames = 0;
-GLuint shader_program, vbo, vao, uModelMatrix_id, uNormalMatrix_id, uViewMatrix_id, position_id, color_id, normal_id, uLightSpaceMatrix_id, uShadowMap_id, uNumLights_id, uMaterial_id;
-
-GLuint shadow_shader_program, shadow_position_id, shadow_uLightSpaceMatrix_id;
-
-glm::mat4 view_matrix;
-GLuint depthMapFBO, depthMap_width = 1024, depthMap_height = 1024, depthMap_texture, depthMap_texture_array;
-
-glm::mat4 projection_matrix;
-glm::mat4 modelviewproject_matrix;
-glm::mat4 lightspace_matrix;
-glm::mat4 rotation_matrix;
-glm::mat4 light_movement_matrix;
-glm::mat3 normal_matrix;
-
-glm::vec3 bike_headlight, bike_headlight_lookat_dir, third_person_position, third_person_lookat, first_person_position, first_person_lookat_dir;
-
 HierarchyNode *bike, *rider, *track, *curr_node;
 int entity_idx = 0;
 
@@ -30,57 +15,6 @@ std::ofstream fout; // OpenGL logging
 Camera third_person_camera, first_person_camera;
 
 AnimationState global_animate_state;
-
-std::vector<std::string> skybox_fnames = {
-    /*"./resources/skybox/right.jpg",
-    "./resources/skybox/left.jpg",
-    "./resources/skybox/top.jpg",
-    "./resources/skybox/bottom.jpg",
-    "./resources/skybox/front.jpg",
-    "./resources/skybox/back.jpg",*/
-    "./resources/skybox_sand/posx.jpg",
-    "./resources/skybox_sand/negx.jpg",
-    "./resources/skybox_sand/posy.jpg",
-    "./resources/skybox_sand/negy.jpg",
-    "./resources/skybox_sand/posz.jpg",
-    "./resources/skybox_sand/negz.jpg",
-};
-GLuint skybox_texture, skybox_vao, skybox_vbo, skybox_shader_program, skybox_position_id, skybox_uModelViewProject_id, skybox_sampler_id;
-float skybox_radius = 102400.f;
-
-/* skybox_vertices_points
-              (+Y)
-              |
-              g--------f
-             /|       /|
-            / |      / |
-           h--------e  |
-           |  |     |  |
-           |  c-----|--b----(+X)
-           | /      | /
-           |/       |/
-           d--------a
-          /
-         /
-      (+Z)
-*/
-Point c = Point(-skybox_radius, -skybox_radius, -skybox_radius);
-Point a = Point(skybox_radius, -skybox_radius, skybox_radius);
-Point b = Point(skybox_radius, -skybox_radius, -skybox_radius);
-Point d = Point(-skybox_radius, -skybox_radius, skybox_radius);
-Point e = Point(skybox_radius, skybox_radius, skybox_radius);
-Point f = Point(skybox_radius, skybox_radius, -skybox_radius);
-Point g = Point(-skybox_radius, skybox_radius, -skybox_radius);
-Point h = Point(-skybox_radius, skybox_radius, skybox_radius);
-std::vector<Triangle> skybox_triangle_list = {
-    Triangle(c, h, g), Triangle(c, d, h),
-    Triangle(b, a, e), Triangle(b, e, f),
-    Triangle(c, a, d), Triangle(c, b, a),
-    Triangle(g, e, h), Triangle(g, f, e),
-    Triangle(d, e, a), Triangle(d, h, e),
-    Triangle(c, f, b), Triangle(c, g, f)
-};
-
 
 void push_lights_to_uniform(GLuint shader_program, std::vector<Light> all_lights) {
     unsigned num_lights = all_lights.size();
@@ -161,14 +95,7 @@ void initShadersGL(void) {
     shadow_position_id = glGetAttribLocation(shadow_shader_program, "vPosition");
     shadow_uLightSpaceMatrix_id = glGetUniformLocation(shadow_shader_program, "uLightSpaceMatrix");
 
-    shaderList.clear();
-    shaderList.push_back(csX75::LoadShaderGL(GL_VERTEX_SHADER, "skybox_vs.glsl"));
-    shaderList.push_back(csX75::LoadShaderGL(GL_FRAGMENT_SHADER, "skybox_fs.glsl"));
-
-    skybox_shader_program = csX75::CreateProgramGL(shaderList);
-    skybox_position_id = glGetAttribLocation(skybox_shader_program, "vPosition");
-    skybox_uModelViewProject_id = glGetUniformLocation(skybox_shader_program, "uModelViewProjectMatrix");
-    skybox_sampler_id = glGetUniformLocation(skybox_shader_program, "skybox");
+    initSkyboxShadersGL();
 }
 
 void initVertexBufferGL(void) {
@@ -251,30 +178,6 @@ void initVertexBufferGL(void) {
     glEnableVertexAttribArray(normal_id);
     glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
 
-    // TODO: Do this in a separate function in the header
-    /* Init for skybox */
-    loadCubemap(skybox_fnames, &skybox_texture);
-    float skybox_vertices[12 * 3 * 3];
-    for(unsigned int i = 0; i < 12; i++) {
-        skybox_vertices[9*i] = skybox_triangle_list[i].p1.x;
-        skybox_vertices[9*i+1] = skybox_triangle_list[i].p1.y;
-        skybox_vertices[9*i+2] = skybox_triangle_list[i].p1.z;
-        skybox_vertices[9*i+3] = skybox_triangle_list[i].p2.x;
-        skybox_vertices[9*i+4] = skybox_triangle_list[i].p2.y;
-        skybox_vertices[9*i+5] = skybox_triangle_list[i].p2.z;
-        skybox_vertices[9*i+6] = skybox_triangle_list[i].p3.x;
-        skybox_vertices[9*i+7] = skybox_triangle_list[i].p3.y;
-        skybox_vertices[9*i+8] = skybox_triangle_list[i].p3.z;
-    }
-    glGenVertexArrays (1, &skybox_vao);
-    glBindVertexArray (skybox_vao);
-    glGenBuffers (1, &skybox_vbo);
-    glBindBuffer (GL_ARRAY_BUFFER, skybox_vbo);
- 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_vertices) , &skybox_vertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(skybox_position_id);
-    glVertexAttribPointer(shadow_position_id, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), BUFFER_OFFSET(0));
-
     /* Init depth buffer for shadow mapping */
     glGenFramebuffers(1, &depthMapFBO);
     glGenTextures(1, &depthMap_texture);
@@ -303,6 +206,8 @@ void initVertexBufferGL(void) {
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     global_animate_state.build_name_to_keyframe_indices();
+
+    initSkyboxBuffersGL();
 }
 
 void renderScene(glm::mat4 viewproject, glm::mat4 view, std::vector<glm::mat4> lightspace, glm::mat4 rider_hierarchy, glm::mat4 bike_hierarchy, bool lightcam) {
