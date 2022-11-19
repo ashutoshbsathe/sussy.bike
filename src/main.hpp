@@ -2,7 +2,7 @@
 #define _MAIN_HPP_
 
 #include "point.hpp"
-#include "triangle.hpp"
+#include "triangle.hpp" 
 #include "spprism.hpp"
 #include "hnode.hpp"
 #include "entity.hpp"
@@ -223,10 +223,10 @@ void initTexturedBuffersGL(void) {
 
     /* Init for sandTrack */
     loadTexmap(sandTrack_texture_fname, &sandTrack_texture_id);
-    Point p1_sand(15000,-15000,-700);   //bottom right
-    Point p2_sand(15000,15000,-700);    //bottom left
-    Point p3_sand(-15000,-15000,-700);  //top right
-    Point p4_sand(-15000,15000,-700);   //top left
+    Point p1_sand(1500+5000,-1500,-700);   //bottom right
+    Point p2_sand(1500+5000,1500,-700);    //bottom left
+    Point p3_sand(-1500+5000,-1500,-700);  //top right
+    Point p4_sand(-1500+5000,1500,-700);   //top left
 
     all_triangle_list.push_back(Triangle(p1_sand,p4_sand,p3_sand));
     all_triangle_list.push_back(Triangle(p4_sand,p1_sand,p2_sand));
@@ -267,7 +267,6 @@ void initTexturedBuffersGL(void) {
         all_vbo_vertices[24*i+22] = all_tex_vertices[j++];
         all_vbo_vertices[24*i+23] = all_tex_vertices[j++];
     }
-
     /* Init for bikeHeadlight */
     loadTexmap(bikeHeadlight_texture_fname, &bikeHeadlight_texture_id);
 

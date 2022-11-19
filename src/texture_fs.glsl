@@ -54,7 +54,7 @@ float ShadowCalculation(int light_idx) {
 }
 
 vec4 LightCalculation(int light_idx) {
-    int multiplier = light_idx >= 2 ? 4 : 1;
+    float multiplier = (light_idx >= 2 ? 8 : 1); // textures can be very dark
     vec4 diffuse = vec4(vec3(material.x), 1);
     vec4 specular = vec4(vec3(material.z), 1);
     float shininess = material.w;
@@ -69,6 +69,11 @@ vec4 LightCalculation(int light_idx) {
     }
     else {
         vec3 n = normalize(normal);
+        if(light_idx < 2) {
+            // send lights to infinity
+            lightDir = normalize(vec3(vec4(lights[light_idx].position, 0)));
+            multiplier = 0.75;
+        }
         float dotProd = dot(n, lightDir);
         intensity = max(dotProd, 0); 
         if(intensity > 0.0) {
@@ -97,7 +102,7 @@ void main ()
             lighting = vec4(0);
             shadow = 0;
         }
-        final += (1.0 - shadow) * lighting;
+        final += lighting;
     }
     frag_colour = texture(tex, vTex);
     frag_colour = (vec4(vec3(material.y), 1) + final) * frag_colour; 

@@ -21,13 +21,13 @@ void initGlobalAnimationState(void) {
     global_animate_state.curr_camera = 0;
     global_animate_state.lights_list = {
         Light(
-            glm::vec3(12500.f, 12500.f, 12500.f),
+            glm::vec3(15000.f, 12500.f, 15000.f),
             glm::vec3(0.f, 0.f, 0.f),
             -10000,
             false
         ),
         Light(
-            glm::vec3(-12500.f, 12500.f, 12500.f),
+            glm::vec3(-15000.f, 12500.f, 15000.f),
             glm::vec3(0.f, 0.f, 0.f),
             -10000,
             false
@@ -246,7 +246,7 @@ void renderGL(void) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         view_matrix = global_animate_state.lights_list[i].to_camera().viewMatrix;
-        projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
+        projection_matrix = glm::ortho(-17500.f, 17500.f, -17500.f, 17500.f, 0.f, 60000.f);
         lightspace_matrix = projection_matrix * view_matrix;
 
         glUseProgram(shadow_shader_program);

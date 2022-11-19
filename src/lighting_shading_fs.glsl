@@ -98,5 +98,5 @@ void main ()
         final += (1.0 - shadow) * lighting;
     }
     frag_colour = vec4(color, 1);
-    frag_colour = (vec4(vec3(material.y), 1) + final/max(active_lights, 1)) * frag_colour; 
+    frag_colour = (vec4(vec3(material.y), 1) + final / max(active_lights, 1)) * frag_colour; 
 }
