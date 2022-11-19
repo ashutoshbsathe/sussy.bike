@@ -21,6 +21,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#define FRAMERATE 60.0
+
 #define TORSO_2(X) ((X)->children[0]) 
 #define NECK(X) ((TORSO_2(X))->children[0])
 #define HEAD(X) ((NECK(X))->children[0])

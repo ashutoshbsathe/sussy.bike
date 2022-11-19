@@ -6,7 +6,6 @@
 #define MAX_BIKE_VBO_BYTES 1024000
 //                          914112
 
-double total_time = 0, rendered_frames = 0;
 HierarchyNode *bike, *rider, *track, *curr_node;
 int entity_idx = 0;
 
@@ -233,7 +232,19 @@ void updateLightCameraParams(int light_idx) {
 }
 
 void renderGL(void) { 
-    glfwSetTime(0);
+    if(global_animate_state.playback_mode) {
+        if(glfwGetTime() >= 1.0/FRAMERATE) {
+            if(global_animate_state.playback_idx >= global_animate_state.interpolated_keyframes.size()) {
+                global_animate_state.stop_playback();
+            }
+            else {
+                global_animate_state.curr_keyframe = global_animate_state.interpolated_keyframes[global_animate_state.playback_idx];
+                global_animate_state.apply_keyframe();
+                global_animate_state.playback_idx++;
+            }
+
+        }
+    }
     glBindVertexArray(vao);
     // render into depthmap
     std::vector<glm::mat4> lightspace_matrices;
@@ -314,11 +325,6 @@ void renderGL(void) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, depthMap_texture_array);      
     renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrices, glm::mat4(1), glm::mat4(1), false);
-    
-    total_time += glfwGetTime();
-    rendered_frames += 1;
-
-    //std::cout << "FPS: " << rendered_frames / total_time << "\n";
 }
 
 void APIENTRY glDebugOutput(GLenum source, 

@@ -216,6 +216,8 @@ namespace csX75 {
             global_animate_state.save_keyframe(keyframe_idx);
         } else if(key == GLFW_KEY_F6 && action == GLFW_PRESS) {
             global_animate_state.interpolate_keyframes();
+        } else if(key == GLFW_KEY_F7 && action == GLFW_PRESS) {
+            global_animate_state.start_playback();
         }
     }
 }

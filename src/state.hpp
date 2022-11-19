@@ -10,8 +10,11 @@ struct AnimationState {
     Camera global_camera;
     int curr_camera = 0; // 0 -- global, 1 -- third person, 2 -- first person
     std::vector<Keyframe> saved_keyframes, interpolated_keyframes;
-    Keyframe curr_keyframe;
+    Keyframe curr_keyframe, restore_keyframe;
     std::map<std::string, std::pair<unsigned int, unsigned int>> name_to_keyframe_indices;
+
+    bool playback_mode = false;
+    unsigned int playback_idx = 0;
 
     AnimationState() {
         this->entity_list.clear();
@@ -198,6 +201,23 @@ struct AnimationState {
             std::cout << "]\n";
             i++;
         }
+    }
+
+    void start_playback(void) {
+        // save the original keyframe for restoring later
+        this->extract_keyframe();
+        this->restore_keyframe = Keyframe(this->curr_keyframe.begin(), this->curr_keyframe.end());
+        this->playback_idx = 0;
+        this->playback_mode = true;
+        glfwSetTime(0);
+    }
+
+    void stop_playback(void) {
+        // restore the original keyframe
+        this->curr_keyframe = this->restore_keyframe;
+        this->apply_keyframe();
+        this->playback_idx = 0;
+        this->playback_mode = false;
     }
 };
 #endif
