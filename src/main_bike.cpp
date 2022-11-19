@@ -320,7 +320,6 @@ void initVertexBufferGL(void) {
     //     humanoidShirt_triangle_list.push_back(rider->children[0]->triangle_list[i]);
     // }
 
-    std::cout<<"Humanoid Triangles:\n";
     // for (int i=30;i<32; i++){
     //     humanoidShirt_triangle_list.push_back(rider->children[0]->triangle_list[i]);
     //     std::cout<<rider->children[0]->triangle_list[i].tri_str;
@@ -381,18 +380,33 @@ void initVertexBufferGL(void) {
 
     /* Init for bikeHeadlight */
     loadTexmap(bikeHeadlight_texture_fname, &bikeHeadlight_texture);
-    for (int i=70;i<72; i++){
-        bikeHeadlight_triangle_list.push_back(bike->triangle_list[i]);
-    }
-    std::cout<<bikeHeadlight_triangle_list.size();
-    for(auto it: bikeHeadlight_triangle_list){
-        bikeHeadlight_tex_vertices.push_back(it.p1.x);
-        bikeHeadlight_tex_vertices.push_back(it.p1.z);
-        bikeHeadlight_tex_vertices.push_back(it.p2.x);
-        bikeHeadlight_tex_vertices.push_back(it.p2.z);
-        bikeHeadlight_tex_vertices.push_back(it.p3.x);
-        bikeHeadlight_tex_vertices.push_back(it.p3.z);
-    };
+    // std::cout<<"Bike headlight textures:\n";
+    // for (int i=70;i<72; i++){
+    //     bikeHeadlight_triangle_list.push_back(bike->triangle_list[i]);
+    //     std::cout<<bike->triangle_list[i].tri_str;
+    // }
+    Point p1_bike(750, 675, 0);
+    Point p2_bike(875, 487.5, 0);
+    Point p3_bike(875, 487.5, 150);
+    Point p4_bike(750, 675, 150);
+    bikeHeadlight_triangle_list.push_back(Triangle(p1_bike,p4_bike,p3_bike));
+    bikeHeadlight_triangle_list.push_back(Triangle(p2_bike,p1_bike,p3_bike));
+
+    // std::cout<<bikeHeadlight_triangle_list.size();
+    // for(auto it: bikeHeadlight_triangle_list){
+    //     bikeHeadlight_tex_vertices.push_back(it.p1.x);
+    //     bikeHeadlight_tex_vertices.push_back(it.p1.z);
+    //     bikeHeadlight_tex_vertices.push_back(it.p2.x);
+    //     bikeHeadlight_tex_vertices.push_back(it.p2.z);
+    //     bikeHeadlight_tex_vertices.push_back(it.p3.x);
+    //     bikeHeadlight_tex_vertices.push_back(it.p3.z);
+    // };
+    bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(0.0f);
+    bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(1.0f);
+    bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(1.0f);
+    bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(0.0f);
+    bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(0.0f);
+    bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(1.0f);
     float bikeHeadlight_vertices[bikeHeadlight_triangle_list.size() * 3 * 5];
     for(unsigned int i = 0, j = 0; i < bikeHeadlight_triangle_list.size(); i++) {
         bikeHeadlight_vertices[15*i] = bikeHeadlight_triangle_list[i].p1.x;
