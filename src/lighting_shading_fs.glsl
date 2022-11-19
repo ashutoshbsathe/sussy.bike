@@ -84,13 +84,19 @@ void main ()
     vec4 lighting = vec4(0);
     float shadow = 0;
     vec4 final = vec4(0);
+    int active_lights = 0;
     for(int i = 0; i < num_lights; i++) {
         if(lights[i].isActive) {
             lighting = LightCalculation(i);
             shadow = ShadowCalculation(i);
+            active_lights += 1;
         }
-        final += vec4(vec3(material.y), 1) + (1.0 - shadow) * lighting;
+        else {
+            lighting = vec4(0);
+            shadow = 0;
+        }
+        final += (1.0 - shadow) * lighting;
     }
     frag_colour = vec4(color, 1);
-    frag_colour = final / num_lights * frag_colour; 
+    frag_colour = (vec4(vec3(material.y), 1) + final/max(active_lights, 1)) * frag_colour; 
 }

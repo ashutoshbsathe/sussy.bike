@@ -218,7 +218,7 @@ void initVertexBufferGL(void) {
         bike->triangle_list[70].p3 +
         bike->triangle_list[71].p3
     ) * 0.25).to_vec3() + glm::vec3(150, 0, 0); // pull the headlight "out"
-    bike_headlight_lookat_dir = glm::vec3(1, 0, 0);
+    bike_headlight_lookat_dir = glm::vec3(1, -1, 0);
     global_animate_state.lights_list.push_back(Light(bike_headlight, bike_headlight + bike_headlight_lookat_dir, cos(M_PI/36), false));
     vbo_offset = pair.second;
     bike->prepare_vbo();
