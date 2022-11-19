@@ -3,10 +3,6 @@
 #include "rider.hpp"
 #include "track.hpp"
 #include <GLFW/glfw3.h>
-#define TORSO_2(X) ((X)->children[0]) 
-#define NECK(X) ((TORSO_2(X))->children[0])
-#define HEAD(X) ((NECK(X))->children[0])
-#define HEAD_GLOBAL_TRANSFORM(X) (X->local_transform * X->dof_transform * TORSO_2(X)->local_transform * TORSO_2(X)->dof_transform * NECK(X)->local_transform * NECK(X)->dof_transform * HEAD(X)->local_transform * HEAD(X)->dof_transform)
 #define MAX_BIKE_VBO_BYTES 1024000
 //                          914112
 
@@ -54,6 +50,8 @@ int entity_idx = 0, curr_camera = 0;
 std::ofstream fout; // OpenGL logging
 
 Camera global_camera(glm::vec3(0.f, 2000.f, -2000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f)), third_person_camera, first_person_camera;
+
+AnimationState global_animate_state;
 
 std::vector<std::string> skybox_fnames = {
     /*"./resources/skybox/right.jpg",
@@ -105,6 +103,17 @@ std::vector<Triangle> skybox_triangle_list = {
     Triangle(c, f, b), Triangle(c, g, f)
 };
 
+void initGlobalAnimationState(void) {
+    global_animate_state.global_camera = global_camera;
+    global_animate_state.lights_list = all_lights;
+    global_animate_state.entity_list = entities;
+    global_animate_state.build_name_to_keyframe_indices();
+    std::cout << "curr_keyframe: len = " << global_animate_state.curr_keyframe.size() << ", [";
+    for(auto param : global_animate_state.curr_keyframe) {
+        std::cout << " " << param;
+    }
+    std::cout << " ]\n";
+}
 void initShadersGL(void) {
     std::string vertex_shader_file("lighting_shading_vs.glsl");
     std::string fragment_shader_file("lighting_shading_fs.glsl");
@@ -274,6 +283,8 @@ void initVertexBufferGL(void) {
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    initGlobalAnimationState();
 }
 
 void renderScene(glm::mat4 viewproject, glm::mat4 view, std::vector<glm::mat4> lightspace, glm::mat4 rider_hierarchy, glm::mat4 bike_hierarchy, bool lightcam) {

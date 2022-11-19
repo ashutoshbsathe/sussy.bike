@@ -9,6 +9,7 @@
 #include "tex.hpp"
 #include "camera.hpp"
 #include "light.hpp"
+#include "state.hpp"
 
 #include "gl_framework.hpp"
 #include "shader_util.hpp"
@@ -19,7 +20,7 @@
 #include "glm/gtc/constants.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
-
+/*
 // N_CELLS x N_CELLS x N_CELLS cubes
 #define N_CELLS 100
 // each cube is N_UNITS x N_UNITS x N_UNITS
@@ -30,6 +31,12 @@
 
 #define DRAW_MIN (-(N_CELLS*N_UNITS)/2)
 #define DRAW_MAX ((N_CELLS*N_UNITS)/2)
+*/
+
+#define TORSO_2(X) ((X)->children[0]) 
+#define NECK(X) ((TORSO_2(X))->children[0])
+#define HEAD(X) ((NECK(X))->children[0])
+#define HEAD_GLOBAL_TRANSFORM(X) (X->local_transform * X->dof_transform * TORSO_2(X)->local_transform * TORSO_2(X)->dof_transform * NECK(X)->local_transform * NECK(X)->dof_transform * HEAD(X)->local_transform * HEAD(X)->dof_transform)
 
 bool persp = false;
 float xrot = 0, yrot = 0, zrot = 0, rotamount = M_PI/15.0, VIEW_PADDING = 55.00, zoomamount = 3.0, light_x = 0, light_y = 0, light_z = 0, light_moveamount = M_PI/12.0, xmove = 0, ymove = 0, zmove = 0, moveamount = 50;
