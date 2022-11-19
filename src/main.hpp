@@ -28,6 +28,34 @@
 
 float xrot = 0, yrot = 0, zrot = 0, rotamount = M_PI/30.0, light_x = 0, light_y = 0, light_z = 0, light_moveamount = M_PI/303.0, xmove = 0, ymove = 0, zmove = 0, moveamount = 50;
 
+
+
+void push_lights_to_uniform(GLuint shader_program, std::vector<Light> all_lights) {
+    unsigned num_lights = all_lights.size();
+    GLuint tmp;
+    glm::vec3 dir;
+    std::stringstream ss;
+    for(unsigned int i = 0; i < num_lights; i++) {
+        ss.str(std::string());
+        ss << "lights[" << i << "].position";
+        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
+        glUniform3f(tmp, all_lights[i].position.x, all_lights[i].position.y, all_lights[i].position.z);
+        dir = -glm::normalize(all_lights[i].to_camera().n);
+        ss.str(std::string());
+        ss << "lights[" << i << "].spotDir";
+        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
+        glUniform3f(tmp, dir.x, dir.y, dir.z);
+        ss.str(std::string());
+        ss << "lights[" << i << "].cutOff";
+        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
+        glUniform1f(tmp, all_lights[i].cutOff);
+        ss.str(std::string());
+        ss << "lights[" << i << "].isActive";
+        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
+        glUniform1i(tmp, all_lights[i].isActive);
+    }
+}
+
 // Global rendering related things
 GLuint shader_program, vbo, vao, uModelMatrix_id, uNormalMatrix_id, uViewMatrix_id, position_id, color_id, normal_id, uLightSpaceMatrix_id, uShadowMap_id, uNumLights_id, uMaterial_id;
 
@@ -154,7 +182,7 @@ void renderSkyboxGL(glm::mat4 modelviewproject) {
     |      *   |
     3---------*1
 */
-GLuint texture_vao, texture_vbo, texture_shader_program, texture_position_id, texture_texPosition_id, texture_uModelViewProject_id, texture_sampler_id;
+GLuint texture_vao, texture_vbo, texture_shader_program, texture_position_id, texture_texPosition_id, texture_normal_id, texture_uModelMatrix_id, texture_uNormalMatrix_id, texture_uViewMatrix_id, texture_sampler_id, texture_shadow_id, texture_uNumLights_id, texture_uMaterial_id, texture_uLightSpaceMatrix_id;
 
 void initTexturedShadersGL(void) {
     std::vector<GLuint> shaderList;
@@ -164,7 +192,14 @@ void initTexturedShadersGL(void) {
     texture_shader_program = csX75::CreateProgramGL(shaderList);
     texture_position_id = glGetAttribLocation(texture_shader_program, "vPosition");
     texture_texPosition_id = glGetAttribLocation(texture_shader_program, "vTexture");
-    texture_uModelViewProject_id = glGetUniformLocation(texture_shader_program, "uModelViewProjectMatrix");
+    texture_normal_id = glGetAttribLocation(texture_shader_program, "vNormal");
+    texture_uModelMatrix_id = glGetUniformLocation(texture_shader_program, "uModelMatrix");
+    texture_uNormalMatrix_id = glGetUniformLocation(texture_shader_program, "uNormalMatrix");
+    texture_uViewMatrix_id = glGetUniformLocation(texture_shader_program, "uViewMatrix");
+    texture_uLightSpaceMatrix_id = glGetUniformLocation(texture_shader_program, "uLightSpaceMatrix");
+    texture_uNumLights_id = glGetUniformLocation(texture_shader_program, "num_lights");
+    texture_uMaterial_id = glGetUniformLocation(texture_shader_program, "material");
+    texture_shadow_id = glGetUniformLocation(texture_shader_program, "shadowMap");
     texture_sampler_id = glGetUniformLocation(texture_shader_program, "tex");
 }
 
@@ -193,8 +228,8 @@ void initTexturedBuffersGL(void) {
     Point p3_sand(-15000,-15000,-700);  //top right
     Point p4_sand(-15000,15000,-700);   //top left
 
-    all_triangle_list.push_back(Triangle(p1_sand,p3_sand,p4_sand));
-    all_triangle_list.push_back(Triangle(p4_sand,p2_sand,p1_sand));
+    all_triangle_list.push_back(Triangle(p1_sand,p4_sand,p3_sand));
+    all_triangle_list.push_back(Triangle(p4_sand,p1_sand,p2_sand));
 
     all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(1.0f); //p1
     all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(0.0f); //p3
@@ -204,23 +239,33 @@ void initTexturedBuffersGL(void) {
     all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(1.0f); //p1
 
     for(unsigned int i = 0; i < all_triangle_list.size(); i++) {
-        all_vbo_vertices[15*i] = all_triangle_list[i].p1.x;
-        all_vbo_vertices[15*i+1] = all_triangle_list[i].p1.z+500;
-        all_vbo_vertices[15*i+2] = all_triangle_list[i].p1.y;
-        all_vbo_vertices[15*i+3] = all_tex_vertices[j++];
-        all_vbo_vertices[15*i+4] = all_tex_vertices[j++];
+        std::cout << all_triangle_list[i].normal.x << ", " << all_triangle_list[i].normal.y << ", " << all_triangle_list[i].normal.z << "\n";
+        all_vbo_vertices[24*i] = all_triangle_list[i].p1.x;
+        all_vbo_vertices[24*i+1] = all_triangle_list[i].p1.z+500;
+        all_vbo_vertices[24*i+2] = all_triangle_list[i].p1.y;
+        all_vbo_vertices[24*i+3] = all_triangle_list[i].normal.x;
+        all_vbo_vertices[24*i+4] = all_triangle_list[i].normal.y;
+        all_vbo_vertices[24*i+5] = all_triangle_list[i].normal.z;
+        all_vbo_vertices[24*i+6] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+7] = all_tex_vertices[j++];
 
-        all_vbo_vertices[15*i+5] = all_triangle_list[i].p2.x;
-        all_vbo_vertices[15*i+6] = all_triangle_list[i].p2.z+500;
-        all_vbo_vertices[15*i+7] = all_triangle_list[i].p2.y;
-        all_vbo_vertices[15*i+8] = all_tex_vertices[j++];
-        all_vbo_vertices[15*i+9] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+8] = all_triangle_list[i].p2.x;
+        all_vbo_vertices[24*i+9] = all_triangle_list[i].p2.z+500;
+        all_vbo_vertices[24*i+10] = all_triangle_list[i].p2.y;
+        all_vbo_vertices[24*i+11] = all_triangle_list[i].normal.x;
+        all_vbo_vertices[24*i+12] = all_triangle_list[i].normal.y;
+        all_vbo_vertices[24*i+13] = all_triangle_list[i].normal.z;
+        all_vbo_vertices[24*i+14] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+15] = all_tex_vertices[j++];
 
-        all_vbo_vertices[15*i+10] = all_triangle_list[i].p3.x;
-        all_vbo_vertices[15*i+11] = all_triangle_list[i].p3.z+500;
-        all_vbo_vertices[15*i+12] = all_triangle_list[i].p3.y;
-        all_vbo_vertices[15*i+13] = all_tex_vertices[j++];
-        all_vbo_vertices[15*i+14] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+16] = all_triangle_list[i].p3.x;
+        all_vbo_vertices[24*i+17] = all_triangle_list[i].p3.z+500;
+        all_vbo_vertices[24*i+18] = all_triangle_list[i].p3.y;
+        all_vbo_vertices[24*i+19] = all_triangle_list[i].normal.x;
+        all_vbo_vertices[24*i+20] = all_triangle_list[i].normal.y;
+        all_vbo_vertices[24*i+21] = all_triangle_list[i].normal.z;
+        all_vbo_vertices[24*i+22] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+23] = all_tex_vertices[j++];
     }
 
     /* Init for bikeHeadlight */
@@ -242,23 +287,32 @@ void initTexturedBuffersGL(void) {
     all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(0.0f); // p1
     all_tex_vertices.push_back(0.0f); all_tex_vertices.push_back(1.0f); // p3
     for(unsigned int i = 2; i < all_triangle_list.size(); i++) {
-        all_vbo_vertices[15*i] = all_triangle_list[i].p1.x;
-        all_vbo_vertices[15*i+1] = all_triangle_list[i].p1.y;
-        all_vbo_vertices[15*i+2] = all_triangle_list[i].p1.z;
-        all_vbo_vertices[15*i+3] = all_tex_vertices[j++];
-        all_vbo_vertices[15*i+4] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i] = all_triangle_list[i].p1.x;
+        all_vbo_vertices[24*i+1] = all_triangle_list[i].p1.y;
+        all_vbo_vertices[24*i+2] = all_triangle_list[i].p1.z;
+        all_vbo_vertices[24*i+3] = all_triangle_list[i].normal.x;
+        all_vbo_vertices[24*i+4] = all_triangle_list[i].normal.y;
+        all_vbo_vertices[24*i+5] = all_triangle_list[i].normal.z;
+        all_vbo_vertices[24*i+6] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+7] = all_tex_vertices[j++];
 
-        all_vbo_vertices[15*i+5] = all_triangle_list[i].p2.x;
-        all_vbo_vertices[15*i+6] = all_triangle_list[i].p2.y;
-        all_vbo_vertices[15*i+7] = all_triangle_list[i].p2.z;
-        all_vbo_vertices[15*i+8] = all_tex_vertices[j++];
-        all_vbo_vertices[15*i+9] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+8] = all_triangle_list[i].p2.x;
+        all_vbo_vertices[24*i+9] = all_triangle_list[i].p2.y;
+        all_vbo_vertices[24*i+10] = all_triangle_list[i].p2.z;
+        all_vbo_vertices[24*i+11] = all_triangle_list[i].normal.x;
+        all_vbo_vertices[24*i+12] = all_triangle_list[i].normal.y;
+        all_vbo_vertices[24*i+13] = all_triangle_list[i].normal.z;
+        all_vbo_vertices[24*i+14] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+15] = all_tex_vertices[j++];
 
-        all_vbo_vertices[15*i+10] = all_triangle_list[i].p3.x;
-        all_vbo_vertices[15*i+11] = all_triangle_list[i].p3.y;
-        all_vbo_vertices[15*i+12] = all_triangle_list[i].p3.z;
-        all_vbo_vertices[15*i+13] = all_tex_vertices[j++];
-        all_vbo_vertices[15*i+14] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+16] = all_triangle_list[i].p3.x;
+        all_vbo_vertices[24*i+17] = all_triangle_list[i].p3.y;
+        all_vbo_vertices[24*i+18] = all_triangle_list[i].p3.z;
+        all_vbo_vertices[24*i+19] = all_triangle_list[i].normal.x;
+        all_vbo_vertices[24*i+20] = all_triangle_list[i].normal.y;
+        all_vbo_vertices[24*i+21] = all_triangle_list[i].normal.z;
+        all_vbo_vertices[24*i+22] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+23] = all_tex_vertices[j++];
     }
     
     /* Init for humanoidShirt */
@@ -280,25 +334,33 @@ void initTexturedBuffersGL(void) {
     all_tex_vertices.push_back(0.0f); all_tex_vertices.push_back(0.0f); //p3
 
     for(unsigned int i = 4; i < all_triangle_list.size(); i++) {
-        all_vbo_vertices[15*i] = all_triangle_list[i].p1.x;
-        all_vbo_vertices[15*i+1] = all_triangle_list[i].p1.y*0.775;
-        all_vbo_vertices[15*i+2] = all_triangle_list[i].p1.z + z_offset;
-        all_vbo_vertices[15*i+3] = all_tex_vertices[j++];
-        all_vbo_vertices[15*i+4] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i] = all_triangle_list[i].p1.x;
+        all_vbo_vertices[24*i+1] = all_triangle_list[i].p1.y*0.775;
+        all_vbo_vertices[24*i+2] = all_triangle_list[i].p1.z + z_offset;
+        all_vbo_vertices[24*i+3] = all_triangle_list[i].normal.x;
+        all_vbo_vertices[24*i+4] = all_triangle_list[i].normal.y;
+        all_vbo_vertices[24*i+5] = all_triangle_list[i].normal.z;
+        all_vbo_vertices[24*i+6] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+7] = all_tex_vertices[j++];
 
-        all_vbo_vertices[15*i+5] = all_triangle_list[i].p2.x;
-        all_vbo_vertices[15*i+6] = all_triangle_list[i].p2.y*0.775;
-        all_vbo_vertices[15*i+7] = all_triangle_list[i].p2.z + z_offset;
-        all_vbo_vertices[15*i+8] = all_tex_vertices[j++];
-        all_vbo_vertices[15*i+9] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+8] = all_triangle_list[i].p2.x;
+        all_vbo_vertices[24*i+9] = all_triangle_list[i].p2.y*0.775;
+        all_vbo_vertices[24*i+10] = all_triangle_list[i].p2.z + z_offset;
+        all_vbo_vertices[24*i+11] = all_triangle_list[i].normal.x;
+        all_vbo_vertices[24*i+12] = all_triangle_list[i].normal.y;
+        all_vbo_vertices[24*i+13] = all_triangle_list[i].normal.z;
+        all_vbo_vertices[24*i+14] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+15] = all_tex_vertices[j++];
 
-        all_vbo_vertices[15*i+10] = all_triangle_list[i].p3.x;
-        all_vbo_vertices[15*i+11] = all_triangle_list[i].p3.y*0.775;
-        all_vbo_vertices[15*i+12] = all_triangle_list[i].p3.z + z_offset;
-        all_vbo_vertices[15*i+13] = all_tex_vertices[j++];
-        all_vbo_vertices[15*i+14] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+16] = all_triangle_list[i].p3.x;
+        all_vbo_vertices[24*i+17] = all_triangle_list[i].p3.y*0.775;
+        all_vbo_vertices[24*i+18] = all_triangle_list[i].p3.z + z_offset;
+        all_vbo_vertices[24*i+19] = all_triangle_list[i].normal.x;
+        all_vbo_vertices[24*i+20] = all_triangle_list[i].normal.y;
+        all_vbo_vertices[24*i+21] = all_triangle_list[i].normal.z;
+        all_vbo_vertices[24*i+22] = all_tex_vertices[j++];
+        all_vbo_vertices[24*i+23] = all_tex_vertices[j++];
     }
-
 
     glGenVertexArrays (1, &texture_vao);
     glBindVertexArray (texture_vao);
@@ -307,28 +369,70 @@ void initTexturedBuffersGL(void) {
  
     glBufferData(GL_ARRAY_BUFFER, sizeof(all_vbo_vertices) , &all_vbo_vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(texture_position_id);
-    glVertexAttribPointer(texture_position_id, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(0));
+    glVertexAttribPointer(texture_position_id, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), BUFFER_OFFSET(0));
+    glEnableVertexAttribArray(texture_normal_id);
+    glVertexAttribPointer(texture_normal_id, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), BUFFER_OFFSET(3*sizeof(float)));
     glEnableVertexAttribArray(texture_texPosition_id);
-    glVertexAttribPointer(texture_texPosition_id, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(3*sizeof(float)));
+    glVertexAttribPointer(texture_texPosition_id, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), BUFFER_OFFSET(6*sizeof(float)));
 }
 
-void renderTexturedGL(glm::mat4 sandtrack_modelviewproject, glm::mat4 bike_modelviewproject, glm::mat4 rider_modelviewproject) {
+void renderTexturedGL(glm::mat4 viewmatrix, glm::mat4 sandtrack_modelviewproject, glm::mat4 bike_modelviewproject, glm::mat4 rider_modelviewproject, std::vector<Light> lights, std::vector<glm::mat4> lightspace_matrices) {
+    std::vector<glm::mat4> overall_lightspace;
+    float copy_to_uniform_lightspace[4*16]; // max 4 mat4s
     glUseProgram(texture_shader_program);
     glBindVertexArray(texture_vao);
-    glUniform1i(texture_sampler_id, 0);
+    glUniform1i(texture_shadow_id, 0);
+    glUniform1i(texture_sampler_id, 1);
+    glUniform1i(texture_uNumLights_id, lights.size());
+    glUniformMatrix4fv(texture_uViewMatrix_id, 1, GL_FALSE, glm::value_ptr(viewmatrix));
+    glUniform4f(texture_uMaterial_id, 0.75, 0.2, 1.75, 2);
+    push_lights_to_uniform(texture_shader_program, lights);
 
-    glUniformMatrix4fv(texture_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(sandtrack_modelviewproject));
-    glActiveTexture(GL_TEXTURE0);
+    overall_lightspace.clear();
+    for(unsigned int i = 0; i < lights.size(); i++) {
+        overall_lightspace.push_back(lightspace_matrices[i] * sandtrack_modelviewproject);
+    }
+    for(unsigned int i = 0; i < lights.size(); i++) 
+        for(unsigned int j = 0; j < 4; j++)
+            for(unsigned int k = 0; k < 4; k++)
+                copy_to_uniform_lightspace[i*16+j*4+k] = overall_lightspace[i][j][k];
+    glUniformMatrix4fv(texture_uModelMatrix_id, 1, GL_FALSE, glm::value_ptr(sandtrack_modelviewproject));
+    glUniformMatrix3fv(texture_uNormalMatrix_id, 1, GL_FALSE, glm::value_ptr(glm::transpose(glm::inverse(glm::mat3(sandtrack_modelviewproject)))));
+    glUniformMatrix4fv(texture_uLightSpaceMatrix_id, lights.size(), GL_FALSE, copy_to_uniform_lightspace);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, sandTrack_texture_id);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    overall_lightspace.clear();
+    for(unsigned int i = 0; i < lights.size(); i++) {
+        overall_lightspace.push_back(lightspace_matrices[i] * bike_modelviewproject);
+    }
+    for(unsigned int i = 0; i < lights.size(); i++) 
+        for(unsigned int j = 0; j < 4; j++)
+            for(unsigned int k = 0; k < 4; k++)
+                copy_to_uniform_lightspace[i*16+j*4+k] = overall_lightspace[i][j][k];
+    glUniformMatrix4fv(texture_uModelMatrix_id, 1, GL_FALSE, glm::value_ptr(bike_modelviewproject));
+    glUniformMatrix3fv(texture_uNormalMatrix_id, 1, GL_FALSE, glm::value_ptr(glm::transpose(glm::inverse(glm::mat3(bike_modelviewproject)))));
+    glUniformMatrix4fv(texture_uLightSpaceMatrix_id, lights.size(), GL_FALSE, copy_to_uniform_lightspace);
     
-    glUniformMatrix4fv(texture_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(bike_modelviewproject));
-    glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, bikeHeadlight_texture_id);
     glDrawArrays(GL_TRIANGLES, 6, 6);
     
-    glUniformMatrix4fv(texture_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(rider_modelviewproject));
-    glActiveTexture(GL_TEXTURE0);
+    overall_lightspace.clear();
+    for(unsigned int i = 0; i < lights.size(); i++) {
+        overall_lightspace.push_back(lightspace_matrices[i] * rider_modelviewproject);
+    }
+    for(unsigned int i = 0; i < lights.size(); i++) 
+        for(unsigned int j = 0; j < 4; j++)
+            for(unsigned int k = 0; k < 4; k++)
+                copy_to_uniform_lightspace[i*16+j*4+k] = overall_lightspace[i][j][k];
+    glUniformMatrix4fv(texture_uModelMatrix_id, 1, GL_FALSE, glm::value_ptr(rider_modelviewproject));
+    glUniformMatrix3fv(texture_uNormalMatrix_id, 1, GL_FALSE, glm::value_ptr(glm::transpose(glm::inverse(glm::mat3(rider_modelviewproject)))));
+    glUniformMatrix4fv(texture_uLightSpaceMatrix_id, lights.size(), GL_FALSE, copy_to_uniform_lightspace);
+    
+    glUniformMatrix4fv(texture_uModelMatrix_id, 1, GL_FALSE, glm::value_ptr(rider_modelviewproject));
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, humanoidShirt_texture_id);
     glDrawArrays(GL_TRIANGLES, 12, 6);
 }

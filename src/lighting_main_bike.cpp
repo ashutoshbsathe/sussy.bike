@@ -16,32 +16,6 @@ Camera third_person_camera, first_person_camera;
 
 AnimationState global_animate_state;
 
-void push_lights_to_uniform(GLuint shader_program, std::vector<Light> all_lights) {
-    unsigned num_lights = all_lights.size();
-    GLuint tmp;
-    glm::vec3 dir;
-    std::stringstream ss;
-    for(unsigned int i = 0; i < num_lights; i++) {
-        ss.str(std::string());
-        ss << "lights[" << i << "].position";
-        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
-        glUniform3f(tmp, all_lights[i].position.x, all_lights[i].position.y, all_lights[i].position.z);
-        dir = -glm::normalize(all_lights[i].to_camera().n);
-        ss.str(std::string());
-        ss << "lights[" << i << "].spotDir";
-        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
-        glUniform3f(tmp, dir.x, dir.y, dir.z);
-        ss.str(std::string());
-        ss << "lights[" << i << "].cutOff";
-        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
-        glUniform1f(tmp, all_lights[i].cutOff);
-        ss.str(std::string());
-        ss << "lights[" << i << "].isActive";
-        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
-        glUniform1i(tmp, all_lights[i].isActive);
-    }
-}
-
 void initGlobalAnimationState(void) {
     global_animate_state.global_camera = Camera(glm::vec3(0.f, 2000.f, -2000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     global_animate_state.curr_camera = 0;
@@ -321,10 +295,13 @@ void renderGL(void) {
     modelviewproject_matrix = projection_matrix * view_matrix; 
     
     renderSkyboxGL(modelviewproject_matrix);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, depthMap_texture_array);      
     renderTexturedGL(
-        modelviewproject_matrix, 
-        modelviewproject_matrix * bike->dof_transform * bike->children[3]->dof_transform,
-        modelviewproject_matrix * rider->dof_transform * rider->children[0]->dof_transform
+        modelviewproject_matrix, glm::mat4(1),
+        bike->dof_transform * bike->children[3]->dof_transform,
+        rider->dof_transform * rider->children[0]->dof_transform,
+        global_animate_state.lights_list, lightspace_matrices
     );
 
     glUseProgram(shader_program);
