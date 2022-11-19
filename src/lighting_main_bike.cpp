@@ -96,6 +96,7 @@ void initShadersGL(void) {
     shadow_uLightSpaceMatrix_id = glGetUniformLocation(shadow_shader_program, "uLightSpaceMatrix");
 
     initSkyboxShadersGL();
+    initTexturedShadersGL();
 }
 
 void initVertexBufferGL(void) {
@@ -208,6 +209,7 @@ void initVertexBufferGL(void) {
     global_animate_state.build_name_to_keyframe_indices();
 
     initSkyboxBuffersGL();
+    initTexturedBuffersGL();
 }
 
 void renderScene(glm::mat4 viewproject, glm::mat4 view, std::vector<glm::mat4> lightspace, glm::mat4 rider_hierarchy, glm::mat4 bike_hierarchy, bool lightcam) {
@@ -317,18 +319,9 @@ void renderGL(void) {
         projection_matrix = glm::frustum(-1, 1, -1, 1, 1, 10);
     }
     modelviewproject_matrix = projection_matrix * view_matrix; 
-    /* Rendering skybox before the scene 
-     * Not great for performance but hey, it works
-     */
-    glDepthMask(GL_FALSE);
-    glUseProgram(skybox_shader_program);
-    glUniformMatrix4fv(skybox_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
-    glUniform1i(skybox_sampler_id, 0);
-    glBindVertexArray(skybox_vao);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_texture);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glDepthMask(GL_TRUE);
+    
+    renderSkyboxGL(modelviewproject_matrix);
+    renderTexturedGL();
 
     glUseProgram(shader_program);
     glBindVertexArray(vao);

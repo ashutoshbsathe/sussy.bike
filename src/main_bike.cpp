@@ -88,8 +88,6 @@ std::vector<Triangle> skybox_triangle_list = {
     |   *      |
     |      *   |
     3---------*1
-
-
 */
 GLuint sandTrack_texture, sandTrack_vao, sandTrack_vbo, sandTrack_shader_program, sandTrack_position_id, sandTrack_texPosition_id, sandTrack_uModelViewProject_id, sandTrack_sampler_id;
 std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg";

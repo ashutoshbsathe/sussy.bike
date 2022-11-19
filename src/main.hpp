@@ -133,4 +133,105 @@ void initSkyboxBuffersGL(void) {
     glEnableVertexAttribArray(skybox_position_id);
     glVertexAttribPointer(shadow_position_id, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), BUFFER_OFFSET(0));
 }
+
+void renderSkyboxGL(glm::mat4 modelviewproject) {
+    glDepthMask(GL_FALSE);
+    glUseProgram(skybox_shader_program);
+    glUniformMatrix4fv(skybox_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject));
+    glUniform1i(skybox_sampler_id, 0);
+    glBindVertexArray(skybox_vao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_texture);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDepthMask(GL_TRUE);
+}
+
+// Texture specific globals
+/*
+    4----------2   
+    |*         |
+    |   *      |
+    |      *   |
+    3---------*1
+*/
+GLuint texture_id, texture_vao, texture_vbo, texture_shader_program, texture_position_id, texture_texPosition_id, texture_uModelViewProject_id, texture_sampler_id;
+
+void initTexturedShadersGL(void) {
+    std::vector<GLuint> shaderList;
+    shaderList.push_back(csX75::LoadShaderGL(GL_VERTEX_SHADER, "texture_vs.glsl"));
+    shaderList.push_back(csX75::LoadShaderGL(GL_FRAGMENT_SHADER, "texture_fs.glsl"));
+
+    texture_shader_program = csX75::CreateProgramGL(shaderList);
+    texture_position_id = glGetAttribLocation(texture_shader_program, "vPosition");
+    texture_texPosition_id = glGetAttribLocation(texture_shader_program, "vTexture");
+    texture_uModelViewProject_id = glGetUniformLocation(texture_shader_program, "uModelViewProjectMatrix");
+    texture_sampler_id = glGetUniformLocation(texture_shader_program, "tex");
+}
+
+// Sand track texture
+std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg";
+
+// Common function for all textured entities
+void initTexturedBuffersGL(void) {
+    std::vector<Triangle> sandTrack_triangle_list;
+    std::vector<float> sandTrack_tex_vertices;
+
+    /* Init for sandTrack */
+    loadTexmap(sandTrack_texture_fname, &texture_id);
+    Point p1_sand(15000,-15000,-700);   //bottom right
+    Point p2_sand(15000,15000,-700);    //bottom left
+    Point p3_sand(-15000,-15000,-700);  //top right
+    Point p4_sand(-15000,15000,-700);   //top left
+
+    sandTrack_triangle_list.push_back(Triangle(p1_sand,p3_sand,p4_sand));
+    sandTrack_triangle_list.push_back(Triangle(p4_sand,p2_sand,p1_sand));
+
+    sandTrack_tex_vertices.push_back(1.0f); sandTrack_tex_vertices.push_back(1.0f); //p1
+    sandTrack_tex_vertices.push_back(1.0f); sandTrack_tex_vertices.push_back(0.0f); //p3
+    sandTrack_tex_vertices.push_back(0.0f); sandTrack_tex_vertices.push_back(0.0f); //p4
+    sandTrack_tex_vertices.push_back(0.0f); sandTrack_tex_vertices.push_back(0.0f); //p4
+    sandTrack_tex_vertices.push_back(0.0f); sandTrack_tex_vertices.push_back(1.0f); //p2
+    sandTrack_tex_vertices.push_back(1.0f); sandTrack_tex_vertices.push_back(1.0f); //p1
+
+    float sandTrack_vertices[sandTrack_triangle_list.size() * 3 * 5];
+    for(unsigned int i = 0, j = 0; i < sandTrack_triangle_list.size(); i++) {
+        sandTrack_vertices[15*i] = sandTrack_triangle_list[i].p1.x;
+        sandTrack_vertices[15*i+1] = sandTrack_triangle_list[i].p1.z+500;
+        sandTrack_vertices[15*i+2] = sandTrack_triangle_list[i].p1.y;
+        sandTrack_vertices[15*i+3] = sandTrack_tex_vertices[j++];
+        sandTrack_vertices[15*i+4] = sandTrack_tex_vertices[j++];
+
+        sandTrack_vertices[15*i+5] = sandTrack_triangle_list[i].p2.x;
+        sandTrack_vertices[15*i+6] = sandTrack_triangle_list[i].p2.z+500;
+        sandTrack_vertices[15*i+7] = sandTrack_triangle_list[i].p2.y;
+        sandTrack_vertices[15*i+8] = sandTrack_tex_vertices[j++];
+        sandTrack_vertices[15*i+9] = sandTrack_tex_vertices[j++];
+
+        sandTrack_vertices[15*i+10] = sandTrack_triangle_list[i].p3.x;
+        sandTrack_vertices[15*i+11] = sandTrack_triangle_list[i].p3.z+500;
+        sandTrack_vertices[15*i+12] = sandTrack_triangle_list[i].p3.y;
+        sandTrack_vertices[15*i+13] = sandTrack_tex_vertices[j++];
+        sandTrack_vertices[15*i+14] = sandTrack_tex_vertices[j++];
+    }
+    glGenVertexArrays (1, &texture_vao);
+    glBindVertexArray (texture_vao);
+    glGenBuffers (1, &texture_vbo);
+    glBindBuffer (GL_ARRAY_BUFFER, texture_vbo);
+ 
+    glBufferData(GL_ARRAY_BUFFER, sizeof(sandTrack_vertices) , &sandTrack_vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(texture_position_id);
+    glVertexAttribPointer(texture_position_id, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(0));
+    glEnableVertexAttribArray(texture_texPosition_id);
+    glVertexAttribPointer(texture_texPosition_id, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(3*sizeof(float)));
+}
+
+void renderTexturedGL(void) {
+    glUseProgram(texture_shader_program);
+    glUniformMatrix4fv(texture_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
+    glUniform1i(texture_sampler_id, 0);
+    glBindVertexArray(texture_vao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
 #endif
