@@ -13,7 +13,7 @@ struct AnimationState {
     Keyframe curr_keyframe, restore_keyframe;
     std::map<std::string, std::pair<unsigned int, unsigned int>> name_to_keyframe_indices;
 
-    bool playback_mode = false;
+    bool playback_mode = false, record_mode = false;
     unsigned int playback_idx = 0;
 
     AnimationState() {
@@ -121,13 +121,13 @@ struct AnimationState {
         this->global_camera.pitch = this->curr_keyframe[start+4];
 
         // entities
-        for(auto entity: this->entity_list) {
-            start = this->name_to_keyframe_indices[entity.name].first;
-            end = this->name_to_keyframe_indices[entity.name].second;
-            for(int i = start; i < end; i++) {
-                entity.params[i-start] = this->curr_keyframe[i];
+        for(unsigned int i = 0; i < this->entity_list.size(); i++) {
+            start = this->name_to_keyframe_indices[this->entity_list[i].name].first;
+            end = this->name_to_keyframe_indices[this->entity_list[i].name].second;
+            for(unsigned int j = start; j < end; j++) {
+                this->entity_list[i].params[j-start] = this->curr_keyframe[j];
             }
-            entity.apply_params(entity.root);
+            this->entity_list[i].apply_params(this->entity_list[i].root);
         }
     }
 
@@ -218,6 +218,35 @@ struct AnimationState {
         this->apply_keyframe();
         this->playback_idx = 0;
         this->playback_mode = false;
+    }
+
+    void save_keyframes_to_file(void) {
+        std::ofstream fout;
+        fout.open("keyframes.txt");
+        for(Keyframe f: this->saved_keyframes) {
+            for(float param: f) {
+                fout << param << " ";
+            }
+            fout << "\n";
+        }
+        fout.close();
+    }
+
+    void read_keyframes_from_file(void) {
+        std::ifstream fin;
+        fin.open("keyframes.txt");
+        std::string line;
+        std::stringstream ss;
+        while(std::getline(fin, line)) {
+            ss.str("");
+            ss << line;
+            
+            for(int i = 0; i < this->curr_keyframe.size(); i++) {
+                ss >> this->curr_keyframe[i];    
+            }
+            this->saved_keyframes.push_back(Keyframe(this->curr_keyframe.begin(), this->curr_keyframe.end()));
+        }
+        fin.close();
     }
 };
 #endif

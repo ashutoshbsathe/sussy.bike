@@ -238,6 +238,12 @@ void renderGL(void) {
                 global_animate_state.stop_playback();
             }
             else {
+                if(global_animate_state.record_mode) {
+                    unsigned char *pixels = (unsigned char *)malloc(3 * 1024 * 1024);
+                    glReadPixels(0, 0, 1024, 1024, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+                    stbi_write_png("screens/screenshot.png", 1024, 1024, 3, pixels, 1024 * 3);
+                    free(pixels);
+                }
                 global_animate_state.curr_keyframe = global_animate_state.interpolated_keyframes[global_animate_state.playback_idx];
                 global_animate_state.apply_keyframe();
                 global_animate_state.playback_idx++;
@@ -303,8 +309,8 @@ void renderGL(void) {
         view_matrix = first_person_camera.viewMatrix;
         projection_matrix = glm::frustum(-1, 1, -1, 1, 1, 10);
     }
-    modelviewproject_matrix = projection_matrix * view_matrix; 
-    
+    modelviewproject_matrix = projection_matrix * view_matrix;
+
     renderSkyboxGL(modelviewproject_matrix);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, depthMap_texture_array);      
@@ -469,6 +475,7 @@ int main(int argc, char** argv) {
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
     glDebugMessageCallback(glDebugOutput, nullptr);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     initGlobalAnimationState();
     initShadersGL();
@@ -488,6 +495,7 @@ int main(int argc, char** argv) {
     }
 
     glfwTerminate();
+    fout.close();
     return 0;
 }
 
