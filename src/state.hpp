@@ -95,6 +95,53 @@ struct AnimationState {
             }
         }
     }
+    
+    void apply_keyframe() {
+        unsigned int start, end;
+        // lights
+        start = this->name_to_keyframe_indices["lights"].first;
+        end = this->name_to_keyframe_indices["lights"].second;
+        for(int i = start; i < end; i++) {
+            this->lights_list[i-start].isActive = this->curr_keyframe[i];
+        }
+        
+        // current camera
+        start = this->name_to_keyframe_indices["curr_camera"].first;
+        this->curr_camera = this->curr_keyframe[start]; 
+        
+        // global camera
+        start = this->name_to_keyframe_indices["global_camera"].first;
+        this->global_camera.eye.x = this->curr_keyframe[start];
+        this->global_camera.eye.y = this->curr_keyframe[start+1];
+        this->global_camera.eye.z = this->curr_keyframe[start+2];
+        this->global_camera.yaw = this->curr_keyframe[start+3];
+        this->global_camera.pitch = this->curr_keyframe[start+4];
+
+        // entities
+        for(auto entity: this->entity_list) {
+            start = this->name_to_keyframe_indices[entity.name].first;
+            end = this->name_to_keyframe_indices[entity.name].second;
+            for(int i = start; i < end; i++) {
+                entity.params[i-start] = this->curr_keyframe[i];
+            }
+            entity.apply_params(entity.root);
+        }
+    }
+
+    void save_keyframe(unsigned int keyframe_idx) {
+        this->extract_keyframe();
+        this->curr_keyframe[0] = keyframe_idx;
+        this->saved_keyframes.push_back(Keyframe(this->curr_keyframe.begin(), this->curr_keyframe.end()));
+        int i = 0;
+        for(auto keyframe: this->saved_keyframes) {
+            std::cout << "i = " << i << ", [ ";
+            for(auto param: keyframe) {
+                std::cout << param << " ";
+            }
+            std::cout << "]\n";
+            i++;
+        }
+    }
 };
 #endif
 

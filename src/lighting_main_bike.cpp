@@ -327,7 +327,6 @@ void renderScene(glm::mat4 viewproject, glm::mat4 view, std::vector<glm::mat4> l
 void updateLightCameraParams(int light_idx) {
     if(light_idx >= global_animate_state.lights_list.size())
         return;
-    global_animate_state.lights_list[light_idx].isActive = light_states[light_idx];
     int idx;
     switch(light_idx) {
         case 0: break;
@@ -436,12 +435,6 @@ void renderGL(void) {
     renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrices, glm::mat4(1), glm::mat4(1), false);
 
     global_animate_state.extract_keyframe();
-    std::cout << "curr_keyframe: len = " << global_animate_state.curr_keyframe.size() << ", [";
-    for(auto param : global_animate_state.curr_keyframe) {
-        std::cout << " " << param;
-    }
-    std::cout << " ]\n";
-
 }
 
 void APIENTRY glDebugOutput(GLenum source, 

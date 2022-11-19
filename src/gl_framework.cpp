@@ -7,7 +7,6 @@ extern float xrot, yrot, zrot, rotamount, VIEW_PADDING, zoomamount, light_x, lig
 extern float xmove, ymove, zmove, moveamount;
 extern HierarchyNode *curr_node;
 extern int entity_idx;
-extern bool light_states[4];
 extern AnimationState global_animate_state;
 namespace csX75 {
     unsigned int dof_id = 0;
@@ -203,13 +202,18 @@ namespace csX75 {
         } else if(key == GLFW_KEY_PAGE_DOWN) {
             light_z -= light_moveamount;
         } else if(key == GLFW_KEY_F1 && action == GLFW_PRESS) {
-            light_states[0] = !light_states[0];
+            global_animate_state.lights_list[0].isActive = !global_animate_state.lights_list[0].isActive;
         } else if(key == GLFW_KEY_F2 && action == GLFW_PRESS) {
-            light_states[1] = !light_states[1];
+            global_animate_state.lights_list[1].isActive = !global_animate_state.lights_list[1].isActive;
         } else if(key == GLFW_KEY_F3 && action == GLFW_PRESS) {
-            light_states[2] = !light_states[2];
+            global_animate_state.lights_list[2].isActive = !global_animate_state.lights_list[2].isActive;
         } else if(key == GLFW_KEY_F4 && action == GLFW_PRESS) {
-            light_states[3] = !light_states[3];
+            global_animate_state.lights_list[3].isActive = !global_animate_state.lights_list[3].isActive;
+        } else if(key == GLFW_KEY_F5 && action == GLFW_PRESS) {
+            unsigned int keyframe_idx;
+            std::cout << "Enter keyframe index:";
+            std::cin >> keyframe_idx;
+            global_animate_state.save_keyframe(keyframe_idx);
         }
     }
 }

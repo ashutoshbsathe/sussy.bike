@@ -40,5 +40,4 @@
 
 bool persp = false;
 float xrot = 0, yrot = 0, zrot = 0, rotamount = M_PI/15.0, VIEW_PADDING = 55.00, zoomamount = 3.0, light_x = 0, light_y = 0, light_z = 0, light_moveamount = M_PI/12.0, xmove = 0, ymove = 0, zmove = 0, moveamount = 50;
-bool light_states[4] = {false, false, false, false};
 #endif
