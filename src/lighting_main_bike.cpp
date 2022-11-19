@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #define MAX_BIKE_VBO_BYTES 1024000
 //                          914112
+double total_time = 0, rendered_frames = 0;
 GLuint shader_program, vbo, vao, uModelMatrix_id, uNormalMatrix_id, uViewMatrix_id, position_id, color_id, normal_id, uLightSpaceMatrix_id, uShadowMap_id, uNumLights_id, uMaterial_id;
 
 GLuint shadow_shader_program, shadow_position_id, shadow_uLightSpaceMatrix_id;
@@ -351,6 +352,7 @@ void updateLightCameraParams(int light_idx) {
 }
 
 void renderGL(void) { 
+    glfwSetTime(0);
     glBindVertexArray(vao);
     // render into depthmap
     std::vector<glm::mat4> lightspace_matrices;
@@ -433,8 +435,11 @@ void renderGL(void) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, depthMap_texture_array);      
     renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrices, glm::mat4(1), glm::mat4(1), false);
+    
+    total_time += glfwGetTime();
+    rendered_frames += 1;
 
-    global_animate_state.extract_keyframe();
+    std::cout << "FPS: " << rendered_frames / total_time << "\n";
 }
 
 void APIENTRY glDebugOutput(GLenum source, 
