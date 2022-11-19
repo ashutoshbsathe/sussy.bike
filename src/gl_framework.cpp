@@ -214,6 +214,8 @@ namespace csX75 {
             std::cout << "Enter keyframe index:";
             std::cin >> keyframe_idx;
             global_animate_state.save_keyframe(keyframe_idx);
+        } else if(key == GLFW_KEY_F6 && action == GLFW_PRESS) {
+            global_animate_state.interpolate_keyframes();
         }
     }
 }

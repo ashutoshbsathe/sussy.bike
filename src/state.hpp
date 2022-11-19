@@ -142,6 +142,63 @@ struct AnimationState {
             i++;
         }
     }
+
+    void interpolate_keyframes() {
+        this->interpolated_keyframes.clear();
+        unsigned int n_saved = this->saved_keyframes.size(), start, end;
+        std::cout << "n_saved = " << n_saved << "\n";
+        if(n_saved < 2) {
+            return;
+        }
+        this->interpolated_keyframes.push_back(Keyframe(this->saved_keyframes[0].begin(), this->saved_keyframes[0].end()));
+        for(unsigned int i = 1; i < n_saved; i++) {
+            // src is already pushed, tgt will be pushed at last
+            Keyframe src = this->saved_keyframes[i-1], tgt = this->saved_keyframes[i];
+            for(unsigned int j = src[0]+1; j < tgt[0]; j++) {
+                Keyframe k_i = Keyframe(src.begin(), src.end()); 
+                k_i[0] = j;
+                // lights
+                start = this->name_to_keyframe_indices["lights"].first;
+                end = this->name_to_keyframe_indices["lights"].second;
+                for(int k = start; k < end; k++) {
+                    k_i[k] = src[k];
+                }
+                
+                // current camera
+                start = this->name_to_keyframe_indices["curr_camera"].first;
+                k_i[start] = src[start];
+                
+                // global camera
+                start = this->name_to_keyframe_indices["global_camera"].first;
+                k_i[start] = src[start] + ((tgt[start] - src[start]) / (tgt[0] - src[0])) * (j - src[0]);
+                k_i[start+1] = src[start+1] + ((tgt[start+1] - src[start+1]) / (tgt[0] - src[0])) * (j - src[0]);
+                k_i[start+2] = src[start+2] + ((tgt[start+2] - src[start+2]) / (tgt[0] - src[0])) * (j - src[0]);
+                k_i[start+3] = src[start+3] + ((tgt[start+3] - src[start+3]) / (tgt[0] - src[0])) * (j - src[0]);
+                k_i[start+4] = src[start+4] + ((tgt[start+4] - src[start+4]) / (tgt[0] - src[0])) * (j - src[0]);
+
+                // entities
+                for(auto entity: this->entity_list) {
+                    start = this->name_to_keyframe_indices[entity.name].first;
+                    end = this->name_to_keyframe_indices[entity.name].second;
+                    for(int k = start; k < end; k++) {
+                        k_i[k] = src[k] + ((tgt[k] - src[k]) / (tgt[0] - src[0])) * (j - src[0]);
+                    }
+                }
+
+                this->interpolated_keyframes.push_back(Keyframe(k_i.begin(), k_i.end()));
+            }
+            this->interpolated_keyframes.push_back(Keyframe(tgt.begin(), tgt.end()));
+        }
+        int i = 0;
+        for(auto keyframe: this->interpolated_keyframes) {
+            std::cout << "i = " << i << ", [ ";
+            for(auto param: keyframe) {
+                std::cout << param << " ";
+            }
+            std::cout << "]\n";
+            i++;
+        }
+    }
 };
 #endif
 

@@ -318,7 +318,7 @@ void renderGL(void) {
     total_time += glfwGetTime();
     rendered_frames += 1;
 
-    std::cout << "FPS: " << rendered_frames / total_time << "\n";
+    //std::cout << "FPS: " << rendered_frames / total_time << "\n";
 }
 
 void APIENTRY glDebugOutput(GLenum source, 
