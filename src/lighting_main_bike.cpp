@@ -321,7 +321,11 @@ void renderGL(void) {
     modelviewproject_matrix = projection_matrix * view_matrix; 
     
     renderSkyboxGL(modelviewproject_matrix);
-    renderTexturedGL();
+    renderTexturedGL(
+        modelviewproject_matrix, 
+        modelviewproject_matrix * bike->dof_transform * bike->children[3]->dof_transform,
+        modelviewproject_matrix * rider->dof_transform * rider->children[0]->dof_transform
+    );
 
     glUseProgram(shader_program);
     glBindVertexArray(vao);

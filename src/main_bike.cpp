@@ -399,7 +399,6 @@ void initVertexBufferGL(void) {
         bikeHeadlight_vertices[15*i+12] = bikeHeadlight_triangle_list[i].p3.z;
         bikeHeadlight_vertices[15*i+13] = bikeHeadlight_tex_vertices[j++];
         bikeHeadlight_vertices[15*i+14] = bikeHeadlight_tex_vertices[j++];
-
     }
 
     glGenVertexArrays (1, &bikeHeadlight_vao);

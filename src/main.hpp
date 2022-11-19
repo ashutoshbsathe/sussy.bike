@@ -154,7 +154,7 @@ void renderSkyboxGL(glm::mat4 modelviewproject) {
     |      *   |
     3---------*1
 */
-GLuint texture_id, texture_vao, texture_vbo, texture_shader_program, texture_position_id, texture_texPosition_id, texture_uModelViewProject_id, texture_sampler_id;
+GLuint texture_vao, texture_vbo, texture_shader_program, texture_position_id, texture_texPosition_id, texture_uModelViewProject_id, texture_sampler_id;
 
 void initTexturedShadersGL(void) {
     std::vector<GLuint> shaderList;
@@ -170,68 +170,166 @@ void initTexturedShadersGL(void) {
 
 // Sand track texture
 std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg";
+GLuint sandTrack_texture_id;
 
+// Bike headlight texture
+std::string bikeHeadlight_texture_fname = "./resources/skybox_test/bike.png";
+GLuint bikeHeadlight_texture_id;
+
+// Humanoid shirt texture
+std::string humanoidShirt_texture_fname = "./resources/skybox_test/rider.png";
+GLuint humanoidShirt_texture_id;
 // Common function for all textured entities
 void initTexturedBuffersGL(void) {
-    std::vector<Triangle> sandTrack_triangle_list;
-    std::vector<float> sandTrack_tex_vertices;
+    unsigned int j = 0;
+    std::vector<Triangle> all_triangle_list;
+    std::vector<float> all_tex_vertices;
+    float all_vbo_vertices[1024]; // more than what is needed
 
     /* Init for sandTrack */
-    loadTexmap(sandTrack_texture_fname, &texture_id);
+    loadTexmap(sandTrack_texture_fname, &sandTrack_texture_id);
     Point p1_sand(15000,-15000,-700);   //bottom right
     Point p2_sand(15000,15000,-700);    //bottom left
     Point p3_sand(-15000,-15000,-700);  //top right
     Point p4_sand(-15000,15000,-700);   //top left
 
-    sandTrack_triangle_list.push_back(Triangle(p1_sand,p3_sand,p4_sand));
-    sandTrack_triangle_list.push_back(Triangle(p4_sand,p2_sand,p1_sand));
+    all_triangle_list.push_back(Triangle(p1_sand,p3_sand,p4_sand));
+    all_triangle_list.push_back(Triangle(p4_sand,p2_sand,p1_sand));
 
-    sandTrack_tex_vertices.push_back(1.0f); sandTrack_tex_vertices.push_back(1.0f); //p1
-    sandTrack_tex_vertices.push_back(1.0f); sandTrack_tex_vertices.push_back(0.0f); //p3
-    sandTrack_tex_vertices.push_back(0.0f); sandTrack_tex_vertices.push_back(0.0f); //p4
-    sandTrack_tex_vertices.push_back(0.0f); sandTrack_tex_vertices.push_back(0.0f); //p4
-    sandTrack_tex_vertices.push_back(0.0f); sandTrack_tex_vertices.push_back(1.0f); //p2
-    sandTrack_tex_vertices.push_back(1.0f); sandTrack_tex_vertices.push_back(1.0f); //p1
+    all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(1.0f); //p1
+    all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(0.0f); //p3
+    all_tex_vertices.push_back(0.0f); all_tex_vertices.push_back(0.0f); //p4
+    all_tex_vertices.push_back(0.0f); all_tex_vertices.push_back(0.0f); //p4
+    all_tex_vertices.push_back(0.0f); all_tex_vertices.push_back(1.0f); //p2
+    all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(1.0f); //p1
 
-    float sandTrack_vertices[sandTrack_triangle_list.size() * 3 * 5];
-    for(unsigned int i = 0, j = 0; i < sandTrack_triangle_list.size(); i++) {
-        sandTrack_vertices[15*i] = sandTrack_triangle_list[i].p1.x;
-        sandTrack_vertices[15*i+1] = sandTrack_triangle_list[i].p1.z+500;
-        sandTrack_vertices[15*i+2] = sandTrack_triangle_list[i].p1.y;
-        sandTrack_vertices[15*i+3] = sandTrack_tex_vertices[j++];
-        sandTrack_vertices[15*i+4] = sandTrack_tex_vertices[j++];
+    for(unsigned int i = 0; i < all_triangle_list.size(); i++) {
+        all_vbo_vertices[15*i] = all_triangle_list[i].p1.x;
+        all_vbo_vertices[15*i+1] = all_triangle_list[i].p1.z+500;
+        all_vbo_vertices[15*i+2] = all_triangle_list[i].p1.y;
+        all_vbo_vertices[15*i+3] = all_tex_vertices[j++];
+        all_vbo_vertices[15*i+4] = all_tex_vertices[j++];
 
-        sandTrack_vertices[15*i+5] = sandTrack_triangle_list[i].p2.x;
-        sandTrack_vertices[15*i+6] = sandTrack_triangle_list[i].p2.z+500;
-        sandTrack_vertices[15*i+7] = sandTrack_triangle_list[i].p2.y;
-        sandTrack_vertices[15*i+8] = sandTrack_tex_vertices[j++];
-        sandTrack_vertices[15*i+9] = sandTrack_tex_vertices[j++];
+        all_vbo_vertices[15*i+5] = all_triangle_list[i].p2.x;
+        all_vbo_vertices[15*i+6] = all_triangle_list[i].p2.z+500;
+        all_vbo_vertices[15*i+7] = all_triangle_list[i].p2.y;
+        all_vbo_vertices[15*i+8] = all_tex_vertices[j++];
+        all_vbo_vertices[15*i+9] = all_tex_vertices[j++];
 
-        sandTrack_vertices[15*i+10] = sandTrack_triangle_list[i].p3.x;
-        sandTrack_vertices[15*i+11] = sandTrack_triangle_list[i].p3.z+500;
-        sandTrack_vertices[15*i+12] = sandTrack_triangle_list[i].p3.y;
-        sandTrack_vertices[15*i+13] = sandTrack_tex_vertices[j++];
-        sandTrack_vertices[15*i+14] = sandTrack_tex_vertices[j++];
+        all_vbo_vertices[15*i+10] = all_triangle_list[i].p3.x;
+        all_vbo_vertices[15*i+11] = all_triangle_list[i].p3.z+500;
+        all_vbo_vertices[15*i+12] = all_triangle_list[i].p3.y;
+        all_vbo_vertices[15*i+13] = all_tex_vertices[j++];
+        all_vbo_vertices[15*i+14] = all_tex_vertices[j++];
     }
+
+    /* Init for bikeHeadlight */
+    loadTexmap(bikeHeadlight_texture_fname, &bikeHeadlight_texture_id);
+
+    float offset_x=25, offset_y=0, offset_z=0;
+    Point p1_bike(750+offset_x, 675+offset_y, 0+offset_z);  //top right
+    Point p2_bike(875+offset_x, 487.5+offset_y, 0+offset_z);    //bottom right
+    Point p3_bike(875+offset_x, 487.5+offset_y, 150+offset_z);  //bottom left
+    Point p4_bike(750+offset_x, 675+offset_y, 150+offset_z);    //top left
+
+    all_triangle_list.push_back(Triangle(p1_bike,p4_bike,p3_bike));
+    all_triangle_list.push_back(Triangle(p2_bike,p1_bike,p3_bike));
+
+    all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(0.0f); // p1
+    all_tex_vertices.push_back(0.0f); all_tex_vertices.push_back(0.0f); // p4
+    all_tex_vertices.push_back(0.0f); all_tex_vertices.push_back(1.0f); // p3
+    all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(1.0f); // p2
+    all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(0.0f); // p1
+    all_tex_vertices.push_back(0.0f); all_tex_vertices.push_back(1.0f); // p3
+    for(unsigned int i = 2; i < all_triangle_list.size(); i++) {
+        all_vbo_vertices[15*i] = all_triangle_list[i].p1.x;
+        all_vbo_vertices[15*i+1] = all_triangle_list[i].p1.y;
+        all_vbo_vertices[15*i+2] = all_triangle_list[i].p1.z;
+        all_vbo_vertices[15*i+3] = all_tex_vertices[j++];
+        all_vbo_vertices[15*i+4] = all_tex_vertices[j++];
+
+        all_vbo_vertices[15*i+5] = all_triangle_list[i].p2.x;
+        all_vbo_vertices[15*i+6] = all_triangle_list[i].p2.y;
+        all_vbo_vertices[15*i+7] = all_triangle_list[i].p2.z;
+        all_vbo_vertices[15*i+8] = all_tex_vertices[j++];
+        all_vbo_vertices[15*i+9] = all_tex_vertices[j++];
+
+        all_vbo_vertices[15*i+10] = all_triangle_list[i].p3.x;
+        all_vbo_vertices[15*i+11] = all_triangle_list[i].p3.y;
+        all_vbo_vertices[15*i+12] = all_triangle_list[i].p3.z;
+        all_vbo_vertices[15*i+13] = all_tex_vertices[j++];
+        all_vbo_vertices[15*i+14] = all_tex_vertices[j++];
+    }
+    
+    /* Init for humanoidShirt */
+    loadTexmap(humanoidShirt_texture_fname, &humanoidShirt_texture_id);
+    Point p1(70, 121.244, -130);    //bottom left
+    Point p2(-97.5, 168.875, 50);   //top right
+    Point p3(97.5, 168.875, 50);    //top left
+    Point p4(-70, 121.244, -130);   //bottom right
+
+    all_triangle_list.push_back(Triangle(p4,p2,p3));
+    all_triangle_list.push_back(Triangle(p1,p4,p3));
+    float z_offset = 180;
+
+    all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(1.0f); //p4
+    all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(0.0f); //p2
+    all_tex_vertices.push_back(0.0f); all_tex_vertices.push_back(0.0f); //p3
+    all_tex_vertices.push_back(0.0f); all_tex_vertices.push_back(1.0f); //p1
+    all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(1.0f); //p4
+    all_tex_vertices.push_back(0.0f); all_tex_vertices.push_back(0.0f); //p3
+
+    for(unsigned int i = 4; i < all_triangle_list.size(); i++) {
+        all_vbo_vertices[15*i] = all_triangle_list[i].p1.x;
+        all_vbo_vertices[15*i+1] = all_triangle_list[i].p1.y*0.775;
+        all_vbo_vertices[15*i+2] = all_triangle_list[i].p1.z + z_offset;
+        all_vbo_vertices[15*i+3] = all_tex_vertices[j++];
+        all_vbo_vertices[15*i+4] = all_tex_vertices[j++];
+
+        all_vbo_vertices[15*i+5] = all_triangle_list[i].p2.x;
+        all_vbo_vertices[15*i+6] = all_triangle_list[i].p2.y*0.775;
+        all_vbo_vertices[15*i+7] = all_triangle_list[i].p2.z + z_offset;
+        all_vbo_vertices[15*i+8] = all_tex_vertices[j++];
+        all_vbo_vertices[15*i+9] = all_tex_vertices[j++];
+
+        all_vbo_vertices[15*i+10] = all_triangle_list[i].p3.x;
+        all_vbo_vertices[15*i+11] = all_triangle_list[i].p3.y*0.775;
+        all_vbo_vertices[15*i+12] = all_triangle_list[i].p3.z + z_offset;
+        all_vbo_vertices[15*i+13] = all_tex_vertices[j++];
+        all_vbo_vertices[15*i+14] = all_tex_vertices[j++];
+    }
+
+
     glGenVertexArrays (1, &texture_vao);
     glBindVertexArray (texture_vao);
     glGenBuffers (1, &texture_vbo);
     glBindBuffer (GL_ARRAY_BUFFER, texture_vbo);
  
-    glBufferData(GL_ARRAY_BUFFER, sizeof(sandTrack_vertices) , &sandTrack_vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(all_vbo_vertices) , &all_vbo_vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(texture_position_id);
     glVertexAttribPointer(texture_position_id, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(0));
     glEnableVertexAttribArray(texture_texPosition_id);
     glVertexAttribPointer(texture_texPosition_id, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), BUFFER_OFFSET(3*sizeof(float)));
 }
 
-void renderTexturedGL(void) {
+void renderTexturedGL(glm::mat4 sandtrack_modelviewproject, glm::mat4 bike_modelviewproject, glm::mat4 rider_modelviewproject) {
     glUseProgram(texture_shader_program);
-    glUniformMatrix4fv(texture_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix));
-    glUniform1i(texture_sampler_id, 0);
     glBindVertexArray(texture_vao);
+    glUniform1i(texture_sampler_id, 0);
+
+    glUniformMatrix4fv(texture_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(sandtrack_modelviewproject));
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glBindTexture(GL_TEXTURE_2D, sandTrack_texture_id);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    glUniformMatrix4fv(texture_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(bike_modelviewproject));
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, bikeHeadlight_texture_id);
+    glDrawArrays(GL_TRIANGLES, 6, 6);
+    
+    glUniformMatrix4fv(texture_uModelViewProject_id, 1, GL_FALSE, glm::value_ptr(rider_modelviewproject));
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, humanoidShirt_texture_id);
+    glDrawArrays(GL_TRIANGLES, 12, 6);
 }
 #endif
