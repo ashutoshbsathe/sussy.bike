@@ -55,7 +55,7 @@ void loadTexmap(std::string fname, GLuint *ret) {
 
     int width, height, n_channels;
     unsigned char *data = stbi_load(fname.c_str(), &width, &height, &n_channels, 0);
-    std::cout << width << height << n_channels << "\n";
+    // std::cout << width << height << n_channels << "\n";
     if(data) {
         glTexImage2D(
             GL_TEXTURE_2D,

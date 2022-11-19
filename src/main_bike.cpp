@@ -92,19 +92,19 @@ std::vector<Triangle> skybox_triangle_list = {
 
 */
 GLuint sandTrack_texture, sandTrack_vao, sandTrack_vbo, sandTrack_shader_program, sandTrack_position_id, sandTrack_texPosition_id, sandTrack_uModelViewProject_id, sandTrack_sampler_id;
-std::string sandTrack_texture_fname = "./resources/skybox_sand/negy.jpg";
+std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg";
 std::vector<Triangle> sandTrack_triangle_list;
 std::vector<float> sandTrack_tex_vertices;
 
 // Humanoid texture
 GLuint humanoidShirt_texture, humanoidShirt_vao, humanoidShirt_vbo, humanoidShirt_shader_program, humanoidShirt_position_id, humanoidShirt_texPosition_id, humanoidShirt_uModelViewProject_id, humanoidShirt_sampler_id;
-std::string humanoidShirt_texture_fname = "./resources/skybox_sand/posx.jpg";
+std::string humanoidShirt_texture_fname = "./resources/skybox_test/rider.png";
 std::vector<Triangle> humanoidShirt_triangle_list;
 std::vector<float> humanoidShirt_tex_vertices;
 
 // bike texture
 GLuint bikeHeadlight_texture, bikeHeadlight_vao, bikeHeadlight_vbo, bikeHeadlight_shader_program, bikeHeadlight_position_id, bikeHeadlight_texPosition_id, bikeHeadlight_uModelViewProject_id, bikeHeadlight_sampler_id;
-std::string bikeHeadlight_texture_fname = "./resources/skybox_sand/posx.jpg";
+std::string bikeHeadlight_texture_fname = "./resources/skybox_test/bike.png";
 std::vector<Triangle> bikeHeadlight_triangle_list;
 std::vector<float> bikeHeadlight_tex_vertices;
 
@@ -269,19 +269,21 @@ void initVertexBufferGL(void) {
 
     /* Init for sandTrack */
     loadTexmap(sandTrack_texture_fname, &sandTrack_texture);
-    for (int i=0;i<64; i++){
-        sandTrack_triangle_list.push_back(track->triangle_list[i]);
-    }
+    Point p1_sand(15000,-15000,-700);   //bottom right
+    Point p2_sand(15000,15000,-700);    //bottom left
+    Point p3_sand(-15000,-15000,-700);  //top right
+    Point p4_sand(-15000,15000,-700);   //top left
 
-    std::cout<<sandTrack_triangle_list.size();
-    for(auto it: sandTrack_triangle_list){
-        sandTrack_tex_vertices.push_back(it.p1.x);
-        sandTrack_tex_vertices.push_back(it.p1.z);
-        sandTrack_tex_vertices.push_back(it.p2.x);
-        sandTrack_tex_vertices.push_back(it.p2.z);
-        sandTrack_tex_vertices.push_back(it.p3.x);
-        sandTrack_tex_vertices.push_back(it.p3.z);
-    };
+    sandTrack_triangle_list.push_back(Triangle(p1_sand,p3_sand,p4_sand));
+    sandTrack_triangle_list.push_back(Triangle(p4_sand,p2_sand,p1_sand));
+
+    sandTrack_tex_vertices.push_back(1.0f); sandTrack_tex_vertices.push_back(1.0f); //p1
+    sandTrack_tex_vertices.push_back(1.0f); sandTrack_tex_vertices.push_back(0.0f); //p3
+    sandTrack_tex_vertices.push_back(0.0f); sandTrack_tex_vertices.push_back(0.0f); //p4
+    sandTrack_tex_vertices.push_back(0.0f); sandTrack_tex_vertices.push_back(0.0f); //p4
+    sandTrack_tex_vertices.push_back(0.0f); sandTrack_tex_vertices.push_back(1.0f); //p2
+    sandTrack_tex_vertices.push_back(1.0f); sandTrack_tex_vertices.push_back(1.0f); //p1
+
     float sandTrack_vertices[sandTrack_triangle_list.size() * 3 * 5];
     for(unsigned int i = 0, j = 0; i < sandTrack_triangle_list.size(); i++) {
         sandTrack_vertices[15*i] = sandTrack_triangle_list[i].p1.x;
@@ -315,35 +317,21 @@ void initVertexBufferGL(void) {
 
     /* Init for humanoidShirt */
     loadTexmap(humanoidShirt_texture_fname, &humanoidShirt_texture);
-    // for (int i=28;i<rider->children[0]->triangle_list.size()-4; i++){
-    //     humanoidShirt_triangle_list.push_back(rider->children[0]->triangle_list[i]);
-    // }
+    Point p1(70, 121.244, -130);    //bottom left
+    Point p2(-97.5, 168.875, 50);   //top right
+    Point p3(97.5, 168.875, 50);    //top left
+    Point p4(-70, 121.244, -130);   //bottom right
 
-    // for (int i=30;i<32; i++){
-    //     humanoidShirt_triangle_list.push_back(rider->children[0]->triangle_list[i]);
-    //     std::cout<<rider->children[0]->triangle_list[i].tri_str;
-    // }
-    Point p1(70, 121.244, -130);
-    Point p2(-97.5, 168.875, 50);
-    Point p3(97.5, 168.875, 50);
-    Point p4(-70, 121.244, -130);
     humanoidShirt_triangle_list.push_back(Triangle(p4,p2,p3));
     humanoidShirt_triangle_list.push_back(Triangle(p1,p4,p3));
     float z_offset = 180;
-    // for(auto it: humanoidShirt_triangle_list){
-    //     humanoidShirt_tex_vertices.push_back(it.p1.x);
-    //     humanoidShirt_tex_vertices.push_back(it.p1.y);
-    //     humanoidShirt_tex_vertices.push_back(it.p2.x);
-    //     humanoidShirt_tex_vertices.push_back(it.p2.y);
-    //     humanoidShirt_tex_vertices.push_back(it.p3.x);
-    //     humanoidShirt_tex_vertices.push_back(it.p3.y);
-    // };
-    humanoidShirt_tex_vertices.push_back(1.0f); humanoidShirt_tex_vertices.push_back(0.0f);
-    humanoidShirt_tex_vertices.push_back(1.0f); humanoidShirt_tex_vertices.push_back(1.0f);
-    humanoidShirt_tex_vertices.push_back(0.0f); humanoidShirt_tex_vertices.push_back(1.0f);
-    humanoidShirt_tex_vertices.push_back(0.0f); humanoidShirt_tex_vertices.push_back(0.0f);
-    humanoidShirt_tex_vertices.push_back(1.0f); humanoidShirt_tex_vertices.push_back(0.0f);
-    humanoidShirt_tex_vertices.push_back(0.0f); humanoidShirt_tex_vertices.push_back(1.0f);
+
+    humanoidShirt_tex_vertices.push_back(1.0f); humanoidShirt_tex_vertices.push_back(1.0f); //p4
+    humanoidShirt_tex_vertices.push_back(1.0f); humanoidShirt_tex_vertices.push_back(0.0f); //p2
+    humanoidShirt_tex_vertices.push_back(0.0f); humanoidShirt_tex_vertices.push_back(0.0f); //p3
+    humanoidShirt_tex_vertices.push_back(0.0f); humanoidShirt_tex_vertices.push_back(1.0f); //p1
+    humanoidShirt_tex_vertices.push_back(1.0f); humanoidShirt_tex_vertices.push_back(1.0f); //p4
+    humanoidShirt_tex_vertices.push_back(0.0f); humanoidShirt_tex_vertices.push_back(0.0f); //p3
 
     float humanoidShirt_vertices[humanoidShirt_triangle_list.size() * 3 * 5];
     for(unsigned int i = 0, j = 0; i < humanoidShirt_triangle_list.size(); i++) {
@@ -378,31 +366,20 @@ void initVertexBufferGL(void) {
 
     /* Init for bikeHeadlight */
     loadTexmap(bikeHeadlight_texture_fname, &bikeHeadlight_texture);
-    // std::cout<<"Bike headlight textures:\n";
-    // for (int i=70;i<72; i++){
-    //     bikeHeadlight_triangle_list.push_back(bike->triangle_list[i]);
-    //     std::cout<<bike->triangle_list[i].tri_str;
-    // }
-    Point p1_bike(750+50, 675, 0);
-    Point p2_bike(875+50, 487.5, 0);
-    Point p3_bike(875+50, 487.5, 150);
-    Point p4_bike(750+50, 675, 150);
+
+    float offset_x=25, offset_y=0, offset_z=0;
+    Point p1_bike(750+offset_x, 675+offset_y, 0+offset_z);  //top right
+    Point p2_bike(875+offset_x, 487.5+offset_y, 0+offset_z);    //bottom right
+    Point p3_bike(875+offset_x, 487.5+offset_y, 150+offset_z);  //bottom left
+    Point p4_bike(750+offset_x, 675+offset_y, 150+offset_z);    //top left
+
     bikeHeadlight_triangle_list.push_back(Triangle(p1_bike,p4_bike,p3_bike));
     bikeHeadlight_triangle_list.push_back(Triangle(p2_bike,p1_bike,p3_bike));
 
-    // std::cout<<bikeHeadlight_triangle_list.size();
-    // for(auto it: bikeHeadlight_triangle_list){
-    //     bikeHeadlight_tex_vertices.push_back(it.p1.x);
-    //     bikeHeadlight_tex_vertices.push_back(it.p1.z);
-    //     bikeHeadlight_tex_vertices.push_back(it.p2.x);
-    //     bikeHeadlight_tex_vertices.push_back(it.p2.z);
-    //     bikeHeadlight_tex_vertices.push_back(it.p3.x);
-    //     bikeHeadlight_tex_vertices.push_back(it.p3.z);
-    // };
     bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(0.0f); // p1
-    bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(1.0f); // p4
+    bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(0.0f); // p4
     bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(1.0f); // p3
-    bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(0.0f); // p2
+    bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(1.0f); // p2
     bikeHeadlight_tex_vertices.push_back(1.0f); bikeHeadlight_tex_vertices.push_back(0.0f); // p1
     bikeHeadlight_tex_vertices.push_back(0.0f); bikeHeadlight_tex_vertices.push_back(1.0f); // p3
     float bikeHeadlight_vertices[bikeHeadlight_triangle_list.size() * 3 * 5];
@@ -424,8 +401,9 @@ void initVertexBufferGL(void) {
         bikeHeadlight_vertices[15*i+12] = bikeHeadlight_triangle_list[i].p3.z;
         bikeHeadlight_vertices[15*i+13] = bikeHeadlight_tex_vertices[j++];
         bikeHeadlight_vertices[15*i+14] = bikeHeadlight_tex_vertices[j++];
-        std::cout << "j = " << j << "\n";
+
     }
+
     glGenVertexArrays (1, &bikeHeadlight_vao);
     glBindVertexArray (bikeHeadlight_vao);
     glGenBuffers (1, &bikeHeadlight_vbo);
