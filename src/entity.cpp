@@ -45,6 +45,7 @@ void AnimationEntity::apply_params(HierarchyNode *node) {
     for(i = 0; i < node->n_dof; i++) {
         node->dof_params[i].first = this->params[start + i];
     }
+    node->update_dof_transform();
     assert(start + i == end);
     for(auto it : node->children) {
         apply_params(it);
