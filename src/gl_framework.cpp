@@ -1,16 +1,15 @@
 #include "gl_framework.hpp"
 #include "entity.hpp"
+#include "state.hpp"
 #include <GLFW/glfw3.h>
 extern bool persp;
-extern int curr_camera;
 extern float xrot, yrot, zrot, rotamount, VIEW_PADDING, zoomamount, light_x, light_y, light_z, light_moveamount;
 extern float xmove, ymove, zmove, moveamount;
 extern HierarchyNode *curr_node;
-extern std::vector<AnimationEntity> entities;
 extern int entity_idx;
 extern bool light_states[4];
+extern AnimationState global_animate_state;
 namespace csX75 {
-
     unsigned int dof_id = 0;
     void update_dof_id(unsigned int new_dof_id) {
         if(new_dof_id >= curr_node->n_dof + 1 || new_dof_id == 0) {
@@ -166,31 +165,31 @@ namespace csX75 {
             zrot -= rotamount;
         } else if(key == GLFW_KEY_COMMA && action == GLFW_PRESS) {
             if(entity_idx == 0) {
-                std::cout << "Already at the leftmost entity : " << entities[entity_idx].name << "\n";
+                std::cout << "Already at the leftmost entity : " << global_animate_state.entity_list[entity_idx].name << "\n";
             }
             else {
                 entity_idx -= 1;
-                curr_node = entities[entity_idx].root;
-                std::cout << "Moved to " << entities[entity_idx].name << "." << curr_node->name << "\n";
+                curr_node = global_animate_state.entity_list[entity_idx].root;
+                std::cout << "Moved to " << global_animate_state.entity_list[entity_idx].name << "." << curr_node->name << "\n";
             }
         } else if(key == GLFW_KEY_PERIOD && action == GLFW_PRESS) {
-            if(entity_idx == entities.size() - 1) {
-                std::cout << "Already at the rightmost entity : " << entities[entity_idx].name << "\n";
+            if(entity_idx == global_animate_state.entity_list.size() - 1) {
+                std::cout << "Already at the rightmost entity : " << global_animate_state.entity_list[entity_idx].name << "\n";
             }
             else {
                 entity_idx += 1;
-                curr_node = entities[entity_idx].root;
-                std::cout << "Moved to " << entities[entity_idx].name << "." << curr_node->name << "\n";
+                curr_node = global_animate_state.entity_list[entity_idx].root;
+                std::cout << "Moved to " << global_animate_state.entity_list[entity_idx].name << "." << curr_node->name << "\n";
             }
         } else if(key == GLFW_KEY_K && action == GLFW_PRESS) {
-            auto curr = entities[entity_idx];
+            auto curr = global_animate_state.entity_list[entity_idx];
             curr.save_params_to_file("params_" + curr.name + ".txt");
         } else if(key == GLFW_KEY_B && action == GLFW_PRESS){
-            curr_camera = 0;
+            global_animate_state.curr_camera = 0;
         } else if(key == GLFW_KEY_N && action == GLFW_PRESS){
-            curr_camera = 1;
+            global_animate_state.curr_camera = 1;
         } else if(key == GLFW_KEY_M && action == GLFW_PRESS) {
-            curr_camera = 2;
+            global_animate_state.curr_camera = 2;
         } else if(key == GLFW_KEY_UP) {
             light_y += light_moveamount;
         } else if(key == GLFW_KEY_DOWN) {

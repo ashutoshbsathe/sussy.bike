@@ -5,28 +5,6 @@
 #include <GLFW/glfw3.h>
 #define MAX_BIKE_VBO_BYTES 1024000
 //                          914112
-
-std::vector<Light> all_lights = {
-    Light(
-        glm::vec3(12500.f, 12500.f, 12500.f),
-        glm::vec3(0.f, 0.f, 0.f),
-        -10000,
-        false
-    ),
-    Light(
-        glm::vec3(-12500.f, 12500.f, 12500.f),
-        glm::vec3(0.f, 0.f, 0.f),
-        -10000,
-        false
-    ),
-    Light(
-        glm::vec3(0.f, 12500.f, 0.f),
-        glm::vec3(0.f, 0.f, 0.f),
-        cos(M_PI/36),
-        false
-    )
-};
-
 GLuint shader_program, vbo, vao, uModelMatrix_id, uNormalMatrix_id, uViewMatrix_id, position_id, color_id, normal_id, uLightSpaceMatrix_id, uShadowMap_id, uNumLights_id, uMaterial_id;
 
 GLuint shadow_shader_program, shadow_position_id, shadow_uLightSpaceMatrix_id;
@@ -44,12 +22,11 @@ glm::mat3 normal_matrix;
 glm::vec3 bike_headlight, bike_headlight_lookat_dir, third_person_position, third_person_lookat, first_person_position, first_person_lookat_dir;
 
 HierarchyNode *bike, *rider, *track, *curr_node;
-std::vector<AnimationEntity> entities;
-int entity_idx = 0, curr_camera = 0;
+int entity_idx = 0;
 
 std::ofstream fout; // OpenGL logging
 
-Camera global_camera(glm::vec3(0.f, 2000.f, -2000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f)), third_person_camera, first_person_camera;
+Camera third_person_camera, first_person_camera;
 
 AnimationState global_animate_state;
 
@@ -103,17 +80,58 @@ std::vector<Triangle> skybox_triangle_list = {
     Triangle(c, f, b), Triangle(c, g, f)
 };
 
-void initGlobalAnimationState(void) {
-    global_animate_state.global_camera = global_camera;
-    global_animate_state.lights_list = all_lights;
-    global_animate_state.entity_list = entities;
-    global_animate_state.build_name_to_keyframe_indices();
-    std::cout << "curr_keyframe: len = " << global_animate_state.curr_keyframe.size() << ", [";
-    for(auto param : global_animate_state.curr_keyframe) {
-        std::cout << " " << param;
+
+void push_lights_to_uniform(GLuint shader_program, std::vector<Light> all_lights) {
+    unsigned num_lights = all_lights.size();
+    GLuint tmp;
+    glm::vec3 dir;
+    std::stringstream ss;
+    for(unsigned int i = 0; i < num_lights; i++) {
+        ss.str(std::string());
+        ss << "lights[" << i << "].position";
+        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
+        glUniform3f(tmp, all_lights[i].position.x, all_lights[i].position.y, all_lights[i].position.z);
+        dir = -glm::normalize(all_lights[i].to_camera().n);
+        ss.str(std::string());
+        ss << "lights[" << i << "].spotDir";
+        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
+        glUniform3f(tmp, dir.x, dir.y, dir.z);
+        ss.str(std::string());
+        ss << "lights[" << i << "].cutOff";
+        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
+        glUniform1f(tmp, all_lights[i].cutOff);
+        ss.str(std::string());
+        ss << "lights[" << i << "].isActive";
+        tmp = glGetUniformLocation(shader_program, ss.str().c_str());
+        glUniform1i(tmp, all_lights[i].isActive);
     }
-    std::cout << " ]\n";
 }
+
+void initGlobalAnimationState(void) {
+    global_animate_state.global_camera = Camera(glm::vec3(0.f, 2000.f, -2000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    global_animate_state.curr_camera = 0;
+    global_animate_state.lights_list = {
+        Light(
+            glm::vec3(12500.f, 12500.f, 12500.f),
+            glm::vec3(0.f, 0.f, 0.f),
+            -10000,
+            false
+        ),
+        Light(
+            glm::vec3(-12500.f, 12500.f, 12500.f),
+            glm::vec3(0.f, 0.f, 0.f),
+            -10000,
+            false
+        ),
+        Light(
+            glm::vec3(0.f, 12500.f, 0.f),
+            glm::vec3(0.f, 0.f, 0.f),
+            cos(M_PI/36),
+            false
+        )
+    };
+}
+
 void initShadersGL(void) {
     std::string vertex_shader_file("lighting_shading_vs.glsl");
     std::string fragment_shader_file("lighting_shading_fs.glsl");
@@ -180,10 +198,9 @@ void initVertexBufferGL(void) {
     first_person_lookat_dir = glm::vec3(0, -1, 0);
     vbo_offset = pair.second;
     rider->prepare_vbo();
-    entities.push_back(AnimationEntity("standalone_rider", rider));
-    entities[0].read_params_from_file("./params_rider.txt");
+    global_animate_state.entity_list.push_back(AnimationEntity("standalone_rider", rider));
+    global_animate_state.entity_list[0].read_params_from_file("./params_rider.txt");
     curr_node = rider;
-    std::cout << "vbo_offset = " << vbo_offset << std::endl;
 
     gl_info["uniform_xform_id"] = uModelMatrix_id;
     gl_info["normal_matrix_id"] = uNormalMatrix_id;
@@ -201,11 +218,11 @@ void initVertexBufferGL(void) {
         bike->triangle_list[71].p3
     ) * 0.25).to_vec3() + glm::vec3(150, 0, 0); // pull the headlight "out"
     bike_headlight_lookat_dir = glm::vec3(1, 0, 0);
-    all_lights.push_back(Light(bike_headlight, bike_headlight + bike_headlight_lookat_dir, cos(M_PI/36), false));
+    global_animate_state.lights_list.push_back(Light(bike_headlight, bike_headlight + bike_headlight_lookat_dir, cos(M_PI/36), false));
     vbo_offset = pair.second;
     bike->prepare_vbo();
-    entities.push_back(AnimationEntity("standalone_bike", bike));
-    entities[1].read_params_from_file("./params_bike.txt");
+    global_animate_state.entity_list.push_back(AnimationEntity("standalone_bike", bike));
+    global_animate_state.entity_list[1].read_params_from_file("./params_bike.txt");
     curr_node = bike;
     
     gl_info["uniform_xform_id"] = uModelMatrix_id;
@@ -219,9 +236,8 @@ void initVertexBufferGL(void) {
     track = pair.first;
     vbo_offset = pair.second;
     track->prepare_vbo();
-    entities.push_back(AnimationEntity("standalone_track", track));
-    curr_node = track;
-    
+    global_animate_state.entity_list.push_back(AnimationEntity("standalone_track", track));
+ 
     std::cout << "VBO successfully initialized\n";
     // Enable the vertex attribute
     // Excellent answer -- https://stackoverflow.com/a/39684775
@@ -234,6 +250,7 @@ void initVertexBufferGL(void) {
     glEnableVertexAttribArray(normal_id);
     glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 3 * 3 * sizeof(float), BUFFER_OFFSET(3 * 2 * sizeof(float)));
 
+    // TODO: Do this in a separate function in the header
     /* Init for skybox */
     loadCubemap(skybox_fnames, &skybox_texture);
     float skybox_vertices[12 * 3 * 3];
@@ -284,7 +301,7 @@ void initVertexBufferGL(void) {
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    initGlobalAnimationState();
+    global_animate_state.build_name_to_keyframe_indices();
 }
 
 void renderScene(glm::mat4 viewproject, glm::mat4 view, std::vector<glm::mat4> lightspace, glm::mat4 rider_hierarchy, glm::mat4 bike_hierarchy, bool lightcam) {
@@ -308,28 +325,28 @@ void renderScene(glm::mat4 viewproject, glm::mat4 view, std::vector<glm::mat4> l
 }
 
 void updateLightCameraParams(int light_idx) {
-    if(light_idx >= all_lights.size())
+    if(light_idx >= global_animate_state.lights_list.size())
         return;
-    all_lights[light_idx].isActive = light_states[light_idx];
+    global_animate_state.lights_list[light_idx].isActive = light_states[light_idx];
     int idx;
     switch(light_idx) {
         case 0: break;
         case 1: break;
         case 2:
             // follows humanoid
-            entities[0].extract_params(entities[0].root);
-            idx = entities[0].part_to_param_indices[entities[0].root->name].first;
-            all_lights[light_idx].spotPoint.z = entities[0].params[idx+3];
-            all_lights[light_idx].spotPoint.y = entities[0].params[idx+4];
-            all_lights[light_idx].spotPoint.x = entities[0].params[idx+5];
+            global_animate_state.entity_list[0].extract_params(global_animate_state.entity_list[0].root);
+            idx = global_animate_state.entity_list[0].part_to_param_indices[global_animate_state.entity_list[0].root->name].first;
+            global_animate_state.lights_list[light_idx].spotPoint.z = global_animate_state.entity_list[0].params[idx+3];
+            global_animate_state.lights_list[light_idx].spotPoint.y = global_animate_state.entity_list[0].params[idx+4];
+            global_animate_state.lights_list[light_idx].spotPoint.x = global_animate_state.entity_list[0].params[idx+5];
             break;
         case 3: 
             glm::vec3 normal = glm::normalize(bike_headlight_lookat_dir);
             glm::mat4 model_handlebar = bike->dof_transform * bike->children[3]->dof_transform;
             glm::mat4 model_bike = bike->local_transform * bike->dof_transform * bike->private_transform * bike->children[3]->local_transform * bike->children[3]->dof_transform * bike->children[3]->private_transform;
             normal = glm::transpose(glm::inverse(glm::mat3(model_handlebar))) * normal;
-            all_lights[light_idx].position = glm::vec3(model_bike * glm::vec4(bike_headlight, 1));
-            all_lights[light_idx].spotPoint = all_lights[light_idx].position + normal;
+            global_animate_state.lights_list[light_idx].position = glm::vec3(model_bike * glm::vec4(bike_headlight, 1));
+            global_animate_state.lights_list[light_idx].spotPoint = global_animate_state.lights_list[light_idx].position + normal;
             break;
     }
 }
@@ -339,14 +356,14 @@ void renderGL(void) {
     // render into depthmap
     std::vector<glm::mat4> lightspace_matrices;
     lightspace_matrices.clear();
-    for(unsigned int i = 0; i < all_lights.size(); i++) {
+    for(unsigned int i = 0; i < global_animate_state.lights_list.size(); i++) {
         updateLightCameraParams(i);
         glViewport(0, 0, depthMap_width, depthMap_height);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        view_matrix = all_lights[i].to_camera().viewMatrix;
+        view_matrix = global_animate_state.lights_list[i].to_camera().viewMatrix;
         projection_matrix = glm::ortho(-15000.f, 15000.f, -15000.f, 15000.f, 0.f, 50000.f);
         lightspace_matrix = projection_matrix * view_matrix;
 
@@ -361,27 +378,27 @@ void renderGL(void) {
     // normal rendering
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    if(curr_camera == 0) {
-        global_camera.eye = global_camera.eye + xmove * global_camera.n;
-        global_camera.eye = global_camera.eye + ymove * global_camera.u;
-        global_camera.eye = global_camera.eye + zmove * global_camera.v;
+    if(global_animate_state.curr_camera == 0) {
+        global_animate_state.global_camera.eye = global_animate_state.global_camera.eye + xmove * global_animate_state.global_camera.n;
+        global_animate_state.global_camera.eye = global_animate_state.global_camera.eye + ymove * global_animate_state.global_camera.u;
+        global_animate_state.global_camera.eye = global_animate_state.global_camera.eye + zmove * global_animate_state.global_camera.v;
         xmove = ymove = zmove = 0;
-        global_camera.updateCameraVectors();
-        global_camera.yaw += xrot;
-        global_camera.pitch += yrot;
+        global_animate_state.global_camera.updateCameraVectors();
+        global_animate_state.global_camera.yaw += xrot;
+        global_animate_state.global_camera.pitch += yrot;
         xrot = yrot = 0;
-        global_camera.updateCameraVectors();
+        global_animate_state.global_camera.updateCameraVectors();
 
-        view_matrix = global_camera.viewMatrix;
+        view_matrix = global_animate_state.global_camera.viewMatrix;
         projection_matrix = glm::frustum(-1,1,-1,1,1,10);
-    } else if(curr_camera == 1) {
+    } else if(global_animate_state.curr_camera == 1) {
         third_person_camera.eye = glm::vec3(rider->local_transform * rider->dof_transform * rider->private_transform * glm::vec4(third_person_position, 1));
         third_person_camera.focusAtPoint(glm::vec3(rider->local_transform * rider->dof_transform * rider->private_transform * glm::vec4(third_person_lookat, 1)));
         third_person_camera.updateCameraVectors();
 
         view_matrix = third_person_camera.viewMatrix;
         projection_matrix = glm::frustum(-1,1,-1,1,1,10);
-    } else if(curr_camera == 2) {
+    } else if(global_animate_state.curr_camera == 2) {
         glm::mat4 model = HEAD_GLOBAL_TRANSFORM(rider);
         first_person_camera.eye = glm::vec3(model * glm::vec4(first_person_position, 1));
         glm::vec3 transformed_dir = glm::transpose(glm::inverse(glm::mat3(model))) * first_person_lookat_dir;
@@ -412,11 +429,19 @@ void renderGL(void) {
     glUniformMatrix4fv(uViewMatrix_id, 1, GL_FALSE, glm::value_ptr(modelviewproject_matrix)); 
     glUniform4f(uMaterial_id, 0.75, 0.5, 1.2, 2);
     glUniform1i(uShadowMap_id, 0);
-    glUniform1i(uNumLights_id, all_lights.size());
-    push_lights_to_uniform(shader_program, all_lights);
+    glUniform1i(uNumLights_id, global_animate_state.lights_list.size());
+    push_lights_to_uniform(shader_program, global_animate_state.lights_list);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, depthMap_texture_array);      
     renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrices, glm::mat4(1), glm::mat4(1), false);
+
+    global_animate_state.extract_keyframe();
+    std::cout << "curr_keyframe: len = " << global_animate_state.curr_keyframe.size() << ", [";
+    for(auto param : global_animate_state.curr_keyframe) {
+        std::cout << " " << param;
+    }
+    std::cout << " ]\n";
+
 }
 
 void APIENTRY glDebugOutput(GLenum source, 
@@ -562,6 +587,7 @@ int main(int argc, char** argv) {
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
     glDebugMessageCallback(glDebugOutput, nullptr);
 
+    initGlobalAnimationState();
     initShadersGL();
     initVertexBufferGL();
     

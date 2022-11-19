@@ -21,6 +21,7 @@ struct AnimationState {
         this->saved_keyframes.clear();
         this->interpolated_keyframes.clear();
     }
+
     void build_name_to_keyframe_indices() {
         this->name_to_keyframe_indices.clear();
         this->curr_keyframe.clear();
@@ -34,6 +35,12 @@ struct AnimationState {
             end++;
         }
         this->name_to_keyframe_indices["lights"] = {start, end};
+        
+        start = this->curr_keyframe.size();
+        this->curr_keyframe.push_back(this->curr_camera);
+        end = this->curr_keyframe.size();
+        this->name_to_keyframe_indices["curr_camera"] = {start, end};
+
         start = this->curr_keyframe.size();
         curr_keyframe.push_back(this->global_camera.eye.x);
         curr_keyframe.push_back(this->global_camera.eye.y);
@@ -42,6 +49,7 @@ struct AnimationState {
         curr_keyframe.push_back(this->global_camera.pitch);
         end = this->curr_keyframe.size();
         this->name_to_keyframe_indices["global_camera"] = {start, end};
+
         for(auto entity: this->entity_list) {
             start = this->curr_keyframe.size();
             for(auto param: entity.params) {
@@ -50,8 +58,41 @@ struct AnimationState {
             end = this->curr_keyframe.size();
             this->name_to_keyframe_indices[entity.name] = {start, end};
         }
+
         for(auto it: this->name_to_keyframe_indices) {
             std::cout << it.first << ": [" << it.second.first << ", " << it.second.second << "]\n";
+        }
+    }
+
+    void extract_keyframe() {
+        unsigned int start, end;
+        // lights
+        start = this->name_to_keyframe_indices["lights"].first;
+        end = this->name_to_keyframe_indices["lights"].second;
+        for(int i = start; i < end; i++) {
+            this->curr_keyframe[i] = this->lights_list[i-start].isActive;
+        }
+        
+        // current camera
+        start = this->name_to_keyframe_indices["curr_camera"].first;
+        this->curr_keyframe[start] = this->curr_camera; 
+        
+        // global camera
+        start = this->name_to_keyframe_indices["global_camera"].first;
+        this->curr_keyframe[start] = this->global_camera.eye.x;
+        this->curr_keyframe[start+1] = this->global_camera.eye.y;
+        this->curr_keyframe[start+2] = this->global_camera.eye.z;
+        this->curr_keyframe[start+3] = this->global_camera.yaw;
+        this->curr_keyframe[start+4] = this->global_camera.pitch;
+
+        // entities
+        for(auto entity: this->entity_list) {
+            start = this->name_to_keyframe_indices[entity.name].first;
+            end = this->name_to_keyframe_indices[entity.name].second;
+            entity.extract_params(entity.root);
+            for(int i = start; i < end; i++) {
+                this->curr_keyframe[i] = entity.params[i-start];
+            }
         }
     }
 };
