@@ -21,28 +21,7 @@ struct Light {
     }
 };
 
-std::vector<Light> all_lights = {
-    Light(
-        glm::vec3(12500.f, 12500.f, 12500.f),
-        glm::vec3(0.f, 0.f, 0.f),
-        -10000,
-        false
-    ),
-    Light(
-        glm::vec3(-12500.f, 12500.f, 12500.f),
-        glm::vec3(0.f, 0.f, 0.f),
-        -10000,
-        false
-    ),
-    Light(
-        glm::vec3(0.f, 12500.f, 0.f),
-        glm::vec3(0.f, 0.f, 0.f),
-        cos(M_PI/36),
-        false
-    )
-};
-
-void push_lights_to_uniform(GLuint shader_program) {
+void push_lights_to_uniform(GLuint shader_program, std::vector<Light> all_lights) {
     unsigned num_lights = all_lights.size();
     GLuint tmp;
     glm::vec3 dir;

@@ -10,6 +10,27 @@
 #define MAX_BIKE_VBO_BYTES 1024000
 //                          914112
 
+std::vector<Light> all_lights = {
+    Light(
+        glm::vec3(12500.f, 12500.f, 12500.f),
+        glm::vec3(0.f, 0.f, 0.f),
+        -10000,
+        false
+    ),
+    Light(
+        glm::vec3(-12500.f, 12500.f, 12500.f),
+        glm::vec3(0.f, 0.f, 0.f),
+        -10000,
+        false
+    ),
+    Light(
+        glm::vec3(0.f, 12500.f, 0.f),
+        glm::vec3(0.f, 0.f, 0.f),
+        cos(M_PI/36),
+        false
+    )
+};
+
 GLuint shader_program, vbo, vao, uModelMatrix_id, uNormalMatrix_id, uViewMatrix_id, position_id, color_id, normal_id, uLightSpaceMatrix_id, uShadowMap_id, uNumLights_id, uMaterial_id;
 
 GLuint shadow_shader_program, shadow_position_id, shadow_uLightSpaceMatrix_id;
@@ -381,7 +402,7 @@ void renderGL(void) {
     glUniform4f(uMaterial_id, 0.75, 0.5, 1.2, 2);
     glUniform1i(uShadowMap_id, 0);
     glUniform1i(uNumLights_id, all_lights.size());
-    push_lights_to_uniform(shader_program);
+    push_lights_to_uniform(shader_program, all_lights);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, depthMap_texture_array);      
     renderScene(modelviewproject_matrix, modelviewproject_matrix, lightspace_matrices, glm::mat4(1), glm::mat4(1), false);
