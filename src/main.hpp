@@ -211,7 +211,7 @@ void initTexturedShadersGL(void) {
 }
 
 // Sand track texture
-std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg";
+std::string sandTrack_texture_fname = "./resources/skybox_test/track.png";
 GLuint sandTrack_texture_id;
 
 // Bike headlight texture
@@ -236,8 +236,8 @@ void initTexturedBuffersGL(void) {
     Point p3_sand(-1500+5000,-1500,-700);  //top right
     Point p4_sand(-1500+5000,1500,-700);   //top left
 
-    all_triangle_list.push_back(Triangle(p1_sand,p4_sand,p3_sand));
-    all_triangle_list.push_back(Triangle(p4_sand,p1_sand,p2_sand));
+    all_triangle_list.push_back(Triangle(p1_sand,p3_sand,p4_sand));
+    all_triangle_list.push_back(Triangle(p4_sand,p2_sand,p1_sand));
 
     all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(1.0f); //p1
     all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(0.0f); //p3
