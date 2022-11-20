@@ -222,6 +222,8 @@ namespace csX75 {
             global_animate_state.save_keyframes_to_file();
         } else if(key == GLFW_KEY_F9 && action == GLFW_PRESS) {
             global_animate_state.read_keyframes_from_file();
+        } else if(key == GLFW_KEY_F10 && action == GLFW_PRESS) {
+            global_animate_state.record_mode = !global_animate_state.record_mode;
         }
     }
 }
