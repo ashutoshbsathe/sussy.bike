@@ -221,6 +221,7 @@ GLuint bikeHeadlight_texture_id;
 // Humanoid shirt texture
 std::string humanoidShirt_texture_fname = "./resources/skybox_test/rider.png";
 GLuint humanoidShirt_texture_id;
+
 // Common function for all textured entities
 void initTexturedBuffersGL(void) {
     unsigned int j = 0;
@@ -246,7 +247,6 @@ void initTexturedBuffersGL(void) {
     all_tex_vertices.push_back(1.0f); all_tex_vertices.push_back(1.0f); //p1
 
     for(unsigned int i = 0; i < all_triangle_list.size(); i++) {
-        std::cout << all_triangle_list[i].normal.x << ", " << all_triangle_list[i].normal.y << ", " << all_triangle_list[i].normal.z << "\n";
         all_vbo_vertices[24*i] = all_triangle_list[i].p1.x;
         all_vbo_vertices[24*i+1] = all_triangle_list[i].p1.z+500;
         all_vbo_vertices[24*i+2] = all_triangle_list[i].p1.y;

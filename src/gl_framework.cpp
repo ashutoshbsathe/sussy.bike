@@ -241,7 +241,7 @@ namespace csX75 {
             HierarchyNode *bike, *rider;
             glm::mat4 bike_local_transform, bike_resultant_transform;
             int rot_idx = dof_id, update_idx;
-            float tan, theta;
+            float tan, theta, theta_x, theta_y, theta_z;
             rider = global_animate_state.entity_list[0].root;
             bike = global_animate_state.entity_list[1].root;
             
@@ -263,14 +263,13 @@ namespace csX75 {
                 }
                 std::cout << "\n";
             }
-            if(rot_idx == 0) {
-                tan = -bike_resultant_transform[1][0] / bike_resultant_transform[1][1];
-            } else if(rot_idx == 1) {
-                tan = bike_resultant_transform[2][0] / bike_resultant_transform[0][0];
-            } else if(rot_idx == 2) {
-                tan = -bike_resultant_transform[2][1] / bike_resultant_transform[1][1];
-            }
-            bike->dof_params[rot_idx].first = atan(tan);
+            // MVP -- https://stackoverflow.com/a/15029416
+            bike->dof_params[2].first = atan2(bike_resultant_transform[1][2], bike_resultant_transform[2][2]);
+            bike->dof_params[1].first = atan2(-bike_resultant_transform[0][2], sqrt(bike_resultant_transform[1][2] * bike_resultant_transform[1][2] + bike_resultant_transform[2][2] * bike_resultant_transform[2][2]));
+            bike->dof_params[0].first = atan2(bike_resultant_transform[0][1], bike_resultant_transform[0][0]);
+            std::cout << bike->dof_params[0].second.x << " " << bike->dof_params[0].second.y << " " << bike->dof_params[0].second.z << "\n";
+            std::cout << bike->dof_params[1].second.x << " " << bike->dof_params[1].second.y << " " << bike->dof_params[1].second.z << "\n";
+            std::cout << bike->dof_params[2].second.x << " " << bike->dof_params[2].second.y << " " << bike->dof_params[2].second.z << "\n";
             bike->dof_params[3].first = bike_resultant_transform[3][2];
             bike->dof_params[4].first = bike_resultant_transform[3][1];
             bike->dof_params[5].first = bike_resultant_transform[3][0];
