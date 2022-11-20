@@ -377,7 +377,7 @@ void HierarchyNode::update_dof_transform() {
         auto translation_to_origin = glm::translate(this->dof_transform, -this->dof_params[3].first * this->dof_params[3].second);
         translation_to_origin = glm::translate(translation_to_origin, -this->dof_params[4].first * this->dof_params[4].second);
         translation_to_origin = glm::translate(translation_to_origin, -this->dof_params[5].first * this->dof_params[5].second);
-        auto rotation = glm::rotate(this->dof_transform, this->dof_params[0].first, this->dof_params[0].second);
+        auto rotation = glm::rotate(glm::mat4(1), this->dof_params[0].first, this->dof_params[0].second);
         rotation = glm::rotate(rotation, this->dof_params[1].first, this->dof_params[1].second);
         rotation = glm::rotate(rotation, this->dof_params[2].first, this->dof_params[2].second);
         auto translation_back = glm::translate(this->dof_transform, this->dof_params[3].first * this->dof_params[3].second);
