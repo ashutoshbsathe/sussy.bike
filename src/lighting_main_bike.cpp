@@ -6,6 +6,10 @@
 #define MAX_BIKE_VBO_BYTES 1024000
 //                          914112
 
+std::vector<unsigned char> pixels(3*1024*1024);
+std::string frame_save_root_dir = "../rendered-frames/";
+std::stringstream frame_name;
+
 HierarchyNode *bike, *rider, *track, *curr_node;
 int entity_idx = 0;
 
@@ -239,10 +243,16 @@ void renderGL(void) {
             }
             else {
                 if(global_animate_state.record_mode) {
-                    unsigned char *pixels = (unsigned char *)malloc(3 * 1024 * 1024);
-                    glReadPixels(0, 0, 1024, 1024, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-                    stbi_write_png("screens/screenshot.png", 1024, 1024, 3, pixels, 1024 * 3);
-                    free(pixels);
+                    glReadPixels(0, 0, 1024, 1024, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+                    // MVP -- https://stackoverflow.com/a/61503898
+                    for(int line = 0; line < 512; line++) {
+                        std::swap_ranges(pixels.begin() + 3 * 1024 * line,
+                                         pixels.begin() + 3 * 1024 * (line+1),
+                                         pixels.begin() + 3 * 1024 * (1024-line-1));
+                    }
+                    frame_name.str("");
+                    frame_name << frame_save_root_dir << "frame-" << std::setfill('0') << std::setw(5) << global_animate_state.playback_idx << ".png";
+                    stbi_write_png(frame_name.str().c_str(), 1024, 1024, 3, pixels.data(), 1024 * 3);
                 }
                 global_animate_state.curr_keyframe = global_animate_state.interpolated_keyframes[global_animate_state.playback_idx];
                 global_animate_state.apply_keyframe();
@@ -436,7 +446,7 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     //! Create a windowed mode window and its OpenGL context
-    window = glfwCreateWindow(640, 480, "CS475/CS675 OpenGL Framework", NULL, NULL);
+    window = glfwCreateWindow(1024, 1024, "CS475/CS675 OpenGL Framework", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;

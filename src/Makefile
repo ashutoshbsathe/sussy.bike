@@ -6,6 +6,8 @@ LDFLAGS=-L/usr/local/lib
 CPPFLAGS=-I/usr/local/include -std=c++11 -msse2
 
 OUT_DIR=./
+FRAME_DIR=../rendered-frames/
+
 
 BIKE_BIN=$(OUT_DIR)/bin_bike
 BIKE_LIGHT_BIN=$(OUT_DIR)/lbin_bike
@@ -30,6 +32,7 @@ bike: $(BIKE_SRCS) $(INCLUDES)
 
 bike_light: $(BIKE_LIGHT_SRCS) $(INCLUDES)
 	mkdir -p $(OUT_DIR)
+	mkdir -p $(FRAME_DIR)
 	g++ $(CPPFLAGS) $(BIKE_LIGHT_SRCS) -o $(BIKE_LIGHT_BIN) $(LDFLAGS) $(LIBS)
 
 rider: $(RIDER_SRCS) $(INCLUDES)

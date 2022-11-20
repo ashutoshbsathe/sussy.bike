@@ -24,6 +24,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include <iomanip>
+
 #define FRAMERATE 60.0
 
 #define TORSO_2(X) ((X)->children[0]) 
