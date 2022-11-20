@@ -327,7 +327,7 @@ void renderGL(void) {
     glBindTexture(GL_TEXTURE_2D_ARRAY, depthMap_texture_array);      
     renderTexturedGL(
         modelviewproject_matrix, glm::mat4(1),
-        bike->dof_transform * bike->children[3]->dof_transform,
+         bike->dof_transform,
         rider->dof_transform * rider->children[0]->dof_transform,
         global_animate_state.lights_list, lightspace_matrices
     );
