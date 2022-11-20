@@ -3,6 +3,14 @@
 #include "entity.hpp"
 #include "light.hpp"
 #include "camera.hpp"
+
+#include "glm/vec3.hpp"
+#include "glm/vec4.hpp"
+#include "glm/matrix.hpp"
+#include "glm/common.hpp"
+#include "glm/gtc/quaternion.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 typedef std::vector<float> Keyframe;
 struct AnimationState {
     std::vector<AnimationEntity> entity_list;
@@ -193,6 +201,32 @@ struct AnimationState {
                     }
                 }
 
+                // hardcoded euler angle -> quaternion SLERP -> euler for bike and body
+                /*
+                std::cout << src[54] << " " << src[55] << " " << src[56] << "\n";
+                std::cout << tgt[54] << " " << tgt[55] << " " << tgt[56] << "\n";
+                std::cout << this->curr_keyframe[54] << " " << this->curr_keyframe[55] << " " << this->curr_keyframe[56] << "\n";
+                */
+                glm::mat4 bike_rot_src = glm::rotate(glm::mat4(1),src[54], this->entity_list[1].root->dof_params[0].second);
+                bike_rot_src = glm::rotate(bike_rot_src, src[55], this->entity_list[1].root->dof_params[1].second);
+                bike_rot_src = glm::rotate(bike_rot_src, src[56], this->entity_list[1].root->dof_params[2].second);
+                glm::mat4 bike_rot_tgt = glm::rotate(glm::mat4(1),tgt[54], this->entity_list[1].root->dof_params[0].second);
+                bike_rot_tgt = glm::rotate(bike_rot_tgt, tgt[55], this->entity_list[1].root->dof_params[1].second);
+                bike_rot_tgt = glm::rotate(bike_rot_tgt, tgt[56], this->entity_list[1].root->dof_params[2].second);
+
+                glm::quat src_q = glm::quat_cast(bike_rot_src), tgt_q = glm::quat_cast(bike_rot_tgt), j_q;
+                j_q = glm::mix(src_q, tgt_q, (j*1.f - src[0]) / (tgt[0] - src[0]));
+                glm::mat3 resultant_matrix = glm::mat3_cast(j_q);
+                
+                this->curr_keyframe[56] = atan2(resultant_matrix[1][2], resultant_matrix[2][2]);
+                this->curr_keyframe[55] = atan2(-resultant_matrix[0][2], sqrt(resultant_matrix[1][2] * resultant_matrix[1][2] + resultant_matrix[2][2] * resultant_matrix[2][2]));
+                this->curr_keyframe[54] = atan2(resultant_matrix[0][1], resultant_matrix[0][0]);
+
+                /*
+                std::cout << this->curr_keyframe[54] << " " << this->curr_keyframe[55] << " " << this->curr_keyframe[56] << "\n";
+                std::cout << "-----------------------\n";
+                exit(0);
+                */
                 this->interpolated_keyframes.push_back(Keyframe(k_i.begin(), k_i.end()));
             }
             this->interpolated_keyframes.push_back(Keyframe(tgt.begin(), tgt.end()));
@@ -210,6 +244,7 @@ struct AnimationState {
 
     void start_playback(void) {
         // save the original keyframe for restoring later
+        this->curr_keyframe[0] = 0;
         this->extract_keyframe();
         this->restore_keyframe = Keyframe(this->curr_keyframe.begin(), this->curr_keyframe.end());
         this->playback_idx = 0;

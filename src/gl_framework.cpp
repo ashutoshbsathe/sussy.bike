@@ -284,9 +284,15 @@ namespace csX75 {
 
             bike_resultant_transform = rider->dof_transform * bike_local_transform;
             // MVP -- https://stackoverflow.com/a/15029416
-            bike->dof_params[2].first = atan2(bike_resultant_transform[1][2], bike_resultant_transform[2][2]);
-            bike->dof_params[1].first = atan2(-bike_resultant_transform[0][2], sqrt(bike_resultant_transform[1][2] * bike_resultant_transform[1][2] + bike_resultant_transform[2][2] * bike_resultant_transform[2][2]));
-            bike->dof_params[0].first = atan2(bike_resultant_transform[0][1], bike_resultant_transform[0][0]);
+            theta = atan2(bike_resultant_transform[1][2], bike_resultant_transform[2][2]);
+            std::cout << theta << " ";
+            bike->dof_params[2].first = theta > 0 ? theta : theta + 2 * M_PI;
+            theta = atan2(-bike_resultant_transform[0][2], sqrt(bike_resultant_transform[1][2] * bike_resultant_transform[1][2] + bike_resultant_transform[2][2] * bike_resultant_transform[2][2]));
+            std::cout << theta << " ";
+            bike->dof_params[1].first = theta > 0 ? theta : theta + 2 * M_PI;
+            theta = atan2(bike_resultant_transform[0][1], bike_resultant_transform[0][0]);
+            std::cout << theta << "\n";
+            bike->dof_params[0].first = theta > 0 ? theta : theta + 2 * M_PI;
             bike->dof_params[3].first = bike_resultant_transform[3][2];
             bike->dof_params[4].first = bike_resultant_transform[3][1];
             bike->dof_params[5].first = bike_resultant_transform[3][0];

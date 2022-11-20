@@ -354,9 +354,9 @@ void HierarchyNode::init_default_dof_transform() {
     this->n_dof = 6;
     this->dof_deltas = {M_PI/72., M_PI/72., M_PI/72., 50, 50, 50};
     this->dof_limits = {
-        {-M_PI, M_PI},
-        {-M_PI, M_PI},
-        {-M_PI, M_PI},
+        {0, 2*M_PI},
+        {0, 2*M_PI},
+        {0, 2*M_PI},
         {-100000, 100000},
         {-100000, 100000},
         {-100000, 100000},

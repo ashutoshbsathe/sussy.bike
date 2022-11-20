@@ -259,7 +259,6 @@ void renderGL(void) {
                 global_animate_state.playback_idx++;
                 glfwSetTime(0);
             }
-
         }
     }
     glBindVertexArray(vao);
