@@ -97,6 +97,11 @@ struct AnimationState {
                 this->curr_keyframe[i] = entity.params[i-start];
             }
         }
+
+        for(float p: this->curr_keyframe) {
+            std::cout << p << " ";
+        }
+        std::cout << "\n";
     }
     
     void apply_keyframe() {
