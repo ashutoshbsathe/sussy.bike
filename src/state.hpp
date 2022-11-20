@@ -112,6 +112,7 @@ struct AnimationState {
     }
     
     void apply_keyframe() {
+        std::cout<<"Keyframe no.: "<<curr_keyframe[0]<<"\n";
         unsigned int start, end;
         // lights
         start = this->name_to_keyframe_indices["lights"].first;
