@@ -229,6 +229,16 @@ namespace csX75 {
             global_animate_state.record_mode = !global_animate_state.record_mode;
         } else if(key == GLFW_KEY_7 && action == GLFW_PRESS) {
             glm::vec3 norm = third_person_camera.n;
+            global_animate_state.entity_list[0].root->dof_params[3].first -= norm.z * global_animate_state.entity_list[0].root->dof_deltas[3];
+            global_animate_state.entity_list[0].root->dof_params[4].first -= norm.y * global_animate_state.entity_list[0].root->dof_deltas[4];
+            global_animate_state.entity_list[0].root->dof_params[5].first -= norm.x * global_animate_state.entity_list[0].root->dof_deltas[5];
+            global_animate_state.entity_list[0].root->update_dof_transform();
+            global_animate_state.entity_list[1].root->dof_params[3].first -= norm.z * global_animate_state.entity_list[1].root->dof_deltas[3];
+            global_animate_state.entity_list[1].root->dof_params[4].first -= norm.y * global_animate_state.entity_list[1].root->dof_deltas[4];
+            global_animate_state.entity_list[1].root->dof_params[5].first -= norm.x * global_animate_state.entity_list[1].root->dof_deltas[5];
+            global_animate_state.entity_list[1].root->update_dof_transform();
+        }  else if(key == GLFW_KEY_8 && action == GLFW_PRESS) {
+            glm::vec3 norm = third_person_camera.n;
             global_animate_state.entity_list[0].root->dof_params[3].first += norm.z * global_animate_state.entity_list[0].root->dof_deltas[3];
             global_animate_state.entity_list[0].root->dof_params[4].first += norm.y * global_animate_state.entity_list[0].root->dof_deltas[4];
             global_animate_state.entity_list[0].root->dof_params[5].first += norm.x * global_animate_state.entity_list[0].root->dof_deltas[5];
@@ -237,50 +247,50 @@ namespace csX75 {
             global_animate_state.entity_list[1].root->dof_params[4].first += norm.y * global_animate_state.entity_list[1].root->dof_deltas[4];
             global_animate_state.entity_list[1].root->dof_params[5].first += norm.x * global_animate_state.entity_list[1].root->dof_deltas[5];
             global_animate_state.entity_list[1].root->update_dof_transform();
-        } else if(key == GLFW_KEY_8 && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_9 && action == GLFW_PRESS) {
             HierarchyNode *bike, *rider;
             glm::mat4 bike_local_transform, bike_resultant_transform;
-            int rot_idx = dof_id, update_idx;
+            int rot_idx = dof_id;
             float tan, theta, theta_x, theta_y, theta_z;
             rider = global_animate_state.entity_list[0].root;
             bike = global_animate_state.entity_list[1].root;
             
             bike_local_transform = glm::inverse(rider->dof_transform) * bike->dof_transform;
-            for(unsigned int i = 0; i < 4; i++) {
-                for(unsigned int j = 0; j < 4; j++) {
-                    std::cout << bike_local_transform[i][j] << " ";
-                }
-                std::cout << "\n";
-            }
+
+            rider->dof_params[rot_idx].first -= rider->dof_deltas[rot_idx];
+            rider->update_dof_transform();
+
+            bike_resultant_transform = rider->dof_transform * bike_local_transform;
+            // MVP -- https://stackoverflow.com/a/15029416
+            bike->dof_params[2].first = atan2(bike_resultant_transform[1][2], bike_resultant_transform[2][2]);
+            bike->dof_params[1].first = atan2(-bike_resultant_transform[0][2], sqrt(bike_resultant_transform[1][2] * bike_resultant_transform[1][2] + bike_resultant_transform[2][2] * bike_resultant_transform[2][2]));
+            bike->dof_params[0].first = atan2(bike_resultant_transform[0][1], bike_resultant_transform[0][0]);
+            bike->dof_params[3].first = bike_resultant_transform[3][2];
+            bike->dof_params[4].first = bike_resultant_transform[3][1];
+            bike->dof_params[5].first = bike_resultant_transform[3][0];
+            bike->update_dof_transform();
+        } else if(key == GLFW_KEY_0 && action == GLFW_PRESS) {
+            HierarchyNode *bike, *rider;
+            glm::mat4 bike_local_transform, bike_resultant_transform;
+            int rot_idx = dof_id;
+            float tan, theta, theta_x, theta_y, theta_z;
+            rider = global_animate_state.entity_list[0].root;
+            bike = global_animate_state.entity_list[1].root;
+            
+            bike_local_transform = glm::inverse(rider->dof_transform) * bike->dof_transform;
 
             rider->dof_params[rot_idx].first += rider->dof_deltas[rot_idx];
             rider->update_dof_transform();
 
             bike_resultant_transform = rider->dof_transform * bike_local_transform;
-            for(unsigned int i = 0; i < 4; i++) {
-                for(unsigned int j = 0; j < 4; j++) {
-                    std::cout << bike_resultant_transform[i][j] << " ";
-                }
-                std::cout << "\n";
-            }
             // MVP -- https://stackoverflow.com/a/15029416
             bike->dof_params[2].first = atan2(bike_resultant_transform[1][2], bike_resultant_transform[2][2]);
             bike->dof_params[1].first = atan2(-bike_resultant_transform[0][2], sqrt(bike_resultant_transform[1][2] * bike_resultant_transform[1][2] + bike_resultant_transform[2][2] * bike_resultant_transform[2][2]));
             bike->dof_params[0].first = atan2(bike_resultant_transform[0][1], bike_resultant_transform[0][0]);
-            std::cout << bike->dof_params[0].second.x << " " << bike->dof_params[0].second.y << " " << bike->dof_params[0].second.z << "\n";
-            std::cout << bike->dof_params[1].second.x << " " << bike->dof_params[1].second.y << " " << bike->dof_params[1].second.z << "\n";
-            std::cout << bike->dof_params[2].second.x << " " << bike->dof_params[2].second.y << " " << bike->dof_params[2].second.z << "\n";
             bike->dof_params[3].first = bike_resultant_transform[3][2];
             bike->dof_params[4].first = bike_resultant_transform[3][1];
             bike->dof_params[5].first = bike_resultant_transform[3][0];
             bike->update_dof_transform();
-            for(unsigned int i = 0; i < 4; i++) {
-                for(unsigned int j = 0; j < 4; j++) {
-                    std::cout << bike->dof_transform[i][j] << " ";
-                }
-                std::cout << "\n";
-            }
-            std::cout << "--------------------\n";
         }
     }
 }
