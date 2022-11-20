@@ -211,7 +211,7 @@ void initTexturedShadersGL(void) {
 }
 
 // Sand track texture
-std::string sandTrack_texture_fname = "./resources/skybox_test/track.png";
+std::string sandTrack_texture_fname = "./resources/tex_sand/Sand.jpg";
 GLuint sandTrack_texture_id;
 
 // Bike headlight texture
