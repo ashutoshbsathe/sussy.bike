@@ -2,6 +2,7 @@
 #include "entity.hpp"
 #include "state.hpp"
 #include "camera.hpp"
+#include <cmath>
 #include <GLFW/glfw3.h>
 extern bool persp;
 extern float xrot, yrot, zrot, rotamount, VIEW_PADDING, zoomamount, light_x, light_y, light_z, light_moveamount;
@@ -238,50 +239,49 @@ namespace csX75 {
             global_animate_state.entity_list[1].root->update_dof_transform();
         } else if(key == GLFW_KEY_8 && action == GLFW_PRESS) {
             HierarchyNode *bike, *rider;
-            glm::mat4 translate, translate_back, resultant;
+            glm::mat4 bike_local_transform, bike_resultant_transform;
+            int rot_idx = dof_id, update_idx;
+            float tan, theta;
             rider = global_animate_state.entity_list[0].root;
             bike = global_animate_state.entity_list[1].root;
+            
+            bike_local_transform = glm::inverse(rider->dof_transform) * bike->dof_transform;
+            for(unsigned int i = 0; i < 4; i++) {
+                for(unsigned int j = 0; j < 4; j++) {
+                    std::cout << bike_local_transform[i][j] << " ";
+                }
+                std::cout << "\n";
+            }
 
-            rider->dof_params[1].first += rider->dof_deltas[1];
+            rider->dof_params[rot_idx].first += rider->dof_deltas[rot_idx];
             rider->update_dof_transform();
 
-            bike->dof_params[1].first += bike->dof_deltas[1];
+            bike_resultant_transform = rider->dof_transform * bike_local_transform;
+            for(unsigned int i = 0; i < 4; i++) {
+                for(unsigned int j = 0; j < 4; j++) {
+                    std::cout << bike_resultant_transform[i][j] << " ";
+                }
+                std::cout << "\n";
+            }
+            if(rot_idx == 0) {
+                tan = -bike_resultant_transform[1][0] / bike_resultant_transform[1][1];
+            } else if(rot_idx == 1) {
+                tan = bike_resultant_transform[2][0] / bike_resultant_transform[0][0];
+            } else if(rot_idx == 2) {
+                tan = -bike_resultant_transform[2][1] / bike_resultant_transform[1][1];
+            }
+            bike->dof_params[rot_idx].first = atan(tan);
+            bike->dof_params[3].first = bike_resultant_transform[3][2];
+            bike->dof_params[4].first = bike_resultant_transform[3][1];
+            bike->dof_params[5].first = bike_resultant_transform[3][0];
             bike->update_dof_transform();
-
-            translate = glm::translate(glm::mat4(1), glm::vec3(
-                rider->dof_params[5].first - bike->dof_params[5].first,
-                rider->dof_params[4].first - bike->dof_params[4].first,
-                rider->dof_params[3].first - bike->dof_params[3].first 
-            ));
-
-            translate_back = glm::translate(glm::mat4(1), glm::vec3(
-                -rider->dof_params[5].first + bike->dof_params[5].first,
-                -rider->dof_params[4].first + bike->dof_params[4].first,
-                -rider->dof_params[3].first + bike->dof_params[3].first 
-            ));
-
-            resultant = translate * bike->dof_transform * translate_back;
-            /*
-            bike->dof_params[5].first = -rider->dof_params[5].first;
-            bike->dof_params[4].first = -rider->dof_params[4].first;
-            bike->dof_params[3].first = -rider->dof_params[3].first;
-            */
-            bike->update_dof_transform();
-            bike->dof_transform = resultant;
             for(unsigned int i = 0; i < 4; i++) {
                 for(unsigned int j = 0; j < 4; j++) {
                     std::cout << bike->dof_transform[i][j] << " ";
                 }
                 std::cout << "\n";
             }
-            std::cout << bike->dof_params[3].first << " " << bike->dof_params[4].first << " " << bike->dof_params[5].first << "\n";
-            for(unsigned int i = 0; i < 4; i++) {
-                for(unsigned int j = 0; j < 4; j++) {
-                    std::cout << resultant[i][j] << " ";
-                }
-                std::cout << "\n";
-            }
-            std::cout << "------------------------\n";
+            std::cout << "--------------------\n";
         }
     }
 }
