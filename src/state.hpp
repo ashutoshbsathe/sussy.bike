@@ -228,12 +228,16 @@ struct AnimationState {
     void save_keyframes_to_file(void) {
         std::ofstream fout;
         fout.open("keyframes.txt");
+        int num_keyframes = 0, frames = 0;
         for(Keyframe f: this->saved_keyframes) {
             for(float param: f) {
                 fout << param << " ";
             }
             fout << "\n";
+            num_keyframes++;
+            frames = f[0];
         }
+        std::cout << "Wrote " << num_keyframes << " keyframes worth " << frames << " frames\n";
         fout.close();
     }
 
@@ -242,15 +246,23 @@ struct AnimationState {
         fin.open("keyframes.txt");
         std::string line;
         std::stringstream ss;
+        int num_keyframes = 0;
         while(std::getline(fin, line)) {
             ss.str("");
-            ss << line;
+            ss.str(line);
+            std::cout << ss.str() << ", was read\n";
+            std::cout << line << ", curr_keyframe.size() = " << this->curr_keyframe.size() << "\n";
             
             for(int i = 0; i < this->curr_keyframe.size(); i++) {
-                ss >> this->curr_keyframe[i];    
+                ss >> this->curr_keyframe[i];
+                std::cout << this->curr_keyframe[i] << ",";
             }
+            std::cout << "\n";
             this->saved_keyframes.push_back(Keyframe(this->curr_keyframe.begin(), this->curr_keyframe.end()));
+            num_keyframes++;
+            std::cout << this->curr_keyframe[0] << "\n";
         }
+        std::cout << "Read " << num_keyframes << " keyframes worth " << this->curr_keyframe[0] << " frames\n";
         fin.close();
     }
 };
