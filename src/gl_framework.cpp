@@ -227,7 +227,7 @@ namespace csX75 {
             global_animate_state.read_keyframes_from_file();
         } else if(key == GLFW_KEY_F10 && action == GLFW_PRESS) {
             global_animate_state.record_mode = !global_animate_state.record_mode;
-        } else if(key == GLFW_KEY_7 && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_7) {
             glm::vec3 norm = third_person_camera.n;
             global_animate_state.entity_list[0].root->dof_params[3].first -= norm.z * global_animate_state.entity_list[0].root->dof_deltas[3];
             global_animate_state.entity_list[0].root->dof_params[4].first -= norm.y * global_animate_state.entity_list[0].root->dof_deltas[4];
@@ -237,7 +237,7 @@ namespace csX75 {
             global_animate_state.entity_list[1].root->dof_params[4].first -= norm.y * global_animate_state.entity_list[1].root->dof_deltas[4];
             global_animate_state.entity_list[1].root->dof_params[5].first -= norm.x * global_animate_state.entity_list[1].root->dof_deltas[5];
             global_animate_state.entity_list[1].root->update_dof_transform();
-        }  else if(key == GLFW_KEY_8 && action == GLFW_PRESS) {
+        }  else if(key == GLFW_KEY_8) {
             glm::vec3 norm = third_person_camera.n;
             global_animate_state.entity_list[0].root->dof_params[3].first += norm.z * global_animate_state.entity_list[0].root->dof_deltas[3];
             global_animate_state.entity_list[0].root->dof_params[4].first += norm.y * global_animate_state.entity_list[0].root->dof_deltas[4];
@@ -247,7 +247,7 @@ namespace csX75 {
             global_animate_state.entity_list[1].root->dof_params[4].first += norm.y * global_animate_state.entity_list[1].root->dof_deltas[4];
             global_animate_state.entity_list[1].root->dof_params[5].first += norm.x * global_animate_state.entity_list[1].root->dof_deltas[5];
             global_animate_state.entity_list[1].root->update_dof_transform();
-        } else if(key == GLFW_KEY_9 && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_9) {
             HierarchyNode *bike, *rider;
             glm::mat4 bike_local_transform, bike_resultant_transform;
             int rot_idx = dof_id;
@@ -269,7 +269,7 @@ namespace csX75 {
             bike->dof_params[4].first = bike_resultant_transform[3][1];
             bike->dof_params[5].first = bike_resultant_transform[3][0];
             bike->update_dof_transform();
-        } else if(key == GLFW_KEY_0 && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_0) {
             HierarchyNode *bike, *rider;
             glm::mat4 bike_local_transform, bike_resultant_transform;
             int rot_idx = dof_id;
