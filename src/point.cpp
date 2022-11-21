@@ -1,4 +1,5 @@
-#include "point.hpp"
+#include "includes/point.hpp"
+
 Point::Point() {
     this->x = 0;
     this->y = 0;

@@ -1,5 +1,6 @@
-#include "triangle.hpp"
+#include "includes/triangle.hpp"
 #include <sstream>
+
 Triangle::Triangle(Point p1, Point p2, Point p3, Point c) {
     this->p1 = p1;
     this->p2 = p2;

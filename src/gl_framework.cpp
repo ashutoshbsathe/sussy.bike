@@ -1,7 +1,7 @@
-#include "gl_framework.hpp"
-#include "entity.hpp"
-#include "state.hpp"
-#include "camera.hpp"
+#include "includes/gl_framework.hpp"
+#include "includes/entity.hpp"
+#include "includes/state.hpp"
+#include "includes/camera.hpp"
 #include <cmath>
 #include <GLFW/glfw3.h>
 extern bool persp;

@@ -1,7 +1,7 @@
-#include "main.hpp"
-#include "bike.hpp"
-#include "rider.hpp"
-#include "track.hpp"
+#include "includes/main.hpp"
+#include "includes/bike.hpp"
+#include "includes/rider.hpp"
+#include "includes/track.hpp"
 #include <GLFW/glfw3.h>
 #define MAX_BIKE_VBO_BYTES 1024000
 //                          914112

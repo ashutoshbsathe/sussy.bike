@@ -1,4 +1,4 @@
-#include "entity.hpp"
+#include "includes/entity.hpp"
 
 AnimationEntity::AnimationEntity(std::string name, HierarchyNode *root) {
     this->name = name;

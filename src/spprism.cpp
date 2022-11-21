@@ -1,4 +1,4 @@
-#include "spprism.hpp"
+#include "includes/spprism.hpp"
 
 StackedPolyPrism::StackedPolyPrism(unsigned int n, unsigned int k, std::vector<float> rs, std::vector<float> hs, bool top_closed, bool bot_closed, std::vector<Point> colors, glm::mat4 init_transform) {
     this->n = n;
