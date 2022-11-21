@@ -62,6 +62,7 @@ with open('keyframes.txt', 'w') as f:
     f.write('\n'.join(lines))
 """
 
+"""
 sequences = [
     './init_camera.txt',
     './keyframes_good.txt',
@@ -82,3 +83,23 @@ for fname in sequences:
     offset = int(last_keyframe.split(' ')[0]) + 1
 with open('keyframes.txt', 'w') as f:
     f.write('\n'.join(keyframes))
+"""
+
+new_length = 4000
+with open('./keyframes_with_everything.txt', 'r') as f:
+    lines = [line.strip() for line in f.readlines()]
+
+orig_keys = [int(line.split(' ')[0]) for line in lines]
+diff = [1]
+for i in range(1, len(orig_keys)):
+    diff.append(int((orig_keys[i] - orig_keys[i-1]) * new_length / orig_keys[-1]))
+new_keys = [1]
+for i in range(1, len(diff)):
+    new_keys.append(new_keys[-1] + diff[i])
+for i in range(len(lines)):
+    params = lines[i].split(' ')
+    params[0] = str(new_keys[i])
+    lines[i] = ' '.join(params) + ' '
+
+with open('./keyframes.txt', 'w') as f:
+    f.write('\n'.join(lines))
