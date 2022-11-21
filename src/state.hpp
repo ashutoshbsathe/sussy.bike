@@ -231,14 +231,19 @@ struct AnimationState {
             this->interpolated_keyframes.push_back(Keyframe(tgt.begin(), tgt.end()));
         }
         int i = 0;
+        std::ofstream fout;
+        fout.open("interpolated_keyframes.txt");
         for(auto keyframe: this->interpolated_keyframes) {
             std::cout << "i = " << i << ", [ ";
             for(auto param: keyframe) {
                 std::cout << param << " ";
+                fout << param << " ";
             }
             std::cout << "]\n";
+            fout << "\n";
             i++;
         }
+        fout.close();
     }
 
     void start_playback(void) {
