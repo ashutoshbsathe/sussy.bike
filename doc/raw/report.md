@@ -58,7 +58,7 @@ geometry:
 
 We have included 4 lights in the scene, global light 1, global light 2, rider's spotlight and bike headlight. First two lights are point lights which are used to lights up the whole FMX track, whereas the latter two light are spotlights (i.e whose spread is limited by an angle range). All the lights illuminate the environment using *"Blinn-Phong model"*.
 
-For placing the global lights we have chosen some 3D coordinates enables us to light up the scene properly, thus global lights are static. On the other hand, rider's spotlight follows the rider everywhere in the scene and bike headlight position and angle changes as the bike changes the same. For limiting the throw of these spotlights we have limited the angle of light spread to $5^{\circ}$ degrees instead of full $360^{\circ}$ degrees. This is implemented via `includes/light.hpp`.
+For placing the global lights we chose specific 3D coordinates that enable us to light up the scene properly while also enabling interesting shadows. Global lights are static, on the other hand, rider's spotlight follows the rider everywhere in the scene and bike headlight position + angle changes along with the bike. For limiting the throw of these spotlights we have limited the angle of light spread to $5^{\circ}$ degrees instead of full $360^{\circ}$ degrees. This is implemented via `includes/light.hpp`.
 
 # Shadow Mapping
 
