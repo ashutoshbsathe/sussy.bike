@@ -139,31 +139,31 @@ namespace csX75 {
             curr_node->update_dof_transform();
             auto params = curr_node->dof_params[dof_id];
             std::cout << curr_node->name << "[dof#" << dof_id + 1 << "]: value = " << params.first << ", delta = " << curr_node->dof_deltas[dof_id] << ", along (" << params.second[0] << ", " << params.second[1] << ", " << params.second[2] << ")\n";
-        }  else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_W) {
+        }  else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_Y) {
             xmove += moveamount;
-        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_S) {
+        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_H) {
             xmove -= moveamount;
-        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_D) {
+        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_J) {
             ymove += moveamount;
-        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_A) {
+        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_G) {
             ymove -= moveamount;
-        }else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_Q) {
+        }else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_T) {
             zmove += moveamount;
-        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_E) {
+        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_U) {
             zmove -= moveamount;
-        } else if(key == GLFW_KEY_D) {
+        } else if(key == GLFW_KEY_J) {
             xrot += rotamount;
-        } else if(key == GLFW_KEY_A) {
+        } else if(key == GLFW_KEY_G) {
             xrot -= rotamount;
-        } else if(key == GLFW_KEY_W) {
+        } else if(key == GLFW_KEY_Y) {
             yrot += rotamount;
             if(yrot > M_PI/2 - 0.1) yrot = M_PI/2 - 0.1;
-        } else if(key == GLFW_KEY_S) {
+        } else if(key == GLFW_KEY_H) {
             yrot -= rotamount;
             if(yrot < -M_PI/2 + 0.1) yrot = -M_PI/2 + 0.1;
-        }else if(key == GLFW_KEY_Q) {
+        }else if(key == GLFW_KEY_T) {
             zrot += rotamount;
-        } else if(key == GLFW_KEY_E) {
+        } else if(key == GLFW_KEY_U) {
             zrot -= rotamount;
         } else if(key == GLFW_KEY_COMMA && action == GLFW_PRESS) {
             if(entity_idx == 0) {
@@ -192,18 +192,6 @@ namespace csX75 {
             global_animate_state.curr_camera = 1;
         } else if(key == GLFW_KEY_M && action == GLFW_PRESS) {
             global_animate_state.curr_camera = 2;
-        } else if(key == GLFW_KEY_UP) {
-            light_y += light_moveamount;
-        } else if(key == GLFW_KEY_DOWN) {
-            light_y -= light_moveamount;
-        }  else if(key == GLFW_KEY_RIGHT) {
-            light_x += light_moveamount;
-        } else if(key == GLFW_KEY_LEFT) {
-            light_x -= light_moveamount;
-        }  else if(key == GLFW_KEY_PAGE_UP) {
-            light_z += light_moveamount;
-        } else if(key == GLFW_KEY_PAGE_DOWN) {
-            light_z -= light_moveamount;
         } else if(key == GLFW_KEY_F1 && action == GLFW_PRESS) {
             global_animate_state.lights_list[0].isActive = !global_animate_state.lights_list[0].isActive;
         } else if(key == GLFW_KEY_F2 && action == GLFW_PRESS) {
