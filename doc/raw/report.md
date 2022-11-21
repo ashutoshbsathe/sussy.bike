@@ -18,7 +18,9 @@ geometry:
 
 # Rendered video link
 
-[`https://youtu.be/3X2_qD4iIy4`](https://youtu.be/3X2_qD4iIy4)
+[`https://youtu.be/3X2_qD4iIy4`](https://youtu.be/3X2_qD4iIy4) or 
+
+[`https://drive.google.com/file/d/1YHvtwAg5F9scsN7r4panFjI6Sw0rcVp9/view?usp=sharing`](https://drive.google.com/file/d/1YHvtwAg5F9scsN7r4panFjI6Sw0rcVp9/view?usp=sharing)
 
 # Controls
 
@@ -56,26 +58,25 @@ geometry:
 
 We have included 4 lights in the scene, global light 1, global light 2, rider's spotlight and bike headlight. First two lights are point lights which are used to lights up the whole FMX track, whereas the latter two light are spotlights (i.e whose spread is limited by an angle range). All the lights illuminate the environment using *"Blinn-Phong model"*.
 
-For placing the global lights we have chosen some 3D coordinates enables us to light up the scene properly, thus global lights are static. On the other hand, rider's spotlight follows the rider everywhere in the scene and bike headlight position and angle changes as the bike changes the same. For limiting the throw of these spotlights we have limited the angle of light spread to $5\deg$ degrees instead of full $360\deg$ degrees. 
+For placing the global lights we have chosen some 3D coordinates enables us to light up the scene properly, thus global lights are static. On the other hand, rider's spotlight follows the rider everywhere in the scene and bike headlight position and angle changes as the bike changes the same. For limiting the throw of these spotlights we have limited the angle of light spread to $5^{\circ}$ degrees instead of full $360^{\circ}$ degrees. This is implemented via `includes/light.hpp`.
 
-This is implemented in `includes/light.hpp`.
+# Shadow Mapping
 
-# Cameras
-
-We have used the `phong shading` to render the whole scene as it gives the best looking results without need of much tesselations. The colours calculated for every fragment also considers the shadows generated due to the entities in the scene.
-
-For implementing the shadows we have perfomed shadow mapping using textures. It is done for every light source which makes the scene realistic with multiple shadows. We have created a vector for storing the shadow maps corresponding to every light source which later are considered for performing the depth tests repeatedly for every light. Finally the colour of every fragment is calculated by considering each shadow term.
+We follow LearnOpenGL's shadow mapping tutorial along with class notes to implement shadow mapping from all 4 light sources. Since we generate maximum of 4 shadow maps (1 per light) we store them in a `GL_TEXTURE_2D_ARRAY` and sample from appropriate layer in the fragment shader. We combine the result of depth test at every fragment and also perform PCF for smoother shadows. We followed LearnOpenGL's shadow mapping tutorial for this. Main implementation can be found in `lighting_shading_fs.glsl`.
 
 # Cameras
 
-We have employed three cameras. i.e. global camera, third person camera and first person camera, to capture the scene from multiple point of views. Global camera can be moved in the world using controls specified above. Third and first person cameras are positioned dynamically. The third person camera tracks the rider automatically whereas the first person camera is positioned in a way to emulate the rider's eyes.
+We have employed three cameras -- global camera, third person camera and first person camera. Global camera can be moved arbitrarily in the world using controls specified above. Third and first person cameras are positioned dynamically. The third person camera tracks the rider automatically whereas the first person camera is positioned above rider's neck at around eye level to emulate GoPro-like camera. Each camera can also be focussed at a particular point at any given time. This functionality is also used by spotlight to always focus on the rider. Implemented in `includes/camera.hpp`.
 
 # Textures
 
 Figure 1 shows all the textures used in the assignment. We were unable to UV map all the complex geometry within time so we just UV-mapped a single quad in track, bike and rider. We also make sure to properly move this texture with bike and rider separately. The texture also interacts with all the lights. All the texture mapped geometry is drawn with `renderTexturedGL(...)` implemented in `includes/main.hpp`. Our skybox code is heavily inspired from the LearnOpenGL's cubemap tutorial although we use our own modeling machinery (`triangle.hpp`, `point.hpp`) in order to accomplish the goal. The skybox texture was taken from [`http://humus.name/index.php?page=Textures`](http://humus.name/index.php?page=Textures) and is licensed under Creative Commons 3 license.
 
-
 ![All the textures used in this assignment. Top row: Left -- bike headlight, Middle -- Torso back logo, Right -- Track texture. Middle row: negative parts (XYZ) of skybox. Bottom row: positive parts (XYZ) of skybox.](textures.png)
+
+# Story of the animation
+
+Josh is learning FMX riding and is practising his first show but somehow the bike is trying to sabotage his performance by not spinning the wheels. Even the GoPro comes loose during the show, but Josh manages to pull through. Will Josh continue learning FMX ? Our original idea was to make this as a meme but we did not have enough time to add music and make the quirks in the animation standout.
 
 # References
 
@@ -83,3 +84,5 @@ Figure 1 shows all the textures used in the assignment. We were unable to UV map
 * Hierarchical Modeling -- [`http://graphics.cs.cmu.edu/nsp/course/15-462/Spring04/slides/05-hierarchy.pdf`](http://graphics.cs.cmu.edu/nsp/course/15-462/Spring04/slides/05-hierarchy.pdF)
 * Enabling `glVertexAttribPointer` such that could make arranging a single VBO for hierarchical modeling easy -- [`https://stackoverflow.com/a/39684775`](https://stackoverflow.com/a/39684775)
 * Track obstacle inspiration -- [`https://www.youtube.com/watch?v=VC1FeM9QuEg`](https://www.youtube.com/watch?v=VC1FeM9QuEg)
+* Shadow mapping -- [`https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping`](https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping)
+* Lighting -- [`https://learnopengl.com/Lighting/Basic-Lighting`](https://learnopengl.com/Lighting/Basic-Lighting)
