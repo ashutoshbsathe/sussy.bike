@@ -180,7 +180,6 @@ HierarchyNode::HierarchyNode(std::string fname) {
                 this->vbo_copy[27*i+25] = this->triangle_list[i].p3.normal.y;
                 this->vbo_copy[27*i+26] = this->triangle_list[i].p3.normal.z; 
             }
-            std::cout << "body.vbo_copy created successfully\n";
             this->local_transform = glm::mat4(1);
             this->private_transform = glm::mat4(1);
 
@@ -243,7 +242,6 @@ HierarchyNode::HierarchyNode(std::string name, std::vector<Triangle> t, std::vec
         */
     }
     this->vbo_copy = new float[t.size() * 3 * 3 * 3 + l.size() * 2 * 3 * 3]();
-    std::cout << "len(vbo_copy) = " << t.size() * 3 * 3 * 3 + l.size() * 2 * 3 * 3 << "\n";
     for(int i = 0; i < this->triangle_list.size(); i++) {
         this->vbo_copy[27*i] = this->triangle_list[i].p1.x;
         this->vbo_copy[27*i+1] = this->triangle_list[i].p1.y;

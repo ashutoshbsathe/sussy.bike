@@ -69,6 +69,7 @@ struct AnimationState {
             this->name_to_keyframe_indices[entity.name] = {start, end};
         }
 
+        std::cout << "Keyframe specifics: \n";
         for(auto it: this->name_to_keyframe_indices) {
             std::cout << it.first << ": [" << it.second.first << ", " << it.second.second << "]\n";
         }
@@ -104,16 +105,17 @@ struct AnimationState {
                 this->curr_keyframe[i] = entity.params[i-start];
             }
         }
-
+        
+        std::cout << "Extracted keyframe: [ ";
         for(float p: this->curr_keyframe) {
             std::cout << p << " ";
         }
-        std::cout << "\n";
+        std::cout << "]\n";
     }
     
     void apply_keyframe() {
-        std::cout<<"Keyframe no.: "<<curr_keyframe[0]<<"\n";
         unsigned int start, end;
+        std::cout << "Applying keyframe idx = " << curr_keyframe[0] << "\n";
         // lights
         start = this->name_to_keyframe_indices["lights"].first;
         end = this->name_to_keyframe_indices["lights"].second;

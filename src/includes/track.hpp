@@ -5,9 +5,6 @@ std::pair<HierarchyNode *, unsigned int> build_track(std::map<std::string, GLuin
     if(gl_info.find("vbo_offset") == gl_info.end()){
         gl_info["vbo_offset"] = 0;
     }
-    for(auto it : gl_info){
-        std::cout<<it.first<<" : "<<it.second<<"\n";
-    }
     next_available_vbo_offset = gl_info["vbo_offset"];
     HierarchyNode *track_lower = new HierarchyNode(StackedPolyPrism("./track_parts/track_lower.txt"));
     HierarchyNode *start_platform = new HierarchyNode("./track_parts/start_platform.txt");

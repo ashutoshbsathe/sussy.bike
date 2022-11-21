@@ -90,12 +90,12 @@ glm::vec3 first_person_position, first_person_lookat_dir;
 
 // skybox
 std::vector<std::string> skybox_fnames = {
-    "./resources/skybox_sand/posx.jpg",
-    "./resources/skybox_sand/negx.jpg",
-    "./resources/skybox_sand/posy.jpg",
-    "./resources/skybox_sand/negy.jpg",
-    "./resources/skybox_sand/posz.jpg",
-    "./resources/skybox_sand/negz.jpg",
+    "./resources/skybox/posx.jpg",
+    "./resources/skybox/negx.jpg",
+    "./resources/skybox/posy.jpg",
+    "./resources/skybox/negy.jpg",
+    "./resources/skybox/posz.jpg",
+    "./resources/skybox/negz.jpg",
 };
 GLuint skybox_texture, skybox_vao, skybox_vbo, skybox_shader_program, skybox_position_id, skybox_uModelViewProject_id, skybox_sampler_id;
 float skybox_radius = 102400.f;
@@ -211,15 +211,15 @@ void initTexturedShadersGL(void) {
 }
 
 // Sand track texture
-std::string sandTrack_texture_fname = "./resources/skybox_test/track.png";
+std::string sandTrack_texture_fname = "./resources/track.png";
 GLuint sandTrack_texture_id;
 
 // Bike headlight texture
-std::string bikeHeadlight_texture_fname = "./resources/skybox_test/bike.png";
+std::string bikeHeadlight_texture_fname = "./resources/bike.png";
 GLuint bikeHeadlight_texture_id;
 
 // Humanoid shirt texture
-std::string humanoidShirt_texture_fname = "./resources/skybox_test/rider.png";
+std::string humanoidShirt_texture_fname = "./resources/rider.png";
 GLuint humanoidShirt_texture_id;
 
 // Common function for all textured entities

@@ -323,50 +323,42 @@ std::pair<HierarchyNode *, unsigned int> build_humanoid(std::map<std::string, GL
     torso_2->private_transform = glm::make_mat4(torso_flatten);
     torso_3->private_transform = glm::make_mat4(torso_flatten);
     torso_2->setGLInfo(gl_info);
-    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
+
     add_edge(torso_2, torso_1, &next_available_vbo_offset);
     add_edge(torso_2, torso_3, &next_available_vbo_offset);
-    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
 
     add_edge(torso_1, neck, &next_available_vbo_offset);
     add_edge(torso_1, shoulder, &next_available_vbo_offset);
     add_edge(torso_1, other_shoulder, &next_available_vbo_offset);
-    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
 
     add_edge(torso_3, hip, &next_available_vbo_offset);
     add_edge(torso_3, other_hip, &next_available_vbo_offset);
-    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
 
     add_edge(neck, head, &next_available_vbo_offset);
-    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
 
     add_edge(shoulder, uarm, &next_available_vbo_offset);
     add_edge(uarm, elbow, &next_available_vbo_offset);
     add_edge(elbow, larm, &next_available_vbo_offset);
     add_edge(larm, wrist, &next_available_vbo_offset);
     add_edge(wrist, palm, &next_available_vbo_offset);
-    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
 
     add_edge(hip, uthigh, &next_available_vbo_offset);
     add_edge(uthigh, knee, &next_available_vbo_offset);
     add_edge(knee, lthigh, &next_available_vbo_offset);
     add_edge(lthigh, ankle, &next_available_vbo_offset);
     add_edge(ankle, feet, &next_available_vbo_offset);
-    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
 
     add_edge(other_shoulder, other_uarm, &next_available_vbo_offset);
     add_edge(other_uarm, other_elbow, &next_available_vbo_offset);
     add_edge(other_elbow, other_larm, &next_available_vbo_offset);
     add_edge(other_larm, other_wrist, &next_available_vbo_offset);
     add_edge(other_wrist, other_palm, &next_available_vbo_offset);
-    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
 
     add_edge(other_hip, other_uthigh, &next_available_vbo_offset);
     add_edge(other_uthigh, other_knee, &next_available_vbo_offset);
     add_edge(other_knee, other_lthigh, &next_available_vbo_offset);
     add_edge(other_lthigh, other_ankle, &next_available_vbo_offset);
     add_edge(other_ankle, other_feet, &next_available_vbo_offset);
-    std::cout << "next_available_vbo_offset = " << next_available_vbo_offset << std::endl;
 
     return std::pair<HierarchyNode *, unsigned int>(torso_2, next_available_vbo_offset);
 }
