@@ -50,10 +50,10 @@ namespace csX75 {
     //!GLFW keyboard callback
     void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
         //!Close the window if the ESC key was pressed
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, GL_TRUE);
-        /* Mod keys to be put before */
-        else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+            /* Mod keys to be put before normal keys for proper responses */
+        } else if(mods == GLFW_MOD_ALT && key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
             if(curr_node->parent == NULL) {
                 std::cout << "No sibling to " << curr_node->name << "\n";
             }
@@ -200,21 +200,26 @@ namespace csX75 {
             global_animate_state.lights_list[2].isActive = !global_animate_state.lights_list[2].isActive;
         } else if(key == GLFW_KEY_F4 && action == GLFW_PRESS) {
             global_animate_state.lights_list[3].isActive = !global_animate_state.lights_list[3].isActive;
-        } else if(key == GLFW_KEY_F5 && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_S && action == GLFW_PRESS) {
             unsigned int keyframe_idx;
             std::cout << "Enter keyframe index:";
             std::cin >> keyframe_idx;
             global_animate_state.save_keyframe(keyframe_idx);
-        } else if(key == GLFW_KEY_F6 && action == GLFW_PRESS) {
-            global_animate_state.interpolate_keyframes();
-        } else if(key == GLFW_KEY_F7 && action == GLFW_PRESS) {
-            global_animate_state.start_playback();
-        } else if(key == GLFW_KEY_F8 && action == GLFW_PRESS) {
             global_animate_state.save_keyframes_to_file();
-        } else if(key == GLFW_KEY_F9 && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_P && action == GLFW_PRESS) {
+            global_animate_state.playback_mode = true;
+            global_animate_state.record_mode = false;
+            global_animate_state.interpolate_keyframes();
+            global_animate_state.start_playback();
+        } else if(key == GLFW_KEY_L && action == GLFW_PRESS) {
             global_animate_state.read_keyframes_from_file();
-        } else if(key == GLFW_KEY_F10 && action == GLFW_PRESS) {
+        } else if(key == GLFW_KEY_R && action == GLFW_PRESS) {
             global_animate_state.record_mode = !global_animate_state.record_mode;
+            if(global_animate_state.record_mode) {
+                global_animate_state.playback_mode = true;
+                global_animate_state.interpolate_keyframes();
+                global_animate_state.start_playback();
+            }
         } else if(key == GLFW_KEY_7) {
             glm::vec3 norm = third_person_camera.n;
             global_animate_state.entity_list[0].root->dof_params[3].first -= norm.z * global_animate_state.entity_list[0].root->dof_deltas[3];
