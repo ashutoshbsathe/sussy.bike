@@ -10,6 +10,7 @@ for s in splitted_keyframes:
     print(s+1371+8)
 f.close()
 """
+"""
 change_camera = 0
 fname = './end'
 with open(fname + '.txt', 'r') as f:
@@ -26,16 +27,36 @@ for i in range(len(lines)):
 
 with open(fname + f'_cam={change_camera}.txt', 'w') as f:
     f.write('\n'.join(lines))
+"""
 
-sequence = [
-    './startKeyframe_cam=1.txt',
-    './startToFirst.txt',
-    './obstacle1.txt',
-    './obstacle2.txt',
-    './obstacle3-1.txt',
-    './obstacle3.txt',
-    './obstacle4.txt',
-    './end.txt'
-]
+with open('keyframes_animesh.txt', 'r') as f:
+    lines = [line.strip() for line in f.readlines()]
 
+add_delay = [0 for _ in lines]
+add_delay[70] = 25
+add_delay[71] = 25
+add_delay[72] = 10
+add_delay[73] = 10
+add_delay[74] = 10
+orig_keys = [int(line.split(' ')[0]) for line in lines]
+diff = [1]
+for i in range(1, len(orig_keys)):
+    diff.append(orig_keys[i] - orig_keys[i-1] + add_delay[i])
+new_keys = [1]
+for i in range(1, len(diff)):
+    new_keys.append(new_keys[-1] + diff[i])
+print(orig_keys)
+print(diff)
+print(new_keys)
 
+for i in range(len(lines)):
+    params = lines[i].split(' ')
+    params[0] = str(new_keys[i])
+    params[1] = str(1)
+    params[2] = str(1)
+    params[3] = str(1)
+    params[4] = str(1)
+    lines[i] = ' '.join(params) + ' '
+
+with open('keyframes.txt', 'w') as f:
+    f.write('\n'.join(lines))
