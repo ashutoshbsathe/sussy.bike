@@ -1,5 +1,5 @@
 ---
-title: CS675 2022 - Assignment 2 - FMX Modeling
+title: CS675 2022 - Assignment 3 - FMX Rendering and Animation
 authors: "Ashutosh Sathe (21q050012), Animesh (21q050015)"
 fontsize: 10pt
 geometry: 
@@ -16,12 +16,11 @@ geometry:
 1. Ashutosh Sathe (21q050012)
 2. Animesh (21q050015)
 
-# Screenshots of rendered models
+# Rendered video link
 
-![Top row: Rider and Bike, Bottom: Track with 5 obstacles](imgs/output.jpeg)
 
 # Controls
-
+## Hierarchy controls
 * `Alt + Left/Right` -- Move to the left or the right sibling of current node
 * `Alt + Up` -- Move to the parent of the current node
 * `Alt + Down` -- Move to the first children of the current node
@@ -30,23 +29,33 @@ geometry:
 * Right bracket (`]`) -- Decrease the parameter of the selected degree of freedom
 * Period (`.`) -- Move to the next animation entity (a parameterized hierarchy node)
 * Comma (`,`) -- Move to the previous animation entity (a parameterized hierarchy node)
-* `m` -- Move the camera farther
-* `n` -- Move the camera closer
-* `W/A/S/D/Q/E` -- Global camera movement (only track)
 
-# Modeling the rider
+## Rider and bike combined movements
+* `7` -- Moving both rider and bike backward in the direction of rider's view
+* `8` -- Moving both rider and bike forward in the direction of rider's view
+* `9` -- Rotating both rider and bike anticlockwise along the selected dof axis
+* `0` -- Rotating both rider and bike clockwise along the selected dof axis
 
-![Our custom primitive called "StackedPolyPrism"](imgs/primitive.pdf)
+## Light controls
+* `F1` -- Toggle global light 1 on/off
+* `F2` -- Toggle global light 2 on/off
+* `F3` -- Toggle rider spotlight on/off
+* `F4` -- Toggle bike headlight on/off
+* 
 
-Everything in the body is rendered using a special primitive called "Stacked Polygon Prism" (SPP for short). This is simply a set of $n$ concentric $k$-sided regular polygons stacked on top of each other. By varying the radii and heights of these polygons, we can model a variety of shapes. Figure 2 shows how SPP can be used to approximate spheres and cylinders for high enough $n$ and $k$ values. This primitive is implemented in `spprism.hpp` and `spprism.cpp`. SPP, given parameters like $n, k, <r_i>, <h_i>$ and colors at each level will automatically generate the triangle list to be drawn.
+## Camera controls
+* `b` -- Selecting global camera
+* `n` -- Selecting third person camera
+* `m` -- Selecting first person camera
+* `Y/G/H/J/T/U` -- Global camera movement
 
-![Hierarchical model of the rider. Green node is root. Orange nodes are "fixed". Blue text nodes have 1 degree of freedom while magenta text nodes have 3 degrees of freedom.](imgs/humanoid.pdf)
+# Details of light
 
-Hierarchy structure of the rider is shown in Figure 3. Each part here is an SPP that we manually set the parameters for. Each node in the hierarchy is represented by a structure called `HierarchyNode` (implemented via `hnode.hpp` and `hnode.cpp`) and holds the list of triangles and lines to be drawn for that particular primitive. Triangle list is automatically obtained from SPP for modeling the rider and line list is always empty. We are using `Triangle` and `Point` datatypes from first assignment which have a lot of helper functions to make this job easy.
+We have included 4 lights in the scene, global light 1, global light 2, rider's spotlight and bike headlight.
 
-With the geometry defined as above, we store the relative transform of the current node with respect to its parent node in `local_transform`. This allows us to correctly place a particular node in the world using hierarchy. In addition to this local arrangement transform, we also store a private transform that will not be passed down the hierarchy for additional effects which can be useful during animation. Finally the degrees of freedom for this node are also stored in a fairly flexible manner using `dof_params`, `n_dof`, `dof_deltas` and `dof_limits`. This gives every node up to 3 arbitrary rotational and translational degrees of freedom. All these can be about any arbitrary axis and should be properly configured by the user according to node properties.
+The first two lights are point lights which are used to lit up the whole FMX track, whereas the latter two light are spotlights (i,e, whose spread is limited by an angle range).
 
-In our model of the rider, only the joints have degrees of freedom while every other node such as head, upper arm etc. has 0 degrees of freedom (`n_dof = 0`), these nodes only move with the joints. In our experiments, this enabled much more fluid and natural looking movement as opposed to merging these nodes with joints themselves. Notice that for successful execution, the generated executable `a2-model-rider` must be executed from the folder containing the parameters of various SPPs (i.e. folder containing `body_parts` directory) used for modeling the rider.
+For p
 
 # Modeling the bike
 
