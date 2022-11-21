@@ -28,7 +28,7 @@ for i in range(len(lines)):
 with open(fname + f'_cam={change_camera}.txt', 'w') as f:
     f.write('\n'.join(lines))
 """
-
+"""
 with open('keyframes_animesh.txt', 'r') as f:
     lines = [line.strip() for line in f.readlines()]
 
@@ -60,3 +60,25 @@ for i in range(len(lines)):
 
 with open('keyframes.txt', 'w') as f:
     f.write('\n'.join(lines))
+"""
+
+sequences = [
+    './init_camera.txt',
+    './keyframes_good.txt',
+    './end_camera.txt'
+]
+
+keyframes = []
+offset = 0
+for fname in sequences:
+    with open(fname, 'r') as f:
+        lines = [line.strip() for line in f.readlines()]
+    for i in range(len(lines)):
+        params = lines[i].split(' ')
+        params[0] = str(int(params[0]) + offset)
+        lines[i] = ' '.join(params) + ' '
+    keyframes.extend(lines)
+    last_keyframe = keyframes[-1]
+    offset = int(last_keyframe.split(' ')[0]) + 1
+with open('keyframes.txt', 'w') as f:
+    f.write('\n'.join(keyframes))

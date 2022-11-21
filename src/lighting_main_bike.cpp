@@ -20,7 +20,9 @@ Camera third_person_camera, first_person_camera;
 AnimationState global_animate_state;
 
 void initGlobalAnimationState(void) {
-    global_animate_state.global_camera = Camera(glm::vec3(0.f, 2000.f, -2000.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    global_animate_state.global_camera = Camera(glm::vec3(-3534.6,2950.58,-961.148), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    global_animate_state.global_camera.yaw = 1.0472;
+    global_animate_state.global_camera.pitch = -0.15708;
     global_animate_state.curr_camera = 0;
     global_animate_state.lights_list = {
         Light(
