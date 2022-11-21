@@ -8,7 +8,7 @@ CPPFLAGS=-I/usr/local/include -std=c++11 -msse2
 OUT_DIR=./bin/
 FRAME_DIR=./rendered-frames/
 
-FMX_ANIMATE_BIN=$(OUT_DIR)/fmx_animate
+FMX_ANIMATE_BIN=$(OUT_DIR)/fmx-animate
 BIN=fmx_animate
 
 SRC_DIR=./src/
