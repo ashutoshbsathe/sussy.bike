@@ -41,7 +41,6 @@ geometry:
 * `F2` -- Toggle global light 2 on/off
 * `F3` -- Toggle rider spotlight on/off
 * `F4` -- Toggle bike headlight on/off
-* 
 
 ## Camera controls
 * `b` -- Selecting global camera
@@ -53,11 +52,17 @@ geometry:
 
 We have included 4 lights in the scene, global light 1, global light 2, rider's spotlight and bike headlight. First two lights are point lights which are used to lights up the whole FMX track, whereas the latter two light are spotlights (i,e, whose spread is limited by an angle range). All the lights are modelled using the `Blinn-Phong model`.
 
-For placing the global lights we have chosen some `3D` coordinates enables us to light up the scene properly, thus global lights are static. On the other hand, rider's spotlight follows the rider everywhere in the scene and bike headlight position and angle changes as the bike changes the same. For limiting the throw of these spotlights we have chosen appropriate angle ranges.
+For placing the global lights we have chosen some `3D` coordinates enables us to light up the scene properly, thus global lights are static. On the other hand, rider's spotlight follows the rider everywhere in the scene and bike headlight position and angle changes as the bike changes the same. For limiting the throw of these spotlights we have limited the angle of light spread to `5` degrees instead of full `360` degrees. 
 
 # Shading and shadows implementation
 
-We have used the `phong shading` to render the whole scene as it gives the best looking results without the need of much tesselations. 
+We have used the `phong shading` to render the whole scene as it gives the best looking results without need of much tesselations. The colours calculated for every fragment also considers the shadows generated due to the entities in the scene.
+
+For implementing the shadows we have perfomed shadow mapping using textures. It is done for every light source which makes the scene realistic with multiple shadows. We have created a vector for storing the shadow maps corresponding to every light source which later are considered for performing the depth tests repeatedly for every light. Finally the colour of every fragment is calculated by considering each shadow term.
+
+# Cameras
+
+We have employed three cameras. i.e. global camera, third person camera and first person camera, to capture the scene from multiple point of views. Global camera can be moved in the world using controls specified above. Third and first person cameras are positioned dynamically. The third person camera tracks the rider automatically whereas the first person camera is positioned in a way to emulate the rider's eyes.
 
 # Modeling the bike
 
