@@ -145,24 +145,10 @@ void StackedPolyPrism::build_triangle_list(bool transform) {
 
     for(auto it: point_to_all_normals) {
         glm::vec3 tmp = glm::vec3(0,0,0);
-        /*
-        std::cout << "(" << it.first.x << ", " << it.first.y << ", " << it.first.z << "):\n";
-        */
         for(auto n: it.second) {
             tmp += n;
-            /*
-            std::cout << "tmp = [" << tmp.x << ", " << tmp.y << ", " << tmp.z << "], n = " << n.x << ", " << n.y << ", " << n.z << "\n";
-            */
         }
-        /*
-        std::cout << "----------------------------\n";
-        */
         tmp /= it.second.size();
-        /*
-        std::cout << "tmp = [" << tmp.x << ", " << tmp.y << ", " << tmp.z << "]\n";
-        std::cout << "----------------------------\n";
-        std::cout << "----------------------------\n";
-        */
         point_to_final_normal[it.first] = glm::normalize(tmp);
     }
 
