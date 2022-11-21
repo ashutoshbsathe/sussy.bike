@@ -78,6 +78,8 @@ Figure 1 shows all the textures used in the assignment. We were unable to UV map
 
 Josh is learning FMX riding and is practising his first show but somehow the bike is trying to sabotage his performance by not spinning the wheels. Even the GoPro comes loose during the show, but Josh manages to pull through. Will Josh continue learning FMX ? Our original idea was to make this as a meme but we did not have enough time to add music and make the quirks in the animation standout.
 
+![A frame from animation](./21q050012-21q050015.jpg)
+
 # References
 
 * OpenGL Tutorials -- Tutorial 07 -- [`https://github.com/paragchaudhuri/cs475-tutorials`](https://github.com/paragchaudhuri/cs475-tutorials)
