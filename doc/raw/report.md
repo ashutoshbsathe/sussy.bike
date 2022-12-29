@@ -54,9 +54,29 @@ geometry:
 * `Y/G/H/J/` -- Change global camera lookat
 * `Alt + Y/G/H/J/T/U` -- Move global camera
 
+# Modeling the rider
+
+![Our custom primitive called "StackedPolyPrism"](imgs/primitive.pdf)
+
+Everything in the body is rendered using a special primitive called "Stacked Polygon Prism" (SPP for short). This is simply a set of $n$ concentric $k$-sided regular polygons stacked on top of each other. By varying the radii and heights of these polygons, we can model a variety of shapes. Figure 1 shows how our proposed SPP can be used to approximate spheres and cylinders for high enough $n$ and $k$ values. This primitive is implemented in `spprism.hpp` and `spprism.cpp`. SPP, given parameters like $n, k, <r_i>, <h_i>$ and colors at each level will automatically generate the triangle list to be drawn.
+
+![Hierarchical model of the rider. Green node is root. Orange nodes are "fixed". Blue text nodes have 1 degree of freedom while magenta text nodes have 3 degrees of freedom.](imgs/humanoid.pdf)
+
+Hierarchy structure of the rider is shown in Figure 2. Each part here is an SPP that we manually set the parameters for. Each node in the hierarchy is represented by a structure called `HierarchyNode` (implemented via `hnode.hpp` and `hnode.cpp`) and holds the list of triangles and lines to be drawn for that particular primitive. Triangle list is automatically obtained from SPP for modeling the rider and line list is always empty. We are using `Triangle` and `Point` datatypes from first assignment which have a lot of helper functions to make this job easy.
+
+With the geometry defined as above, we store the relative transform of the current node with respect to its parent node in `local_transform`. This allows us to correctly place a particular node in the world using hierarchy. In addition to this local arrangement transform, we also store a private transform that will not be passed down the hierarchy for additional effects which can be useful during animation. Finally the degrees of freedom for this node are also stored in a fairly flexible manner using `dof_params`, `n_dof`, `dof_deltas` and `dof_limits`. This gives every node up to 3 arbitrary rotational and translational degrees of freedom. All these can be about any arbitrary axis and should be properly configured by the user according to node properties.
+
+In our model of the rider, only the joints have degrees of freedom while every other node such as head, upper arm etc. has 0 degrees of freedom (`n_dof = 0`), these nodes only move with the joints. In our experiments, this enabled much more fluid and natural looking movement as opposed to merging these nodes with joints themselves.
+
+# Modeling the bike and track
+
+Modeling the bike body and track was challenging due to its irregular shape. We first drew left hand side view of the bike on a graph paper. Labeled each point and then manually generated triangles for this side. Then we ported these triangles into OpenGL and kept transforming it till we were happy with the overall shape of one side. Then we simply reflected the shape about Z-axis to get the complete body. Other parts of the bike were modeled using SPP. Figure 3 shows the overall hierarchy structure.
+
+![Hierarchical model of the bike. Green node is root. Orange nodes are "fixed". Blue text nodes have 1 degree of freedom.](imgs/bike.pdf)
+
 # Lights
 
-We have included 4 lights in the scene, global light 1, global light 2, rider's spotlight and bike headlight. First two lights are point lights which are used to lights up the whole FMX track, whereas the latter two light are spotlights (i.e whose spread is limited by an angle range). All the lights illuminate the environment using *"Blinn-Phong model"*.
+We have included 4 lights in the scene -- global light 1, global light 2, rider's spotlight and bike headlight. First two lights are point lights which are used to lights up the whole FMX track, whereas the latter two light are spotlights (i.e whose spread is limited by an angle range). All the lights illuminate the environment using *"Blinn-Phong model"*.
 
 For placing the global lights we chose specific 3D coordinates that enable us to light up the scene properly while also enabling interesting shadows. Global lights are static, on the other hand, rider's spotlight follows the rider everywhere in the scene and bike headlight position + angle changes along with the bike. For limiting the throw of these spotlights we have limited the angle of light spread to $5^{\circ}$ degrees instead of full $360^{\circ}$ degrees. This is implemented via `includes/light.hpp`.
 
@@ -70,7 +90,7 @@ We have employed three cameras -- global camera, third person camera and first p
 
 # Textures
 
-Figure 1 shows all the textures used in the assignment. We were unable to UV map all the complex geometry within time so we just UV-mapped a single quad in track, bike and rider. We also make sure to properly move this texture with bike and rider separately. The texture also interacts with all the lights. All the texture mapped geometry is drawn with `renderTexturedGL(...)` implemented in `includes/main.hpp`. Our skybox code is heavily inspired from the LearnOpenGL's cubemap tutorial although we use our own modeling machinery (`triangle.hpp`, `point.hpp`) in order to accomplish the goal. The skybox texture was taken from [`http://humus.name/index.php?page=Textures`](http://humus.name/index.php?page=Textures) and is licensed under Creative Commons 3 license.
+Figure 4 shows all the textures used in the assignment. We were unable to UV map all the complex geometry within time so we just UV-mapped a single quad in track, bike and rider. We also make sure to properly move this texture with bike and rider separately. The texture also interacts with all the lights. All the texture mapped geometry is drawn with `renderTexturedGL(...)` implemented in `includes/main.hpp`. Our skybox code is heavily inspired from the LearnOpenGL's cubemap tutorial although we use our own modeling machinery (`triangle.hpp`, `point.hpp`) in order to accomplish the goal. The skybox texture was taken from [`http://humus.name/index.php?page=Textures`](http://humus.name/index.php?page=Textures) and is licensed under Creative Commons 3 license.
 
 ![All the textures used in this assignment. Top row: Left -- bike headlight, Middle -- Torso back logo, Right -- Track texture. Middle row: negative parts (XYZ) of skybox. Bottom row: positive parts (XYZ) of skybox.](textures.png)
 
