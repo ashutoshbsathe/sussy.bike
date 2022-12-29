@@ -9,7 +9,7 @@
 1. [@ashutoshbsathe](https://github.com/ashutoshbsathe)
 2. [@Animesh98](https://github.com/Animesh98)
 
-Special thanks to [@pritishc](https://github.com/pritishc) for the name suggestion and [@swaroop-nath](https://github.com/swaroop-nath) for music suggestion for the movie
+Special thanks to [@pritishc](https://github.com/pritishc) for the name suggestion and [@swaroop-nath](https://github.com/swaroop-nath) for [music](https://www.youtube.com/watch?v=-IudP7eYVLc) suggestion for the movie
 
 ## Movie
 
