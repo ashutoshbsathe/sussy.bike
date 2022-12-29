@@ -1,4 +1,4 @@
-# Assignment 3 -- FMX Rendering and Animation
+# Sussy bike
 
 ## Declaration
 
@@ -6,8 +6,10 @@
 
 ## Members
 
-1. Ashutosh Sathe (21q050012)
-2. Animesh (21q050015)
+1. [@ashutoshbsathe](https://github.com/ashutoshbsathe)
+2. [@Animesh98](https://github.com/Animesh98)
+
+Special thanks to [@pritishc](https://github.com/pritishc) for the name suggestion and [@swaroop-nath](https://github.com/swaroop-nath) for music suggestion for the movie
 
 ## Movie
 
